@@ -1,7 +1,7 @@
 import pytest
 
 from einspect import structs
-from conftest import from_ptr
+from tests import from_ptr
 
 
 class TestPyObject:
@@ -13,7 +13,7 @@ class TestPyObject:
         ls = []
         py_object = structs.PyObject.from_object(ls)
         assert py_object.ob_refcnt == 1
-        assert from_ptr(py_object.ob_type) == list
+        assert py_object.ob_type == list
 
     @pytest.mark.parametrize(["obj", "ob_type"], [
         ("hello", str),
@@ -25,7 +25,7 @@ class TestPyObject:
     def test_obj(self, obj, ob_type):
         py_object = structs.PyObject.from_object(obj)
         assert py_object.ob_refcnt >= 1
-        assert from_ptr(py_object.ob_type) == ob_type
+        assert py_object.ob_type == ob_type
 
 
 class TestPyListObject:
