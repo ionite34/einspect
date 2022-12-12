@@ -1,0 +1,58 @@
+name: Coverage
+
+on: [workflow_call]
+
+jobs:
+  run:
+    name: Coverage
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: true
+      matrix:
+        python-version: ["3.11"]
+        poetry-version: ["1.3.0"]
+        os: [ubuntu-latest]
+        include:
+          - os: ubuntu-latest
+            poetry-cache: ~/.cache/pypoetry
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    # Need to install libsndfile for linux
+    - name: System Dependencies
+      run: sudo apt-get install libsndfile1
+      if: matrix.os == 'ubuntu-latest'
+
+    - name: Cache Poetry
+      uses: actions/cache@v2
+      with:
+        path: ~/.cache/pypoetry
+        key: poetry-cache-${{ matrix.os }}-${{ matrix.poetry-cache }}-${{ matrix.python-version }}-${{ matrix.poetry-version }}
+
+    - name: Setup Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Run Poetry image
+      uses: abatilo/actions-poetry@v2.0.0
+      with:
+        poetry-version: ${{ matrix.poetry-version }}
+
+    - name: Install requirements
+      run: |
+        poetry install
+
+    - name: Run Tests
+      run: |
+        poetry run pytest --cov=./src --cov-report=xml
+
+    - name: Upload Coverage to Codecov
+      uses: codecov/codecov-action@v3.1.0
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        fail_ci_if_error: true
+        flags: unittests
+        verbose: true
