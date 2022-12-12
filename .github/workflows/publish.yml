@@ -47,7 +47,7 @@ jobs:
 
     - name: Install requirements
       run: |
-        poetry install
+        poetry install --with dev
 
     - name: Poetry Build
       run: |
