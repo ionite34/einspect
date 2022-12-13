@@ -4,7 +4,7 @@ from __future__ import annotations
 import _ctypes
 import ctypes
 from ctypes import Structure, pythonapi, py_object, POINTER
-from typing import get_type_hints, TypeVar, Type, Generic, cast
+from typing import get_type_hints, TypeVar, Type, Generic, List, Tuple
 
 from typing_extensions import Self
 
@@ -34,7 +34,8 @@ class PyObject(Structure, Generic[_T]):
     """Defines a base PyObject Structure."""
     ob_refcnt: Py_ssize_t
     ob_type: py_object
-    _fields_: list[tuple[str, type]]
+    # Need to use generics from typing to work for py-3.8
+    _fields_: List[Tuple[str, type]]
 
     @property
     def mem_size(self) -> int:
