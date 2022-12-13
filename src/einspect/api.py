@@ -7,6 +7,8 @@ from collections.abc import Callable
 from ctypes import pythonapi, py_object, pointer, POINTER
 from typing import Type, Union
 
+from einspect.compat import pythonapi_req, Version
+
 __all__ = ("Py", "Py_ssize_t", "PyObj_FromPtr")
 
 Py_ssize_t = ctypes.c_ssize_t
@@ -35,7 +37,7 @@ class Py:
     """
     DecRef.argtypes = (py_object,)
 
-    NewRef: Callable[[ObjectOrRef], None] = pythonapi["Py_NewRef"]
+    NewRef: Callable[[ObjectOrRef], None] = pythonapi_req(Version.PY_3_10)["Py_NewRef"]
     """
     Increment the reference count of an object.
     https://docs.python.org/3/c-api/refcounting.html#c.Py_NewRef
