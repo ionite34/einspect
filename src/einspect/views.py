@@ -184,7 +184,7 @@ class View(BaseView[_T]):
         # If no weakref, error if no unsafe context
         if self._base_weakref is None:
             if not self._unsafe:
-                raise AttributeError(
+                raise UnsafeError(
                     f"Base object {self._base_type.__name__!r} does not support weak-refs, "
                     "use (ref=True) or an unsafe context to access base via memory address."
                 ) from None
