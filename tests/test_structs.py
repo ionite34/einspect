@@ -1,7 +1,6 @@
 import pytest
 
 from einspect import structs
-from tests import from_ptr
 
 
 class TestPyObject:
