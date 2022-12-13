@@ -30,7 +30,7 @@ jobs:
       if: matrix.os == 'ubuntu-latest'
 
     - name: Cache Poetry
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: ~/.cache/pypoetry
         key: poetry-cache-${{ matrix.os }}-${{ matrix.poetry-cache }}-${{ matrix.python-version }}-${{ matrix.poetry-version }}

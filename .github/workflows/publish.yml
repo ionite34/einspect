@@ -30,7 +30,7 @@ jobs:
       uses: actions/checkout@v3
 
     - name: Cache Poetry
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: ~/.cache/pypoetry
         key: poetry-cache-${{ env.OS }}-${{ env.POETRY-CACHE }}-${{ env.PYTHON }}-${{ env.POETRY }}
