@@ -82,7 +82,6 @@ class PyLongObject(PyVarObject):
 
     https://github.com/python/cpython/blob/3.11/Include/cpython/longintrepr.h#L79-L82
     """
-    # digit ob_digit[1];
     _ob_digit_0: ctypes.c_uint32 * 0
 
     @property
@@ -141,7 +140,6 @@ class PyTupleObject(PyVarObject):
         # Need to add size * ob_size to our base size
         base = super().mem_size
         int_size = ctypes.sizeof(Py_ssize_t)
-        print(base, int_size, self.ob_size)
         return base + (int_size * self.ob_size)
 
     @property
