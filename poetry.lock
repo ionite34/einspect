@@ -1047,6 +1047,14 @@ optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 
 [[package]]
+name = "pycapi"
+version = "0.82.1"
+description = "Over 600 fast Python bindings to the CPython C API."
+category = "main"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "pycparser"
 version = "2.21"
 description = "C parser in Python"
@@ -1467,7 +1475,7 @@ testing = ["flake8 (<5)", "func-timeout", "jaraco.functools", "jaraco.itertools"
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8,<3.12"
-content-hash = "3883c4c6bb65ca4b9b3fcef31587e9602b39e720e451b67b3e9baafdad4c5893"
+content-hash = "bc5011a9aa728d9f71e76d1c185248a48550d957bad76d1cba4f888c14ca1718"
 
 [metadata.files]
 anyio = [
@@ -2001,6 +2009,52 @@ pure-eval = [
 py = [
     {file = "py-1.11.0-py2.py3-none-any.whl", hash = "sha256:607c53218732647dff4acdfcd50cb62615cedf612e72d1724fb1a0cc6405b378"},
     {file = "py-1.11.0.tar.gz", hash = "sha256:51c75c4126074b472f746a24399ad32f6053d1b34b68d2fa41e558e6f4a98719"},
+]
+pycapi = [
+    {file = "pycapi-0.82.1-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:25f02c34e50e61056ebaf0c1e744d2b9454301b138670710b541eb9245926ad7"},
+    {file = "pycapi-0.82.1-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:5e0b05d0ee85be46bdcb545c49f7617bfc118152004c876a247b70b7bd61e5fb"},
+    {file = "pycapi-0.82.1-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:d7c5e8705bb1d88294ff6e0e378b9cd577892dbda51bd4d9ab6cea082f14b274"},
+    {file = "pycapi-0.82.1-cp310-cp310-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:17f54da754f008b528f670395914a945d5494f422f40a0988b9ed1cd00fde826"},
+    {file = "pycapi-0.82.1-cp310-cp310-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:200338f34c640480267c890c264578d54f32487f1a68f0fdfe7ce9b7a3230ae1"},
+    {file = "pycapi-0.82.1-cp310-cp310-musllinux_1_1_i686.whl", hash = "sha256:256cfda750376bf9ab9a0b6a5069dd71591e6eec7fa6575604d272e262032499"},
+    {file = "pycapi-0.82.1-cp310-cp310-musllinux_1_1_x86_64.whl", hash = "sha256:f4c68e3662c7a673440b3cb4fe7805acb885d2ec85514af4c6cc6fc0e9ed7479"},
+    {file = "pycapi-0.82.1-cp310-cp310-win32.whl", hash = "sha256:9262f288e075e16173b3370f1bfcaeb4b826eae07001b6bfd2c1fd946c17f311"},
+    {file = "pycapi-0.82.1-cp310-cp310-win_amd64.whl", hash = "sha256:5bf90fab5584a8f3c27c5aa28f96c9a8d6e479ce6ff64b03c52e4a6a361e306d"},
+    {file = "pycapi-0.82.1-cp311-cp311-macosx_10_9_universal2.whl", hash = "sha256:6781a4860b5e904399cad2f3f3423fedd3461a15398451ab2876efeb3682ff8c"},
+    {file = "pycapi-0.82.1-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:200e8da556e81c74bfe32ee12f7f605c92ab8ee3a925847db8bedf8094608ed8"},
+    {file = "pycapi-0.82.1-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:4c906d344855d777173d99e0cee790a21a4f0f571d7b1f1d2e9258bdc2a2aaf5"},
+    {file = "pycapi-0.82.1-cp311-cp311-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:9c7ec2b9caa894bf296e1982c9543de67c14ec58a06091ca8269925d53ff83b7"},
+    {file = "pycapi-0.82.1-cp311-cp311-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:8f031149d9743023939dd6834e749408460ddd3ebbd5ff4f77e23fe6fa7f2bef"},
+    {file = "pycapi-0.82.1-cp311-cp311-musllinux_1_1_i686.whl", hash = "sha256:fd15f721e80c3ae034aab15f5d5b7beb370d1c33c73bfdc0afd43a0311a3f960"},
+    {file = "pycapi-0.82.1-cp311-cp311-musllinux_1_1_x86_64.whl", hash = "sha256:19443f0c76b237cfeda510831e7a2740e7cf781017af903541b2347c3f806fac"},
+    {file = "pycapi-0.82.1-cp311-cp311-win32.whl", hash = "sha256:9bc16465df429fc306a604fcf2730eb698c676cdc3911d43b35bea38fbd8e53d"},
+    {file = "pycapi-0.82.1-cp311-cp311-win_amd64.whl", hash = "sha256:cbe7ec5c8d99ca02c3e2f0a66a8fe1a5cdb3dc92b7083d79ab3e781fa78ab03c"},
+    {file = "pycapi-0.82.1-cp37-cp37m-macosx_10_9_x86_64.whl", hash = "sha256:8476ed88490140b0a7f16c5aa31e0c0bae25b949c205c3d0dbec021a5fd8036a"},
+    {file = "pycapi-0.82.1-cp37-cp37m-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:4398074cf3fba28d02d55f19cc0cf4bc225eaa74be5af557f12b0cccd1d34f28"},
+    {file = "pycapi-0.82.1-cp37-cp37m-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:0b016f87e94d785fbfcd380cf8794cb3badffe4942708d9a2c3139168036f008"},
+    {file = "pycapi-0.82.1-cp37-cp37m-musllinux_1_1_i686.whl", hash = "sha256:69aa59e8eb0e16f44a3834a6a00daca5116c7bab2a7cf3b0ac6bf7e98502ac23"},
+    {file = "pycapi-0.82.1-cp37-cp37m-musllinux_1_1_x86_64.whl", hash = "sha256:69e077b62a414b26b29636dc8df8818685eb4acf92f4bcdc22d6a7f74ed3ad38"},
+    {file = "pycapi-0.82.1-cp37-cp37m-win32.whl", hash = "sha256:1d32c791c5998781f6cfb43f30f058acc1f5b2660da6aca424b60a15688964a5"},
+    {file = "pycapi-0.82.1-cp37-cp37m-win_amd64.whl", hash = "sha256:7c8c0f456538e0cedcf5c3fbc186189d6fb9323b528e4bf7f4f17ed277f4be5d"},
+    {file = "pycapi-0.82.1-cp38-cp38-macosx_10_9_universal2.whl", hash = "sha256:21dd98db272954568c6244842aa9903813ff01c1aec7452e53399a55223be401"},
+    {file = "pycapi-0.82.1-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:5ac40feea9c9df793fbac18438921d4d60d9ab85a930be15c8e304d53a06df67"},
+    {file = "pycapi-0.82.1-cp38-cp38-macosx_11_0_arm64.whl", hash = "sha256:95ff437ae0ac6f31524b42eb3903365ea0d5ed4f940caeac301a079baa8f484f"},
+    {file = "pycapi-0.82.1-cp38-cp38-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:9c18190bb61cb7954072c00659c495e42a6cf45243b692d9c04726fa62c3eb11"},
+    {file = "pycapi-0.82.1-cp38-cp38-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:1d3a623d9ce62a2dee5e25887f658a42f292a6f38e95d7ebc9e33ee650c8ce23"},
+    {file = "pycapi-0.82.1-cp38-cp38-musllinux_1_1_i686.whl", hash = "sha256:b392e529aaa6b5039699a582d143cf21edd27d21ffbf6329766314d7a8515f32"},
+    {file = "pycapi-0.82.1-cp38-cp38-musllinux_1_1_x86_64.whl", hash = "sha256:9c949322b5c4fee50096edc7973d91d1fcf5677a3ddb5257efaf8b1daca0f0e3"},
+    {file = "pycapi-0.82.1-cp38-cp38-win32.whl", hash = "sha256:03b1f99efe61e7e741aa8bd76067915b96746bb4b9e7637789631c82bb095f0e"},
+    {file = "pycapi-0.82.1-cp38-cp38-win_amd64.whl", hash = "sha256:f056d8e2ee3c7f50780448e9921a47124e40402b236bc9cff241d4d898ce64d2"},
+    {file = "pycapi-0.82.1-cp39-cp39-macosx_10_9_universal2.whl", hash = "sha256:cd9f8de1e5176f1b330f50318a8a3c4e351e5d23d1658ebc581a8acd34f1ec56"},
+    {file = "pycapi-0.82.1-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:259fff9def3e3528f9c7bca806e8111a6e6c2d7ef864283b0e4c0a1a9df24d78"},
+    {file = "pycapi-0.82.1-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:d2974c67c87c5c58887ad56c6d2525b3b3cf69910c2363e9740e2aa27a2b1065"},
+    {file = "pycapi-0.82.1-cp39-cp39-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:7983256cc2ad88d18765545fb5995ea130a0bbd71b49d90cd412ac13e168f886"},
+    {file = "pycapi-0.82.1-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:30154840a5f23de47d3c528d3a4cbe0aad70bb62e498385a56a81f62cbcce0c1"},
+    {file = "pycapi-0.82.1-cp39-cp39-musllinux_1_1_i686.whl", hash = "sha256:7d3fc3d77201a28c48056e811925fc01309b16c699eca7940e269607e95cec85"},
+    {file = "pycapi-0.82.1-cp39-cp39-musllinux_1_1_x86_64.whl", hash = "sha256:f26b00e0cd9c1742acedd6dd1d09348d89a8cb1bd61c841406171f4ff9b7738c"},
+    {file = "pycapi-0.82.1-cp39-cp39-win32.whl", hash = "sha256:b5700d00aa9e49423f528f09355f25bbdf240d4728d334a7af30d2dcac6f8da8"},
+    {file = "pycapi-0.82.1-cp39-cp39-win_amd64.whl", hash = "sha256:452255076092c0bb2ce6951da320b10f4cba1bf51ca7b84511d40a8bb3da3447"},
+    {file = "pycapi-0.82.1.tar.gz", hash = "sha256:ef07adabb7a5297f3fd40f0160a1b0c43eab9f3940be54a00379f0dcd2426b8f"},
 ]
 pycparser = [
     {file = "pycparser-2.21-py2.py3-none-any.whl", hash = "sha256:8ee45429555515e1f6b185e78100aea234072576aa43ab53aefcae078162fca9"},

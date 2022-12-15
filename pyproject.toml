@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "einspect"
-version = "0.1.1"
+version = "0.2.0"
 description = "Extended Inspect - view and modify memory structs of runtime objects."
 authors = ["ionite34 <dev@ionite.io>"]
 license = "MIT"
@@ -8,8 +8,8 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = ">=3.8,<3.12"
+pycapi = "^0.82.1"
 typing-extensions = "^4.4.0"
-
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.2.0"
