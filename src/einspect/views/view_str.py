@@ -13,7 +13,7 @@ from einspect.views.view_base import View
 _T = TypeVar("_T")
 
 
-class StrView(View[_T], Sequence[_T]):
+class StrView(View[_T], Sequence):
     _pyobject: PyUnicodeObject
 
     @property
