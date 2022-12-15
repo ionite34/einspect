@@ -7,7 +7,7 @@ from collections.abc import Callable
 from ctypes import pythonapi, py_object, pointer, POINTER
 from typing import Type, Union
 
-from einspect.compat import pythonapi_req, Version
+from einspect.compat import python_req, Version
 
 __all__ = ("Py", "Py_ssize_t", "PyObj_FromPtr")
 
@@ -16,7 +16,8 @@ Py_ssize_t = ctypes.c_ssize_t
 
 ObjectOrRef = Union[py_object, object]
 IntSize = Union[int, Py_ssize_t]
-ObjectPointer = Union[POINTER(py_object), Type[ctypes.byref]]
+PyObjectPtr = POINTER(py_object)
+ObjectPtr = Union[PyObjectPtr, Type[ctypes.byref]]
 
 
 class Py:
@@ -28,6 +29,7 @@ class Py:
     https://docs.python.org/3/c-api/refcounting.html#c.Py_IncRef
     """
     IncRef.argtypes = (py_object,)
+    IncRef.restype = None
 
     DecRef: Callable[[ObjectOrRef], None] = pythonapi["Py_DecRef"]
     """
@@ -36,10 +38,12 @@ class Py:
     https://docs.python.org/3/c-api/refcounting.html#c.Py_DecRef
     """
     DecRef.argtypes = (py_object,)
+    DecRef.restype = None
 
-    NewRef: Callable[[ObjectOrRef], None] = pythonapi_req(Version.PY_3_10)["Py_NewRef"]
+    NewRef: Callable[[ObjectOrRef], None] = python_req(Version.PY_3_10) or pythonapi["Py_NewRef"]
     """
-    Increment the reference count of an object.
+    Create a new strong reference to an object, and increments reference count.
+    Returns the object.
     https://docs.python.org/3/c-api/refcounting.html#c.Py_NewRef
     """
     NewRef.argtypes = (py_object,)
@@ -74,7 +78,7 @@ class Py:
         SetItem.argtypes = (py_object, Py_ssize_t, py_object)
         SetItem.restype = None
 
-        Resize: Callable[[ObjectPointer, IntSize], None] = pythonapi["_PyTuple_Resize"]
+        Resize: Callable[[ObjectPtr, IntSize], None] = pythonapi["_PyTuple_Resize"]
         """
         Resize the tuple to the specified size.
         https://docs.python.org/3/c-api/tuple.html#c._PyTuple_Resize
@@ -85,6 +89,17 @@ class Py:
         """
         Resize.argtypes = (POINTER(py_object), Py_ssize_t)
         Resize.restype = None
+
+    class Type:
+        Modified: Callable[[ObjectOrRef], None] = pythonapi["PyType_Modified"]
+        """
+        Invalidate the internal lookup cache for the type and all of its subtypes.
+        
+        - This function must be called after any manual modification of the attributes 
+          or base classes of the type.
+        """
+        Modified.argtypes = (py_object,)
+        Modified.restype = None
 
 
 PyObj_FromPtr = _ctypes.PyObj_FromPtr
