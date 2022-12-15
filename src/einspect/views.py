@@ -16,7 +16,7 @@ from typing_extensions import Self
 
 from einspect.api import Py, PyObj_FromPtr
 from einspect.errors import MovedError, UnsafeIndexError, UnsafeAttributeError, UnsafeError
-from einspect.structs import PyObject, PyListObject, PyTupleObject, Py_ssize_t, PyLongObject, PyVarObject
+from einspect.structs import PyObject, PyListObject, PyTupleObject, PyLongObject, PyVarObject
 from einspect.utils import new_ref
 
 _IntType = TypeVar("_IntType", bound=int)
