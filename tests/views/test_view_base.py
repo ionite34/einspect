@@ -1,10 +1,12 @@
 import ctypes
-import gc
 
 import pytest
 
-from einspect import structs, errors
-from einspect.views import view, View, ListView, IntView, TupleView
+from einspect import structs, errors, view
+from einspect.views.view_list import ListView
+from einspect.views.view_tuple import TupleView
+from einspect.views.view_int import IntView
+from einspect.views.view_base import View
 
 
 class TestView:
@@ -56,9 +58,9 @@ class TestView:
         """Access base with unsafe."""
         obj = object()
         v = view(obj, ref=False)
+        assert v.ref_count == 1
 
         with v.unsafe():
-            assert v.ref_count == 1
             assert v.base.value is obj
 
 
