@@ -164,7 +164,7 @@ class View(BaseView[_T]):
     @property
     def type(self) -> type:
         """Type of the object."""
-        return self._pyobject.ob_type
+        return self._pyobject.ob_type  # type: ignore
 
     @type.setter
     def type(self, value: type) -> None:
