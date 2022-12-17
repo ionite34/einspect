@@ -1,5 +1,8 @@
 # einspect
 
+[![Build](https://github.com/ionite34/einspect/actions/workflows/build.yml/badge.svg)](https://github.com/ionite34/einspect/actions/workflows/build.yml)
+[![codecov](https://codecov.io/gh/ionite34/einspect/branch/main/graph/badge.svg?token=v71SdG5Bo6)](https://codecov.io/gh/ionite34/einspect)
+
 Extended Inspect for CPython
 
 Provides simple and robust ways to view and modify the base memory structures of Python objects at runtime.
