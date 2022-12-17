@@ -1,13 +1,12 @@
 from __future__ import annotations
 
 from ctypes import pythonapi
-from typing import Sequence, overload, TypeVar
+from typing import Sequence, TypeVar, overload
 
 from einspect.errors import UnsafeAttributeError
 from einspect.structs import PyListObject
 from einspect.utils import new_ref
 from einspect.views.view_base import VarView
-
 
 _T = TypeVar("_T")
 
@@ -23,7 +22,7 @@ class ListView(VarView[_T], Sequence):
     def __getitem__(self, index: slice):
         ...
 
-    def __getitem__(self, index: int):
+    def __getitem__(self, index: int | slice):
         if isinstance(index, int):
             # First use PyList_GetItem
             try:
