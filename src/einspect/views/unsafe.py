@@ -2,9 +2,9 @@
 from __future__ import annotations
 
 from collections.abc import Generator
-from contextlib import contextmanager, ExitStack
+from contextlib import ExitStack, contextmanager
 from functools import wraps
-from typing import Callable, TYPE_CHECKING, ContextManager
+from typing import TYPE_CHECKING, Callable, ContextManager
 
 from einspect.errors import UnsafeError
 

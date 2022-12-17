@@ -4,7 +4,6 @@ import ctypes
 from ctypes import Array
 from enum import IntEnum
 
-
 from einspect.structs.deco import struct
 from einspect.structs.py_object import PyObject
 
