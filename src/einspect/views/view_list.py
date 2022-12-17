@@ -62,7 +62,7 @@ class ListView(VarView[_T], Sequence):
     def allocated(self, value: int) -> None:
         if not self._unsafe:
             raise UnsafeAttributeError.from_attr("allocated")
-        self._pyobject.allocated = value
+        self._pyobject.allocated = value  # type: ignore
 
     @property
     def item(self) -> list:
