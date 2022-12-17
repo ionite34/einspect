@@ -6,7 +6,7 @@ from typing import TypeVar, overload
 
 from einspect.api import Py_ssize_t
 from einspect.structs import PyUnicodeObject
-from einspect.structs.py_unicode import State
+from einspect.structs.py_unicode import Kind, State
 from einspect.views.unsafe import unsafe
 from einspect.views.view_base import View
 
@@ -35,7 +35,7 @@ class StrView(View[_T], Sequence):
     @hash.setter
     @unsafe
     def hash(self, value: int) -> None:
-        self._pyobject.hash = value
+        self._pyobject.hash = value  # type: ignore
 
     @property
     def interned(self) -> State:
@@ -50,15 +50,15 @@ class StrView(View[_T], Sequence):
         return self._pyobject.kind
 
     @kind.setter
-    def kind(self, value: int) -> None:
-        self._pyobject.kind = value
+    def kind(self, value: Kind | int) -> None:
+        self._pyobject.kind = Kind(value)
 
     @property
     def buffer(self) -> Array[Py_ssize_t]:
         return self._pyobject.buffer
 
     def __len__(self) -> int:
-        return str.__len__(self.base.value)
+        return str.__len__(self.base.value)  # type: ignore
 
     @overload
     def __getitem__(self, index: int) -> _T: ...
@@ -67,7 +67,7 @@ class StrView(View[_T], Sequence):
     def __getitem__(self, index: slice) -> Sequence[_T]: ...
 
     def __getitem__(self, index: int | slice) -> _T:
-        return str.__getitem__(self.base.value, index)
+        return str.__getitem__(self.base.value, index)  # type: ignore
 
 
 
