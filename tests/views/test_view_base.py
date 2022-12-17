@@ -3,9 +3,6 @@ import ctypes
 import pytest
 
 from einspect import structs, errors, view
-from einspect.views.view_list import ListView
-from einspect.views.view_tuple import TupleView
-from einspect.views.view_int import IntView
 from einspect.views.view_base import View
 
 
@@ -64,38 +61,3 @@ class TestView:
             assert v.base.value is obj
 
 
-class TestListView:
-    def test_new(self):
-        ls = [1, 2, 3]
-        v = view(ls)
-        assert isinstance(v, ListView)
-        assert isinstance(v._pyobject, structs.PyListObject)
-        assert v.size == 3
-        assert v.type == list
-
-
-class TestIntView:
-    @pytest.mark.parametrize(["obj", "size"], [
-        (1, 1),
-        (2 ** 8, 1),
-        (0, 0),  # CPython detail where 0 has ob_size of 0
-        (-1, -1),
-        (-9000, -1),
-    ])
-    def test_new(self, obj, size):
-        v = view(obj)
-        assert isinstance(v, IntView)
-        assert isinstance(v._pyobject, structs.PyLongObject)
-        assert v.type == int
-        assert v.size == size
-        assert v.value == obj
-
-
-class TestTupleView:
-    def test_new(self):
-        tup = ("dog", "cat")
-        v = view(tup)
-        assert isinstance(v, TupleView)
-        assert isinstance(v._pyobject, structs.PyTupleObject)
-        assert v.size == 2
-        assert v.type == tuple
