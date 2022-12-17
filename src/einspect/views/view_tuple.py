@@ -1,14 +1,16 @@
 from __future__ import annotations
 
 import ctypes
+from collections.abc import Iterable
 from ctypes import Array
-from typing import Sequence, overload, TypeVar
+from typing import Sequence, TypeVar, overload
 
-from einspect.errors import UnsafeIndexError, UnsafeAttributeError
+from einspect.api import Py_ssize_t
+from einspect.errors import UnsafeAttributeError, UnsafeIndexError
 from einspect.structs import PyTupleObject
 from einspect.utils import new_ref
+from einspect.views.unsafe import unsafe
 from einspect.views.view_base import VarView
-
 
 _T = TypeVar("_T")
 
@@ -41,7 +43,7 @@ class TupleView(VarView[_T], Sequence):
         # First use SetItem api
         try:
             # Get current item and decref
-            prev_item = self._pyobject.GetItem(self._pyobject, key)
+            prev_item = self._pyobject.GetItem(key)
             # pythonapi.Py_DecRef(prev_item)
             # ref = ctypes.py_object(value)
             # pythonapi.Py_IncRef(ref)
@@ -74,7 +76,22 @@ class TupleView(VarView[_T], Sequence):
         return self._pyobject.ob_item
 
     @item.setter
-    def item(self, value: Array) -> None:
-        if not self._unsafe:
-            raise UnsafeAttributeError.from_attr("item")
-        self._pyobject.ob_item = value
+    @unsafe
+    def item(self, value: Array[Py_ssize_t] | Sequence[int]) -> None:
+        if isinstance(value, Array):
+            # For Array, we can just copy the memory
+            ctypes.memmove(
+                self._pyobject.ob_item,
+                value,
+                ctypes.sizeof(value)
+            )
+        else:
+            # Get the memory address for the start of the array
+            # noinspection PyProtectedMember
+            start_addr = ctypes.addressof(self._pyobject._ob_item_0)
+            # Get the size of the new array
+            size = len(value)
+            # Create a new array at the same address
+            arr = (Py_ssize_t * size).from_address(start_addr)
+            # Copy the values
+            arr[:] = value
