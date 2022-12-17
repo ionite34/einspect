@@ -47,7 +47,7 @@ class PyObject(Structure, Generic[_T]):
 
 
 @struct
-class PyVarObject(PyObject):
+class PyVarObject(PyObject[_T]):
     """
     Defines a base PyVarObject Structure.
 
