@@ -9,9 +9,9 @@ from collections.abc import Callable, Generator
 from contextlib import ExitStack, contextmanager
 from copy import deepcopy
 from ctypes import py_object
-from typing import ContextManager, Generic, Self, TypeVar, get_type_hints
+from typing import ContextManager, Generic, TypeVar, get_type_hints
 
-from typing_extensions import Final
+from typing_extensions import Final, Self
 
 from einspect.api import Py, PyObj_FromPtr
 from einspect.errors import MovedError, UnsafeAttributeError, UnsafeError
