@@ -42,11 +42,7 @@ class PyObject(Structure, Generic[_T]):
     def into_object(self) -> py_object[_T]:
         """Cast the PyObject into a Python object."""
         ptr = ctypes.pointer(self)
-        # Call Py_INCREF to prevent the object from being GC'd
-        # pythonapi.Py_IncRef(ptr)
         obj = ctypes.cast(ptr, ctypes.py_object)
-        # pythonapi.Py_IncRef(obj)
-        # obj = ctypes.py_object.from_address(self._id)
         return obj
 
 
