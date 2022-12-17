@@ -6,7 +6,7 @@ import logging
 from collections.abc import Callable, Sequence
 from ctypes import POINTER
 from functools import partial
-from types import MethodType, NoneType
+from types import MethodType
 from typing import (Any, Protocol, Type, TypeVar, get_type_hints,
                     runtime_checkable)
 
@@ -91,7 +91,7 @@ class delayed_bind(property):
         if res_t is not None:
             res_t = cast_type_aliases(res_t, cls)
             # Replace with None if NoneType
-            res_t = None if res_t is NoneType else res_t
+            res_t = None if isinstance(None, res_t) else res_t
         # Insert current class type as first argument
         arg_t.insert(0, cls)
         arg_t = [cast_type_aliases(t, cls) for t in arg_t]
