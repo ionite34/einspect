@@ -18,31 +18,31 @@ views_map = {
 """Mapping of (type): (view class)."""
 
 
-_IntType = TypeVar("_IntType", bound=int)
-_StrType = TypeVar("_StrType", bound=str)
-_ListType = TypeVar("_ListType", bound=list)
-_TupleType = TypeVar("_TupleType", bound=tuple)
-_ObjectType = TypeVar("_ObjectType", bound=object)
+_Int = TypeVar("_Int", bound=int)
+_Str = TypeVar("_Str", bound=str)
+_List = TypeVar("_List", bound=list)
+_Tuple = TypeVar("_Tuple", bound=tuple)
+_Object = TypeVar("_Object", bound=object)
 
 
 @overload
-def view(obj: _IntType, ref: bool = REF_DEFAULT) -> IntView[_IntType]: ...
+def view(obj: _Int, ref: bool = REF_DEFAULT) -> IntView[_Int]: ...
 
 
 @overload
-def view(obj: _ListType, ref: bool = REF_DEFAULT) -> ListView[_ListType]: ...
+def view(obj: _List, ref: bool = REF_DEFAULT) -> ListView[_List]: ...
 
 
 @overload
-def view(obj: _TupleType, ref: bool = REF_DEFAULT) -> TupleView[_TupleType]: ...
+def view(obj: _Tuple, ref: bool = REF_DEFAULT) -> TupleView[_Tuple]: ...
 
 
 @overload
-def view(obj: _StrType, ref: bool = REF_DEFAULT) -> StrView[_StrType]: ...
+def view(obj: _Str, ref: bool = REF_DEFAULT) -> StrView[_Str]: ...
 
 
 @overload
-def view(obj: _ObjectType, ref: bool = REF_DEFAULT) -> View[_ObjectType]: ...
+def view(obj: _Object, ref: bool = REF_DEFAULT) -> View[_Object]: ...
 
 
 def view(obj, ref: bool = REF_DEFAULT):
