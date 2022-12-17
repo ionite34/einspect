@@ -1,16 +1,21 @@
 """Function factory to create views for objects."""
 from __future__ import annotations
 
-from typing import overload, TypeVar, TYPE_CHECKING
+from typing import TypeVar, overload
 
+from einspect.views.view_base import REF_DEFAULT, View
 from einspect.views.view_int import IntView
 from einspect.views.view_list import ListView
-from einspect.views.view_tuple import TupleView
 from einspect.views.view_str import StrView
-from einspect.views.view_base import View, REF_DEFAULT
+from einspect.views.view_tuple import TupleView
 
-if TYPE_CHECKING:
-    ...
+views_map = {
+    int: IntView,
+    str: StrView,
+    list: ListView,
+    tuple: TupleView,
+}
+"""Mapping of (type): (view class)."""
 
 
 _IntType = TypeVar("_IntType", bound=int)
@@ -25,23 +30,19 @@ def view(obj: _IntType, ref: bool = REF_DEFAULT) -> IntView[_IntType]: ...
 
 
 @overload
-def view(obj: _ListType, ref: bool = REF_DEFAULT) -> ListView[_ListType]:
-    ...
+def view(obj: _ListType, ref: bool = REF_DEFAULT) -> ListView[_ListType]: ...
 
 
 @overload
-def view(obj: _TupleType, ref: bool = REF_DEFAULT) -> TupleView[_TupleType]:
-    ...
+def view(obj: _TupleType, ref: bool = REF_DEFAULT) -> TupleView[_TupleType]: ...
 
 
 @overload
-def view(obj: _StrType, ref: bool = REF_DEFAULT) -> StrView[_StrType]:
-    ...
+def view(obj: _StrType, ref: bool = REF_DEFAULT) -> StrView[_StrType]: ...
 
 
 @overload
-def view(obj: _ObjectType, ref: bool = REF_DEFAULT) -> View[_ObjectType]:
-    ...
+def view(obj: _ObjectType, ref: bool = REF_DEFAULT) -> View[_ObjectType]: ...
 
 
 def view(obj, ref: bool = REF_DEFAULT):
@@ -52,7 +53,8 @@ def view(obj, ref: bool = REF_DEFAULT):
         obj: The object to view.
         ref: If True, hold a strong reference to the object.
 
-    Returns: A view onto the object.
+    Returns:
+        A view onto the object.
     """
     if isinstance(obj, list):
         return ListView(obj, ref=ref)
@@ -62,9 +64,4 @@ def view(obj, ref: bool = REF_DEFAULT):
         return IntView(obj, ref=ref)
     elif isinstance(obj, str):
         return StrView(obj, ref=ref)
-    else:
-        # Base case
-        return View(obj, ref=ref)
-
-
-view.__getitem__ = lambda self, item: self.getitem(item)
+    return View(obj, ref=ref)
