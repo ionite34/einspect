@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ctypes import Structure
-from typing import get_type_hints, TypeVar, Type
+from typing import Callable, Type, TypeVar, get_type_hints
 
 from einspect.api import Py_ssize_t
 
@@ -19,6 +19,9 @@ def struct(cls: _T) -> _T:
     for name, type_hint in get_type_hints(cls).items():
         # Skip actual values like _fields_
         if name.startswith("_") and name.endswith("_"):
+            continue
+        # Skip callables
+        if type_hint == Callable:
             continue
         # Since get_type_hints also gets superclass hints, skip them
         if name not in cls.__annotations__:
