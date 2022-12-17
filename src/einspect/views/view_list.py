@@ -36,7 +36,7 @@ class ListView(VarView[_T], Sequence):
         else:
             raise TypeError(f"Invalid index type: {type(index)}")
 
-    def __setitem__(self, key: int, value: _S) -> None:
+    def __setitem__(self, key: int, value: _T) -> None:
         # First use PyList_SetItem
         try:
             ref = new_ref(value)
