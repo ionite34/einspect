@@ -1,9 +1,10 @@
 """Methods for managing unsafe contexts for views."""
 from __future__ import annotations
 
-from contextlib import contextmanager, ExitStack
+from collections.abc import Generator
+from contextlib import ExitStack, contextmanager
 from functools import wraps
-from typing import Callable, TYPE_CHECKING
+from typing import TYPE_CHECKING, Callable, ContextManager
 
 from einspect.errors import UnsafeError
 
@@ -15,20 +16,23 @@ class Context:
     _global_unsafe = False
 
     def __enter__(self):
-        self._global_unsafe = True
+        Context._global_unsafe = True
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self._global_unsafe = False
+        Context._global_unsafe = False
 
     @classmethod
     @contextmanager
-    def unsafe(cls, *views: View) -> None:
+    def unsafe(cls, *views: View) -> Generator[None, None, None]:
         """Context manager for unsafe contexts."""
         with ExitStack() as stack:
             # If views, set unsafe on all views
             if views:
                 for view in views:
-                    stack.enter_context(view.unsafe())
+                    if not isinstance(view, View):
+                        raise TypeError(f"Expected View, got {type(view)}")
+                    ctx: ContextManager[View] = view.unsafe()  # type: ignore
+                    stack.enter_context(ctx)
                 yield
             else:
                 # Otherwise, set global unsafe

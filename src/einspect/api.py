@@ -1,13 +1,14 @@
 """Typed methods from pythonapi."""
 from __future__ import annotations
 
-import _ctypes
 import ctypes
 from collections.abc import Callable
-from ctypes import pythonapi, py_object, POINTER
+from ctypes import POINTER, py_object, pythonapi
 from typing import Union
 
-from einspect.compat import python_req, Version
+import _ctypes
+
+from einspect.compat import Version, python_req
 
 __all__ = ("Py", "Py_ssize_t", "PyObj_FromPtr")
 

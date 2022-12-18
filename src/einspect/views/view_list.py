@@ -1,13 +1,12 @@
 from __future__ import annotations
 
 from ctypes import pythonapi
-from typing import Sequence, overload, TypeVar
+from typing import Sequence, TypeVar, overload
 
 from einspect.errors import UnsafeAttributeError
 from einspect.structs import PyListObject
 from einspect.utils import new_ref
 from einspect.views.view_base import VarView
-
 
 _T = TypeVar("_T")
 
@@ -23,7 +22,7 @@ class ListView(VarView[_T], Sequence):
     def __getitem__(self, index: slice):
         ...
 
-    def __getitem__(self, index: int):
+    def __getitem__(self, index: int | slice):
         if isinstance(index, int):
             # First use PyList_GetItem
             try:
@@ -36,7 +35,7 @@ class ListView(VarView[_T], Sequence):
         else:
             raise TypeError(f"Invalid index type: {type(index)}")
 
-    def __setitem__(self, key: int, value: _S) -> None:
+    def __setitem__(self, key: int, value: _T) -> None:
         # First use PyList_SetItem
         try:
             ref = new_ref(value)
@@ -63,7 +62,7 @@ class ListView(VarView[_T], Sequence):
     def allocated(self, value: int) -> None:
         if not self._unsafe:
             raise UnsafeAttributeError.from_attr("allocated")
-        self._pyobject.allocated = value
+        self._pyobject.allocated = value  # type: ignore
 
     @property
     def item(self) -> list:

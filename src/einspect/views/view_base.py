@@ -3,31 +3,33 @@ from __future__ import annotations
 import ctypes
 import logging
 import warnings
-
 import weakref
 from abc import ABC
-from contextlib import contextmanager, ExitStack
+from collections.abc import Generator
+from contextlib import ExitStack, contextmanager
 from copy import deepcopy
 from ctypes import py_object
-from typing import Generic, get_type_hints, TypeVar, ContextManager
+from typing import Generic, TypeVar, get_type_hints
 
-from typing_extensions import Final, Self
+from typing_extensions import Self
 
-from einspect.views import factory
 from einspect.api import Py, PyObj_FromPtr
-from einspect.errors import UnsafeError, MovedError, UnsafeAttributeError
+from einspect.errors import MovedError, UnsafeAttributeError, UnsafeError
 from einspect.structs import PyObject, PyVarObject
-from einspect.views.unsafe import unsafe, Context
+from einspect.views import factory
+from einspect.views.unsafe import Context, unsafe
 
 log = logging.getLogger(__name__)
 
 _T = TypeVar("_T")
 
-NO_REF = object()
-REF_DEFAULT: Final[bool] = True
+
+REF_DEFAULT = True
 
 
 class BaseView(ABC, Generic[_T]):
+    """Base class for all views."""
+
     def __init__(self, obj: _T, ref: bool = REF_DEFAULT) -> None:
         # Attempt to get a weakref if possible
         try:
@@ -42,12 +44,13 @@ class BaseView(ABC, Generic[_T]):
         self._local_unsafe = False
 
         # Strong reference
-        self._base = NO_REF
+        self._base: py_object | None = None
         if ref:
             # Convert to py_object
             if not isinstance(obj, py_object):
-                obj = py_object(obj)
-            self._base = obj
+                self._base = py_object(obj)
+            else:
+                self._base = obj
 
     @property
     def _unsafe(self) -> bool:
@@ -58,7 +61,7 @@ class BaseView(ABC, Generic[_T]):
         return Context._global_unsafe
 
     @contextmanager
-    def unsafe(self) -> ContextManager[Self]:
+    def unsafe(self) -> Generator[Self, None, None]:
         """Context manager to allow unsafe attribute edits."""
         self._local_unsafe = True
         yield self
@@ -107,7 +110,7 @@ class View(BaseView[_T]):
             MovedError: If weak-ref of base is garbage collected.
         """
         # Prioritize strong ref if it exists
-        if self._base is not NO_REF:
+        if self._base is not None:
             return self._base
         # If no weakref, error if no unsafe context
         if self._base_weakref is None:
@@ -160,7 +163,7 @@ class View(BaseView[_T]):
     @property
     def type(self) -> type:
         """Type of the object."""
-        return self._pyobject.ob_type
+        return self._pyobject.ob_type  # type: ignore
 
     @type.setter
     def type(self, value: type) -> None:

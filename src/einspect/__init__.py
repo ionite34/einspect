@@ -1,2 +1,8 @@
+from typing import ContextManager
+
+from einspect.views import unsafe as _unsafe
 from einspect.views.factory import view
-from einspect.views.unsafe import unsafe
+
+__all__ = ["view", "unsafe"]
+
+unsafe: ContextManager[None] = _unsafe.Context.unsafe

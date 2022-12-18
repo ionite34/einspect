@@ -26,18 +26,18 @@ class IntView(VarView[_T]):
         return self._pyobject.value
 
     @value.setter
-    def value(self, value: int) -> None:
-        if not isinstance(value, int):
-            raise TypeError(f"Expected int, got {type(value).__name__!r}")
+    def value(self, obj: int) -> None:
+        if not isinstance(obj, int):
+            raise TypeError(f"Expected int, got {type(obj).__name__!r}")
         # Get a struct of the new value
         cls = type(self._pyobject)
-        new_val = cls.from_object(value)
+        new_val = cls.from_object(obj)
 
         # The new value's ob_size must be equal or less than the current
         new_size = abs(new_val.ob_size)
         cur_size = abs(self._pyobject.ob_size)
         if new_size > cur_size:
-            raise ValueError(f"New value {value!r} too large")
+            raise ValueError(f"New value {obj!r} too large")
 
         # Copy the new value's digits into the current value
         self.digits[:new_size] = new_val.ob_digit

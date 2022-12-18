@@ -1,10 +1,11 @@
 # einspect
 
+[![Build](https://github.com/ionite34/einspect/actions/workflows/build.yml/badge.svg)](https://github.com/ionite34/einspect/actions/workflows/build.yml)
+[![codecov](https://codecov.io/gh/ionite34/einspect/branch/main/graph/badge.svg?token=v71SdG5Bo6)](https://codecov.io/gh/ionite34/einspect)
+
 Extended Inspect for CPython
 
 Provides simple and robust ways to view and modify the base memory structures of Python objects at runtime.
-
-> *einspect* is in very early stages of development, API may change at any time without notice.
 
 Note: The below examples show interactions with a `TupleView`, but applies much the same way generically for
 many of the specialized `View` subtypes that are dynamically returned by the `view` function. If no specific
@@ -15,12 +16,19 @@ view is implemented, the base `View` will be used which represents limited inter
 ```python
 from einspect import view
 
-obj = (1, 2, 3)
-v = view(obj)
-
-print(v)
+print(view((1, 2)))
+print(view([1, 2]))
+print(view("hello"))
+print(view(256))
+print(view(object()))
 ```
-> `TupleView[tuple](<PyTupleObject at 0x10078dd00>)`
+> ```
+> TupleView[tuple](<PyTupleObject at 0x100f19a00>)
+> ListView[list](<PyListObject at 0x10124f800>)
+> StrView[str](<PyUnicodeObject at 0x100f12ab0>)
+> IntView[int](<PyLongObject at 0x102058920>)
+> View[object](<PyObject at 0x100ea08a0>)
+> ```
 
 ## 1. Viewing python object struct attributes
 
@@ -50,8 +58,6 @@ with v.unsafe():
 print(obj)
 ```
 > `(1, 2)`
-
-## 3. Writing to view attributes
 
 Since `items` is an array of integer pointers to python objects, they can be replaced by `id()` addresses to modify
 index items in the tuple.
