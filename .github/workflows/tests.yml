@@ -47,7 +47,7 @@ jobs:
 
     - name: Install requirements
       run: |
-        poetry install --with dev
+        poetry install --only ci
 
     - name: Run Tests
       run: |
