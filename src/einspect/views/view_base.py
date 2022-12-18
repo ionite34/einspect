@@ -5,13 +5,13 @@ import logging
 import warnings
 import weakref
 from abc import ABC
-from collections.abc import Callable, Generator
+from collections.abc import Generator
 from contextlib import ExitStack, contextmanager
 from copy import deepcopy
 from ctypes import py_object
-from typing import ContextManager, Generic, TypeVar, get_type_hints
+from typing import Generic, TypeVar, get_type_hints
 
-from typing_extensions import Final, Self
+from typing_extensions import Self
 
 from einspect.api import Py, PyObj_FromPtr
 from einspect.errors import MovedError, UnsafeAttributeError, UnsafeError
@@ -23,7 +23,8 @@ log = logging.getLogger(__name__)
 
 _T = TypeVar("_T")
 
-REF_DEFAULT: Final[bool] = True
+
+REF_DEFAULT = True
 
 
 class BaseView(ABC, Generic[_T]):
@@ -65,8 +66,6 @@ class BaseView(ABC, Generic[_T]):
         self._local_unsafe = True
         yield self
         self._local_unsafe = False
-
-    unsafe: Callable[[], ContextManager[Self]]
 
 
 class View(BaseView[_T]):
