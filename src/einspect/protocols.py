@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import ctypes
 import logging
+import typing
 from collections.abc import Callable, Sequence
 from ctypes import POINTER
 from functools import partial
@@ -29,7 +30,7 @@ class FuncPointer(Protocol):
         ...
 
 
-_F = TypeVar("_F", bound=Callable[[Any], FuncPointer])
+_F = TypeVar("_F", bound=typing.Callable[[Any], FuncPointer])
 _R = TypeVar("_R")
 _CT = TypeVar("_CT", bound=ctypes.Structure)
 
