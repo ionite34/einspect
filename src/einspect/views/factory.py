@@ -1,9 +1,10 @@
 """Function factory to create views for objects."""
 from __future__ import annotations
 
-from typing import TypeVar, overload
+from typing import TypeVar, overload, Final
 
-from einspect.views.view_base import REF_DEFAULT, View
+from einspect.views.view_base import View
+from einspect.views.view_float import FloatView
 from einspect.views.view_int import IntView
 from einspect.views.view_list import ListView
 from einspect.views.view_str import StrView
@@ -22,7 +23,10 @@ _Int = TypeVar("_Int", bound=int)
 _Str = TypeVar("_Str", bound=str)
 _List = TypeVar("_List", bound=list)
 _Tuple = TypeVar("_Tuple", bound=tuple)
+_Float = TypeVar("_Float", bound=float)
 _Object = TypeVar("_Object", bound=object)
+
+REF_DEFAULT: Final[bool] = True
 
 
 @overload
@@ -39,6 +43,10 @@ def view(obj: _Tuple, ref: bool = REF_DEFAULT) -> TupleView[_Tuple]: ...
 
 @overload
 def view(obj: _Str, ref: bool = REF_DEFAULT) -> StrView[_Str]: ...
+
+
+@overload
+def view(obj: _Float, ref: bool = REF_DEFAULT) -> FloatView[_Float]: ...
 
 
 @overload
@@ -64,4 +72,6 @@ def view(obj, ref: bool = REF_DEFAULT):
         return IntView(obj, ref=ref)
     elif isinstance(obj, str):
         return StrView(obj, ref=ref)
+    elif isinstance(obj, float):
+        return FloatView(obj, ref=ref)
     return View(obj, ref=ref)
