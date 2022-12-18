@@ -1,7 +1,7 @@
 import pytest
 
 from einspect import view
-from einspect.views import IntView
+from einspect.views.view_int import IntView
 from einspect.structs import PyLongObject
 
 

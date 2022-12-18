@@ -12,8 +12,8 @@ def obj():
 
 class TestListView:
     @pytest.mark.parametrize(["factory"], [
-        view,
-        ListView,
+        (view,),
+        (ListView,),
      ])
     def test_factory(self, obj, factory):
         """Test different ways of creating a ListView."""

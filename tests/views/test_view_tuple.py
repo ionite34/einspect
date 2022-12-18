@@ -13,10 +13,10 @@ def obj():
     return tup
 
 
-class TestListView:
+class TestTupleView:
     @pytest.mark.parametrize(["factory"], [
-        view,
-        TupleView,
+        (view,),
+        (TupleView,),
     ])
     def test_factory(self, obj, factory):
         """Test different ways of creating a ListView."""
