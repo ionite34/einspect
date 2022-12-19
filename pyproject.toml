@@ -30,6 +30,10 @@ pytest-cov = "^4.0.0"
 [tool.poetry.group.dev-jupyter.dependencies]
 jupyter = "^1.0.0"
 
+[tool.mypy]
+python_version = 3.11
+allow_redefinition = true
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
