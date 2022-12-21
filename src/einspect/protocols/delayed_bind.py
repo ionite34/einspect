@@ -3,103 +3,45 @@ from __future__ import annotations
 
 import ctypes
 import logging
-import typing
-from collections.abc import Callable, Sequence
-from ctypes import POINTER
+from collections.abc import Callable
 from functools import partial
+from inspect import signature
 from types import MethodType
-from typing import (Any, Protocol, Type, TypeVar, get_type_hints,
-                    runtime_checkable)
+from typing import Type, TypeVar, get_type_hints
 
-from typing_extensions import Self
-
-from einspect.api import Py_ssize_t
+from einspect.protocols.type_parse import FuncPtr, convert_type_hints
 
 log = logging.getLogger(__name__)
 
-RES_TYPE_DEFAULT = ctypes.c_int
-ARG_TYPES_DEFAULT = (ctypes.py_object,)
-
-
-@runtime_checkable
-class FuncPointer(Protocol):
-    restype: Any
-    argtypes: Sequence[type]
-
-    def __call__(self, *args: Any, **kwargs: Any) -> Any:
-        ...
-
-
-_F = TypeVar("_F", bound=typing.Callable[[Any], FuncPointer])
+_F = TypeVar("_F")
 _R = TypeVar("_R")
 _CT = TypeVar("_CT", bound=ctypes.Structure)
 
-aliases = {
-    int: Py_ssize_t,
-    object: ctypes.py_object,
-}
 
+def bind_api(py_api: FuncPtr) -> Callable[[_F], _F]:
+    """
+    Decorator to bind a ctypes FuncPtr function to a class.
 
-def cast_type_aliases(source: type[Any], owner_cls: type) -> type:
-    """Cast some aliases for types."""
-    if source == Self:
-        source = owner_cls
-
-    if source in aliases:
-        return aliases[source]
-
-    # Replace with a pointer type if it's a structure
-    if issubclass(source, ctypes.Structure):
-        return POINTER(source)
-
-    return source
-
-
-def bind_api(py_api: FuncPointer) -> Callable[[_F], _F]:
-    """Decorator to bind a function to a ctypes function pointer."""
+    Type hints of the decorated function are used to determine the
+    argtypes and restype of the FuncPtr.
+    """
     return partial(delayed_bind, py_api)
 
 
 # noinspection PyPep8Naming
 class delayed_bind(property):
-    def __init__(self, py_api: FuncPointer, func: _F):
+    def __init__(self, py_api: FuncPtr, func: _F):
         super().__init__()
         self.func = func
         self.__doc__ = func.__doc__
-
         self.py_api = py_api
-
         self.attrname: str | None = None
         self.restype = None
         self.argtypes = None
         self.func_set = False
 
-    def _get_defining_type_hints(self, cls: type) -> tuple[Sequence[type], type]:
-        """Return the type hints for the attribute we're bound to, or None if it's not defined."""
-        # Get the function type hints
-        hints = get_type_hints(self.func)
-        log.debug(f"Found type hints for {self.attrname!r}: {hints}")
-        res_t = hints.pop("return", None)
-        arg_t = list(hints.values())
-
-        # Disallow any missing type hints
-        if None in arg_t or res_t is None:
-            raise TypeError(
-                "Cannot resolve bind function type hints. "
-                "Please provide them explicitly."
-            )
-
-        if res_t is not None:
-            res_t = cast_type_aliases(res_t, cls)
-            # Replace with None if NoneType
-            res_t = None if isinstance(None, res_t) else res_t
-        # Insert current class type as first argument
-        arg_t.insert(0, cls)
-        arg_t = [cast_type_aliases(t, cls) for t in arg_t]
-
-        log.debug(f"Converted: ({arg_t}) -> {res_t}")
-
-        return arg_t, res_t
+    def __repr__(self):
+        return f"<delayed_bind property {self.attrname!r}>"
 
     def __set_name__(self, owner, name):
         if self.attrname is None:
@@ -110,6 +52,37 @@ class delayed_bind(property):
                 f"({self.attrname!r} and {name!r})."
             )
 
+    def _get_defining_type_hints(self, owner_cls: type) -> tuple[list[type], type]:
+        """Return the type hints for the attribute we're bound to, or None if it's not defined."""
+        # Get the function type hints
+        hints = get_type_hints(self.func)
+        log.debug(
+            "[%s.%s()] Type hints: %s",
+            owner_cls.__qualname__,
+            self.attrname,
+            hints,
+        )
+        res_t = hints.pop("return", None)
+        arg_t = list(hints.values())
+
+        # Disallow any missing type hints
+        if None in arg_t or res_t is None:
+            raise TypeError(
+                "Cannot resolve bind function type hints. "
+                "Please provide them explicitly."
+            )
+
+        res_t = convert_type_hints(res_t, owner_cls)
+
+        # Insert current class type as first argument
+        # If there is a "self" parameter
+        if signature(self.func).parameters.get("self") and "self" not in hints:
+            arg_t.insert(0, owner_cls)
+
+        arg_t = [convert_type_hints(t, owner_cls) for t in arg_t]
+
+        return arg_t, res_t
+
     # noinspection PyMethodOverriding
     def __get__(self, instance: object | None, owner_cls: Type[_CT]) -> _F:
         if self.attrname is None:
@@ -119,17 +92,26 @@ class delayed_bind(property):
 
         if not self.func_set:
             argtypes, restype = self._get_defining_type_hints(owner_cls)
-            self.py_api.restype = restype
             self.py_api.argtypes = argtypes
+            self.py_api.restype = restype
             self.func_set = True
+            if log.isEnabledFor(logging.DEBUG):
+                log.debug(
+                    "[%s.%s()] Set func: (%s) -> %r",
+                    owner_cls.__qualname__,
+                    self.attrname,
+                    ", ".join(repr(x.__qualname__) for x in argtypes),
+                    self.py_api.restype.__qualname__,
+                )
 
+        # Called as class method, return directly without binding
         if instance is None:
             return self.py_api  # type: ignore
 
         try:
             cache = instance.__dict__
         except AttributeError:
-            raise TypeError("bind requires classes to support __dict__.") from None
+            raise TypeError("delayed_bind requires class to support __dict__.") from None
 
         bound_func = MethodType(self.py_api, instance)
 

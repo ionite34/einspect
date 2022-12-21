@@ -12,6 +12,8 @@ from einspect.compat import Version, python_req
 
 __all__ = ("Py", "Py_ssize_t", "PyObj_FromPtr")
 
+from einspect.protocols.delayed_bind import bind_api
+
 Py_ssize_t = ctypes.c_ssize_t
 """Constant for type Py_ssize_t."""
 
@@ -20,6 +22,7 @@ IntSize = Union[int, Py_ssize_t]
 PyObjectPtr = POINTER(py_object)
 
 
+# noinspection PyPep8Naming
 class Py:
     """Typed methods from pythonapi."""
 
@@ -90,16 +93,17 @@ class Py:
         Resize.argtypes = (POINTER(py_object), Py_ssize_t)  # type: ignore
         Resize.restype = None  # type: ignore
 
+    # noinspection PyPep8Naming
     class Type:
-        Modified: Callable[[ObjectOrRef], None] = pythonapi["PyType_Modified"]
-        """
-        Invalidate the internal lookup cache for the type and all of its subtypes.
-        
-        - This function must be called after any manual modification of the attributes 
-          or base classes of the type.
-        """
-        Modified.argtypes = (py_object,)  # type: ignore
-        Modified.restype = None  # type: ignore
+        @bind_api(pythonapi["PyType_Modified"])
+        @staticmethod
+        def Modified(obj: ObjectOrRef) -> None:
+            """
+            Invalidate the internal lookup cache for the type and all of its subtypes.
+
+            - This function must be called after any manual modification of the attributes
+              or base classes of the type.
+            """
 
 
 PyObj_FromPtr: Callable[[IntSize], object] = _ctypes.PyObj_FromPtr
