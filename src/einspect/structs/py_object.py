@@ -2,16 +2,19 @@
 from __future__ import annotations
 
 import ctypes
+from contextlib import contextmanager
 from ctypes import Structure, py_object
 from typing import Generic, List, Tuple, TypeVar
 
 from typing_extensions import Self
 
+from einspect.protocols.delayed_bind import bind_api
 from einspect.structs.deco import struct
 
-_T = TypeVar("_T", bound=object)
+_T = TypeVar("_T")
 
 
+# noinspection PyPep8Naming
 @struct
 class PyObject(Structure, Generic[_T]):
     """Defines a base PyObject Structure."""
@@ -19,6 +22,15 @@ class PyObject(Structure, Generic[_T]):
     ob_type: py_object
     # Need to use generics from typing to work for py-3.8
     _fields_: List[Tuple[str, type]]
+    _from_type_name_: str
+
+    @bind_api(ctypes.pythonapi["Py_IncRef"])
+    def IncRef(self) -> None:
+        """Increment the reference count of the PyObject."""
+
+    @bind_api(ctypes.pythonapi["Py_DecRef"])
+    def DecRef(self) -> None:
+        """Decrement the reference count of the PyObject."""
 
     @property
     def mem_size(self) -> int:
@@ -30,14 +42,50 @@ class PyObject(Structure, Generic[_T]):
         """Return the address of the PyObject."""
         return ctypes.addressof(self)
 
+    @property
+    def _orig_type_name(self) -> str | None:
+        """
+        Return the type repr of the original object.
+
+        Only available if instance created with from_object.
+        """
+        if not hasattr(self, "_from_type_name_"):
+            return None
+        return self._from_type_name_
+
+    def __eq__(self, other: Self) -> bool:
+        """Return True if the PyObject is equal in address to the other."""
+        if not isinstance(other, PyObject):
+            return NotImplemented
+        return self.address == other.address
+
+    def __repr__(self) -> str:
+        """Return a string representation of the PyObject."""
+        cls_name = f"{self.__class__.__name__}"
+        type_name = self._orig_type_name
+        if type_name:
+            cls_name += f"[{type_name}]"
+        return f"<{cls_name} at {self.address:#04x}>"
+
+    @contextmanager
+    def temp_ref(self) -> Self:
+        """Create a temporary reference to the PyObject."""
+        self.IncRef()
+        yield self
+        self.DecRef()
+
     @classmethod
     def from_object(cls, obj: _T) -> Self:
         """Create a PyObject from an object."""
+        # Record the type name for later repr use
+        type_repr = str(type(obj).__name__)
         py_obj = ctypes.py_object(obj)
         addr = ctypes.c_void_p.from_buffer(py_obj).value
         if addr is None:
             raise ValueError("Object is not a valid pointer")
-        return cls.from_address(addr)
+        inst = cls.from_address(addr)
+        inst._from_type_name_ = type_repr
+        return inst
 
     def into_object(self) -> py_object[_T]:
         """Cast the PyObject into a Python object."""

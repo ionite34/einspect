@@ -1,17 +1,13 @@
 from __future__ import annotations
 
 import ctypes
-from collections.abc import Callable
-from ctypes import pythonapi
-from types import MethodType
-from typing import Generic, TypeVar, get_args, overload
+from ctypes import POINTER, pythonapi
+from typing import TypeVar
 
-from typing_extensions import Self
-
+from einspect.protocols.delayed_bind import bind_api
 from einspect.api import Py_ssize_t
-from einspect.protocols import bind_api, delayed_bind
 from einspect.structs.deco import struct
-from einspect.structs.py_object import PyVarObject
+from einspect.structs.py_object import PyObject, PyVarObject
 
 _Tuple = TypeVar("_Tuple", bound=tuple)
 
@@ -28,7 +24,7 @@ class PyTupleObject(PyVarObject[_Tuple]):
     _ob_item_0: Py_ssize_t * 0
 
     @bind_api(pythonapi["PyTuple_GetItem"])
-    def GetItem(self, index: int) -> object:
+    def GetItem(self, index: int) -> POINTER(PyObject):
         """Return the item at the given index."""
 
     @bind_api(pythonapi["PyTuple_SetItem"])
