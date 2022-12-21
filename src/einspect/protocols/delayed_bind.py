@@ -98,10 +98,10 @@ class delayed_bind(property):
             if log.isEnabledFor(logging.DEBUG):
                 log.debug(
                     "[%s.%s()] Set func: (%s) -> %r",
-                    owner_cls.__qualname__,
+                    owner_cls.__name__,
                     self.attrname,
-                    ", ".join(repr(x.__qualname__) for x in argtypes),
-                    self.py_api.restype.__qualname__,
+                    ", ".join(repr(x.__name__) if x is not None else "None" for x in argtypes),
+                    self.py_api.restype.__name__ if self.py_api.restype is not None else "None",
                 )
 
         # Called as class method, return directly without binding
