@@ -18,17 +18,16 @@ pytest-xdist = "^3.1.0"
 mypy = "^0.991"
 pre-commit = "^2.20.0"
 
-# Deps for CI
+[tool.poetry.group.dev-extras.dependencies]
+jupyter = "^1.0.0"
+rich = "^12.6.0"
+
 [tool.poetry.group.ci.dependencies]
 pytest = "^7.2.0"
 
-# Deps for CI including coverage
 [tool.poetry.group.ci-cov.dependencies]
 pytest = "^7.2.0"
 pytest-cov = "^4.0.0"
-
-[tool.poetry.group.dev-jupyter.dependencies]
-jupyter = "^1.0.0"
 
 [tool.mypy]
 python_version = 3.11
