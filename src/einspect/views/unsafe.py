@@ -4,12 +4,15 @@ from __future__ import annotations
 from collections.abc import Generator
 from contextlib import ExitStack, contextmanager
 from functools import wraps
-from typing import TYPE_CHECKING, Callable, ContextManager
+from typing import TYPE_CHECKING, Callable, ContextManager, ParamSpec, TypeVar
 
 from einspect.errors import UnsafeError
 
 if TYPE_CHECKING:
     from einspect.views.view_base import View
+
+_T = TypeVar("_T")
+_P = ParamSpec("_P")
 
 
 class Context:
@@ -40,11 +43,11 @@ class Context:
                 yield
 
 
-def unsafe(func: Callable) -> Callable:
+def unsafe(func: _T) -> _T:
     """Decorator for unsafe methods on Views."""
 
     @wraps(func)
-    def unsafe_call(self: View, *args, **kwargs):
+    def unsafe_call(self: View, *args: _P.args, **kwargs: _P.kwargs) -> _T:
         # noinspection PyProtectedMember
         if not self._unsafe:
             raise UnsafeError(f"Call to {func.__qualname__} requires unsafe context")
