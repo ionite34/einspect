@@ -14,7 +14,8 @@ from typing import Generic, TypeVar, get_type_hints
 from typing_extensions import Self
 
 from einspect.api import Py, PyObj_FromPtr
-from einspect.errors import MovedError, UnsafeAttributeError, UnsafeError
+from einspect.errors import (DroppedReference, MovedError,
+                             UnsafeAttributeError, UnsafeError)
 from einspect.structs import PyObject, PyVarObject
 from einspect.views import factory
 from einspect.views.unsafe import Context, unsafe
@@ -22,6 +23,7 @@ from einspect.views.unsafe import Context, unsafe
 log = logging.getLogger(__name__)
 
 _T = TypeVar("_T")
+_V = TypeVar("_V", bound="View")
 
 
 REF_DEFAULT = True
@@ -76,12 +78,13 @@ class View(BaseView[_T]):
         The _pyobject class annotation is used to determine
         the type of the underlying PyObject struct.
     """
-    _pyobject: PyObject
+    _pyobject: PyObject[_T]
 
     def __init__(self, obj: _T, ref: bool = REF_DEFAULT) -> None:
         super().__init__(obj, ref)
         struct_type = get_type_hints(self.__class__)["_pyobject"]
         self._pyobject = struct_type.from_object(obj)
+        self.__dropped = False
 
     def __repr__(self) -> str:
         addr = self._pyobject.address
@@ -181,7 +184,20 @@ class View(BaseView[_T]):
             If (ref=False), and the object does not support weakrefs,
             accessing this attribute will require an unsafe context.
         """
-        return self.base.__sizeof__()
+        return object.__sizeof__(self.base.value)
+
+    def drop(self) -> None:
+        """
+        Drop all references to the base object.
+
+        Notes:
+            This is useful for when you want to drop the reference
+            to the base object, but still want to access the view.
+        """
+        self._pyobject = DroppedReference(type(self))  # type: ignore
+        self._base = None
+        self._base_weakref = None
+        self.__dropped = True
 
     @unsafe
     def move_to(self, dst) -> None:
@@ -195,8 +211,8 @@ class View(BaseView[_T]):
         )
 
     @unsafe
-    def move_from(self, other) -> Self:
-        """Moves data at other to this view."""
+    def move_from(self, other: _V) -> _V:
+        """Moves data at other View to this View."""
         # Store our repr
         self_repr = repr(self)
         # Store our current address
@@ -224,16 +240,19 @@ class View(BaseView[_T]):
         log.debug(f"New ref count: {v.ref_count}")
         return v
 
-    def __ilshift__(self, other):
-        """Moves data at other to this view."""
+    def __lshift__(self, other: _V) -> _V:
+        """Moves data at other View to this View."""
         return self.move_from(other)
 
-    def __invert__(self) -> py_object[_T]:
-        """Returns the base of this view as py_object."""
+    def __ilshift__(self, other: _V) -> _V:
+        return self.move_from(other)
+
+    def __invert__(self) -> _T:
+        """Returns the base of this view as object."""
         # Prioritize strong ref if it exists
-        if self._base is not NO_REF:
-            return self._base
-        return self.base
+        if self._base is not None:
+            return self._base.value
+        return self.base.value
 
 
 class VarView(View[_T]):

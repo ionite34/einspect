@@ -16,22 +16,16 @@ _T = TypeVar("_T")
 
 
 class TupleView(VarView[_T], Sequence):
-    _pyobject: PyTupleObject
-
-    @overload
-    def __getitem__(self, index: int):
-        ...
-
-    @overload
-    def __getitem__(self, index: slice):
-        ...
+    _pyobject: PyTupleObject[_T]
 
     def __getitem__(self, index: int):
         if isinstance(index, int):
-            # First use PyList_GetItem
+            # First use api GetItem
             try:
-                addr = self._pyobject.GetItem(self._pyobject, index)
-                return addr
+                ptr = self._pyobject.GetItem(self._pyobject, index)
+                py_struct = ptr.contents
+                py_obj = py_struct.into_object()
+                return py_obj.value
             except IndexError as err:
                 raise IndexError(f"Index {index} out of range") from err
         elif isinstance(index, slice):
@@ -40,21 +34,14 @@ class TupleView(VarView[_T], Sequence):
             raise TypeError(f"Invalid index type: {type(index)}")
 
     def __setitem__(self, key: int, value: _S) -> None:
-        # First use SetItem api
         try:
-            # Get current item and decref
-            prev_item = self._pyobject.GetItem(key)
-            # pythonapi.Py_DecRef(prev_item)
-            # ref = ctypes.py_object(value)
-            # pythonapi.Py_IncRef(ref)
             ref = new_ref(value)
             arr = self.item
             arr[key] = ref
-            # self._pyobject.SetItem(self._pyobject, key, ref)
         except IndexError as err:
             if not self._unsafe:
                 raise UnsafeIndexError(
-                    "Setting indices beyond current size requires entering the unsafe() context."
+                    "Setting indices beyond current size requires entering an unsafe context."
                 ) from err
             else:
                 if key < 0:

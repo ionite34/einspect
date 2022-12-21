@@ -24,7 +24,6 @@ class ListView(VarView[_T], Sequence):
 
     def __getitem__(self, index: int | slice):
         if isinstance(index, int):
-            # First use PyList_GetItem
             try:
                 ret = pythonapi.PyList_GetItem(self._pyobject, index)
                 return ret
