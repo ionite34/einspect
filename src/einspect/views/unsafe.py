@@ -4,7 +4,9 @@ from __future__ import annotations
 from collections.abc import Generator
 from contextlib import ExitStack, contextmanager
 from functools import wraps
-from typing import TYPE_CHECKING, Callable, ContextManager, ParamSpec, TypeVar
+from typing import TYPE_CHECKING, ContextManager, TypeVar
+
+from typing_extensions import ParamSpec
 
 from einspect.errors import UnsafeError
 
