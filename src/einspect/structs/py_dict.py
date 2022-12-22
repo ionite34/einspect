@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ctypes import POINTER, c_ssize_t, c_uint64, c_void_p, pythonapi
-from typing import TypeVar
+from typing import TypeVar, Dict
 
 from einspect.protocols.delayed_bind import bind_api
 from einspect.structs.deco import struct
@@ -15,7 +15,7 @@ _VT = TypeVar("_VT")
 
 # noinspection PyPep8Naming
 @struct
-class PyDictObject(PyObject[dict[_KT, _VT]]):
+class PyDictObject(PyObject[Dict[_KT, _VT]]):
     """
     Defines a PyDictObject Structure.
 
