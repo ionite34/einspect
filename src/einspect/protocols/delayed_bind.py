@@ -36,6 +36,9 @@ def bind_api(py_api: FuncPtr) -> Callable[[_F], _F]:
 class delayed_bind(property):
     def __init__(self, py_api: FuncPtr, func: _F):
         super().__init__()
+        # Use __func__ if staticmethod
+        if isinstance(func, staticmethod):
+            func = func.__func__
         self.func = func
         self.__doc__ = func.__doc__
         self.py_api = py_api
@@ -45,7 +48,7 @@ class delayed_bind(property):
         self.func_set = False
 
     def __repr__(self):
-        return f"<delayed_bind property {self.attrname!r}>"
+        return f"<{self.__class__.__name__} property {self.attrname!r}>"
 
     def __set_name__(self, owner, name):
         if self.attrname is None:
