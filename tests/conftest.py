@@ -25,11 +25,11 @@ class Unbuffered:
 
 def _run(func_path: Path, name: str):
     import importlib
-
     rel_path = func_path.relative_to(TESTS_DIR)
-    mod = importlib.import_module(".".join(rel_path.parts).strip(".py"))
+    module_name = "tests." + ".".join(rel_path.with_suffix("").parts)
+    module = importlib.import_module(module_name)
     sys.stdout = Unbuffered(sys.stdout)
-    fn = getattr(mod, name)
+    fn = getattr(module, name)
     return fn()
 
 
