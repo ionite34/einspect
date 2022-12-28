@@ -63,14 +63,12 @@ class StrView(View[str, None, None], Sequence):
         return str.__len__(self.base.value)  # type: ignore
 
     @overload
-    def __getitem__(self, index: int) -> _T: ...
+    def __getitem__(self, index: int) -> _T:
+        ...
 
     @overload
-    def __getitem__(self, index: slice) -> Sequence[_T]: ...
+    def __getitem__(self, index: slice) -> Sequence[_T]:
+        ...
 
     def __getitem__(self, index: int | slice) -> _T:
         return str.__getitem__(self.base.value, index)  # type: ignore
-
-
-
-

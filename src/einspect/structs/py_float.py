@@ -13,4 +13,5 @@ class PyFloatObject(PyObject):
 
     https://github.com/python/cpython/blob/3.11/Include/cpython/floatobject.h
     """
+
     ob_fval: ctypes.c_double

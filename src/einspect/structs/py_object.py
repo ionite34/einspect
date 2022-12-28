@@ -20,6 +20,7 @@ _VT = TypeVar("_VT")
 @struct
 class PyObject(Structure, Generic[_T, _KT, _VT]):
     """Defines a base PyObject Structure."""
+
     ob_refcnt: int
     ob_type: Type[_T]
     # Need to use generics from typing to work for py-3.8
@@ -103,4 +104,5 @@ class PyVarObject(PyObject[_T, _KT, _VT]):
 
     https://github.com/python/cpython/blob/3.11/Include/object.h#L109-L112
     """
+
     ob_size: int

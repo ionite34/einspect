@@ -9,5 +9,3 @@ from einspect.views.view_base import View
 __all__ = ["view", "unsafe"]
 
 unsafe: ContextManager[None] = Context.unsafe
-
-

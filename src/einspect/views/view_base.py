@@ -14,8 +14,12 @@ from typing import Generic, TypeVar, get_type_hints, Type
 from typing_extensions import Self
 
 from einspect.api import Py, PyObj_FromPtr
-from einspect.errors import (DroppedReference, MovedError,
-                             UnsafeAttributeError, UnsafeError)
+from einspect.errors import (
+    DroppedReference,
+    MovedError,
+    UnsafeAttributeError,
+    UnsafeError,
+)
 from einspect.structs import PyObject, PyVarObject
 from einspect.views import factory
 from einspect.views.unsafe import Context, unsafe
@@ -81,6 +85,7 @@ class View(BaseView[_T, _KT, _VT]):
         The _pyobject class annotation is used to determine
         the type of the underlying PyObject struct.
     """
+
     _pyobject: PyObject[_T, None, None]
 
     def __init__(self, obj: _T, ref: bool = REF_DEFAULT) -> None:
@@ -150,7 +155,7 @@ class View(BaseView[_T, _KT, _VT]):
                     warnings.warn(
                         f"Weak-referenced base object {self._base_type.__name__!r} has been garbage collected. "
                         "Accessing base via memory address is undefined behavior.",
-                        RuntimeWarning
+                        RuntimeWarning,
                     )
 
         return self._pyobject.into_object()
@@ -207,11 +212,7 @@ class View(BaseView[_T, _KT, _VT]):
         """Copy the object to another view's location."""
         if not isinstance(dst, View):
             raise TypeError(f"Expected View, got {type(dst).__name__!r}")
-        ctypes.memmove(
-            dst._pyobject.address,
-            self._pyobject.address,
-            self.mem_size
-        )
+        ctypes.memmove(dst._pyobject.address, self._pyobject.address, self.mem_size)
 
     @unsafe
     def move_from(self, other: _V) -> _V:

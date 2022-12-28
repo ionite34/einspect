@@ -66,7 +66,9 @@ class Py:
         GetItem.argtypes = (py_object, Py_ssize_t)  # type: ignore
         GetItem.restype = py_object  # type: ignore
 
-        SetItem: Callable[[ObjectOrRef, IntSize, ObjectOrRef], None] = pythonapi["PyTuple_SetItem"]
+        SetItem: Callable[[ObjectOrRef, IntSize, ObjectOrRef], None] = pythonapi[
+            "PyTuple_SetItem"
+        ]
         """
         Set the item at position index in the tuple o to v.
         https://docs.python.org/3/c-api/tuple.html#c.PyTuple_SetItem

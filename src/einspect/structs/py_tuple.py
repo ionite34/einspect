@@ -20,6 +20,7 @@ class PyTupleObject(PyVarObject[tuple, None, _VT]):
 
     https://github.com/python/cpython/blob/3.11/Include/cpython/tupleobject.h
     """
+
     # Size of this array is only known after creation
     _ob_item_0: Py_ssize_t * 0
 

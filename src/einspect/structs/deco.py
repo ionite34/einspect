@@ -47,8 +47,6 @@ def struct(cls: _T) -> _T:
     try:
         cls._fields_ = fields
     except TypeError as e:
-        raise TypeError(
-            f"Failed to set _fields_ on {cls.__name__}: {fields}"
-        ) from e
+        raise TypeError(f"Failed to set _fields_ on {cls.__name__}: {fields}") from e
 
     return cls

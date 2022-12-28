@@ -18,7 +18,9 @@ _VT = TypeVar("_VT")
 class MappingProxyView(View[MappingProxyType, _KT, _VT], MutableMapping[_KT, _VT]):
     _pyobject: MappingProxyObject[_KT, _VT]
 
-    def __init__(self, obj: MappingProxyType[_KT, _VT], ref: bool = REF_DEFAULT) -> None:
+    def __init__(
+            self, obj: MappingProxyType[_KT, _VT], ref: bool = REF_DEFAULT
+    ) -> None:
         super().__init__(obj, ref)
 
     def __len__(self) -> int:

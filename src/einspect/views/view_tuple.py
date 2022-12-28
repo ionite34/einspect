@@ -81,11 +81,7 @@ class TupleView(VarView[tuple, None, _VT], Sequence):
     def item(self, value: Array[Py_ssize_t] | Sequence[int]) -> None:
         if isinstance(value, Array):
             # For Array, we can just copy the memory
-            ctypes.memmove(
-                self._pyobject.ob_item,
-                value,
-                ctypes.sizeof(value)
-            )
+            ctypes.memmove(self._pyobject.ob_item, value, ctypes.sizeof(value))
         else:
             # Get the memory address for the start of the array
             # noinspection PyProtectedMember

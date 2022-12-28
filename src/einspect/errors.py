@@ -31,6 +31,7 @@ class DroppedReferenceError(RuntimeError):
 
 class DroppedReference:
     """Dropped reference to an object."""
+
     __slots__ = ("__parent_cls",)
 
     def __init__(self, parent_cls: type) -> None:

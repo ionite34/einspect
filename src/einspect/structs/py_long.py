@@ -13,6 +13,7 @@ class PyLongObject(PyVarObject):
 
     https://github.com/python/cpython/blob/3.11/Include/cpython/longintrepr.h#L79-L82
     """
+
     _ob_digit_0: ctypes.c_uint32 * 0
 
     @property

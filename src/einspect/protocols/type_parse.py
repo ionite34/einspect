@@ -20,6 +20,7 @@ Py_ssize_t = ctypes.c_ssize_t
 @runtime_checkable
 class FuncPtr(Protocol):
     """Type of ctypes.pythonapi functions (ctypes._FuncPtr)."""
+
     restype: type | None
     argtypes: Sequence[type]
 

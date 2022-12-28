@@ -21,6 +21,7 @@ class PyDictObject(PyObject[dict, _KT, _VT]):
 
     https://github.com/python/cpython/blob/3.11/Include/cpython/dictobject.h
     """
+
     # Number of items in the dictionary
     ma_used: c_ssize_t
     # Dictionary version: globally unique, changes on modification

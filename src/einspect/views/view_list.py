@@ -44,7 +44,7 @@ class ListView(VarView[list, None, _VT], Sequence[_VT]):
                 ls = ptr.contents.into_object().value
                 # Get step if provided
                 if index.step is not None:
-                    ls = ls[::index.step]
+                    ls = ls[:: index.step]
                 return ls
             except (IndexError, ValueError) as err:
                 raise IndexError(f"Slice {index} out of range") from err

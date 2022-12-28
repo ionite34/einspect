@@ -9,7 +9,11 @@ from inspect import signature
 from types import MethodType
 from typing import Type, TypeVar, get_type_hints
 
-from einspect.protocols.type_parse import FuncPtr, convert_type_hints, fix_ctypes_generics
+from einspect.protocols.type_parse import (
+    FuncPtr,
+    convert_type_hints,
+    fix_ctypes_generics,
+)
 
 log = logging.getLogger(__name__)
 
@@ -101,8 +105,12 @@ class delayed_bind(property):
                     "[%s.%s()] Set func: (%s) -> %r",
                     owner_cls.__name__,
                     self.attrname,
-                    ", ".join(repr(x.__name__) if x is not None else "None" for x in argtypes),
-                    self.py_api.restype.__name__ if self.py_api.restype is not None else "None",
+                    ", ".join(
+                        repr(x.__name__) if x is not None else "None" for x in argtypes
+                    ),
+                    self.py_api.restype.__name__
+                    if self.py_api.restype is not None
+                    else "None",
                 )
 
         # Called as class method, return directly without binding
@@ -112,7 +120,9 @@ class delayed_bind(property):
         try:
             cache = instance.__dict__
         except AttributeError:
-            raise TypeError("delayed_bind requires class to support __dict__.") from None
+            raise TypeError(
+                "delayed_bind requires class to support __dict__."
+            ) from None
 
         bound_func = MethodType(self.py_api, instance)
 
