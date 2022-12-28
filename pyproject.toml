@@ -8,7 +8,6 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = ">=3.8,<3.12"
-pycapi = "^0.82.1"
 typing-extensions = "^4.4.0"
 
 [tool.poetry.group.dev.dependencies]
