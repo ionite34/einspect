@@ -1,18 +1,14 @@
-"""Typed methods from pythonapi."""
-from __future__ import annotations
-
+"""CPython API Methods."""
+import _ctypes
 import ctypes
 from collections.abc import Callable
 from ctypes import POINTER, py_object, pythonapi
 from typing import Union
 
-import _ctypes
-
 from einspect.compat import Version, python_req
+from einspect.protocols.delayed_bind import bind_api
 
 __all__ = ("Py", "Py_ssize_t", "PyObj_FromPtr")
-
-from einspect.protocols.delayed_bind import bind_api
 
 Py_ssize_t = ctypes.c_ssize_t
 """Constant for type Py_ssize_t."""
@@ -26,31 +22,32 @@ PyObjectPtr = POINTER(py_object)
 class Py:
     """Typed methods from pythonapi."""
 
-    IncRef: Callable[[ObjectOrRef], None] = pythonapi["Py_IncRef"]
-    """
-    Increment the reference count of an object.
-    https://docs.python.org/3/c-api/refcounting.html#c.Py_IncRef
-    """
-    IncRef.argtypes = (py_object,)  # type: ignore
-    IncRef.restype = None  # type: ignore
+    @bind_api(pythonapi["Py_IncRef"])
+    @staticmethod
+    def IncRef(obj: object) -> None:
+        """
+        Increment the reference count of an object.
 
-    DecRef: Callable[[ObjectOrRef], None] = pythonapi["Py_DecRef"]
-    """
-    Create a new strong reference to an object.
-    Increments ref-count and returns the object.
-    https://docs.python.org/3/c-api/refcounting.html#c.Py_DecRef
-    """
-    DecRef.argtypes = (py_object,)  # type: ignore
-    DecRef.restype = None  # type: ignore
+        https://docs.python.org/3/c-api/refcounting.html#c.Py_IncRef
+        """
 
-    NewRef: Callable[[ObjectOrRef], None] = python_req(Version.PY_3_10) or pythonapi["Py_NewRef"]
-    """
-    Create a new strong reference to an object, and increments reference count.
-    Returns the object.
-    https://docs.python.org/3/c-api/refcounting.html#c.Py_NewRef
-    """
-    NewRef.argtypes = (py_object,)  # type: ignore
-    NewRef.restype = py_object  # type: ignore
+    @bind_api(pythonapi["Py_DecRef"])
+    @staticmethod
+    def DecRef(obj: object) -> None:
+        """
+        Decrements the reference count of an object.
+
+        https://docs.python.org/3/c-api/refcounting.html#c.Py_DecRef
+        """
+
+    @bind_api(python_req(Version.PY_3_10) or pythonapi["Py_NewRef"])
+    @staticmethod
+    def NewRef(obj: object) -> object:
+        """
+        Return a new reference to an object and increment its refcount.
+
+        https://docs.python.org/3/c-api/refcounting.html#c.Py_NewRef
+        """
 
     class Tuple:
         Size: Callable[[ObjectOrRef], int] = pythonapi["PyTuple_Size"]
@@ -97,7 +94,7 @@ class Py:
     class Type:
         @bind_api(pythonapi["PyType_Modified"])
         @staticmethod
-        def Modified(obj: ObjectOrRef) -> None:
+        def Modified(obj: object) -> None:
             """
             Invalidate the internal lookup cache for the type and all of its subtypes.
 
