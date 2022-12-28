@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ctypes import POINTER, c_long, c_void_p, pythonapi
-from typing import TypeVar
+from typing import TypeVar, List
 
 from einspect.protocols.delayed_bind import bind_api
 from einspect.structs.deco import struct
@@ -52,5 +52,5 @@ class PyListObject(PyVarObject[list, None, _VT]):
         """Set a value to a given index."""
 
     @bind_api(pythonapi["PyList_SetSlice"])
-    def SetSlice(self, low: int, high: int, item_list: list[_VT]) -> None:
+    def SetSlice(self, low: int, high: int, item_list: List[_VT]) -> None:
         """Set a value to a given index."""
