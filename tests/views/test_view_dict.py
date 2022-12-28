@@ -1,8 +1,8 @@
 import pytest
 
+from einspect.structs import PyDictObject
 from einspect.views.factory import view
 from einspect.views.view_dict import DictView
-from einspect.structs import PyDictObject
 
 
 @pytest.fixture(scope="function")
@@ -13,7 +13,7 @@ def obj():
     }
 
 
-class TestTupleView:
+class TestDictView:
     @pytest.mark.parametrize(["factory"], [
         (view,),
         (DictView,),
