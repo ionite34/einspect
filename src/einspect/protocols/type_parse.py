@@ -2,13 +2,17 @@
 from __future__ import annotations
 
 import ctypes
+import logging
+import re
 import typing
-from ctypes import POINTER
-from typing import Any, Protocol, Sequence, runtime_checkable
-
 # noinspection PyProtectedMember
 from _ctypes import _SimpleCData
+from ctypes import POINTER
+from typing import Any, Protocol, Sequence, TypeVar, runtime_checkable, get_origin
+
 from typing_extensions import Self
+
+log = logging.getLogger(__name__)
 
 Py_ssize_t = ctypes.c_ssize_t
 
@@ -28,9 +32,35 @@ aliases = {
     int: Py_ssize_t,
     # ctypes will cast py_object to (object)
     object: ctypes.py_object,
+    type: ctypes.py_object,
     # convert hints of None (inspected as NoneType) back to None
     type(None): None,
 }
+
+# ctypes generics to replace
+RE_PY_OBJECT = re.compile(r"^(py_object)(\[(.*)])$")
+RE_POINTER = re.compile(r"^(pointer)(\[(.*)])$")
+
+
+def fix_ctypes_generics(type_hints: [str, str]) -> None:
+    for name, hint in type_hints.items():
+        if isinstance(hint, str):
+            # Keep py_object and discard subscript
+            match = RE_PY_OBJECT.match(hint)
+            log.debug("Source: %r Match: %r", hint, match)
+            if match:
+                base = hint.replace(match.group(2), "")
+                type_hints[name] = base
+                log.debug("Replacing %r with %r", hint, base)
+            # For pointer, replace with POINTER
+            m2 = RE_POINTER.match(hint)
+            if m2:
+                # Get inner of []
+                base = m2.group(3)
+                # Discard any other generics
+                base = base.split("[")[0]
+                type_hints[name] = base
+                log.debug("Replacing %r with %r", hint, base)
 
 
 def convert_type_hints(source: type, owner_cls: type) -> type | None:
@@ -49,19 +79,29 @@ def convert_type_hints(source: type, owner_cls: type) -> type | None:
         # Otherwise use first type
         source = sources[0]
 
-    # For TypeVar, convert to py_object
-    if type(source) is typing.TypeVar:
+    # Convert TypeVar and Type to py_object
+    if (type(source) is TypeVar) or get_origin(source) is type:
         return ctypes.py_object
 
     if source == Self:
         source = owner_cls
 
+    # Get base of generic alias
+    # noinspection PyUnresolvedReferences, PyProtectedMember
+    if isinstance(source, typing._GenericAlias):
+        source = get_origin(source)
+
     if source in aliases:
         return aliases[source]
 
     # Replace with a pointer type if it's a structure
-    if issubclass(source, ctypes.Structure):
-        return POINTER(source)
+    try:
+        if issubclass(source, ctypes.Structure):
+            return POINTER(source)
+    except TypeError as e:
+        raise TypeError(
+            f"Failed to convert type hint ({type(source)}) {source!r} for {owner_cls!r} -> {e}"
+        ) from e
 
     # For non-ctypes (and not None) types, substitute with py_object
     if not is_ctypes_type(source):
