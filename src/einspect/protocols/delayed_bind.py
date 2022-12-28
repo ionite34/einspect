@@ -9,7 +9,7 @@ from inspect import signature
 from types import MethodType
 from typing import Type, TypeVar, get_type_hints
 
-from einspect.protocols.type_parse import FuncPtr, convert_type_hints
+from einspect.protocols.type_parse import FuncPtr, convert_type_hints, fix_ctypes_generics
 
 log = logging.getLogger(__name__)
 
@@ -54,6 +54,7 @@ class delayed_bind(property):
 
     def _get_defining_type_hints(self, owner_cls: type) -> tuple[list[type], type]:
         """Return the type hints for the attribute we're bound to, or None if it's not defined."""
+        fix_ctypes_generics(self.func.__annotations__)
         # Get the function type hints
         hints = get_type_hints(self.func)
         log.debug(
