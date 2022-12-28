@@ -1,9 +1,8 @@
 """CPython API Methods."""
 import _ctypes
 import ctypes
-from collections.abc import Callable
 from ctypes import POINTER, py_object, pythonapi
-from typing import Union
+from typing import Union, Callable
 
 from einspect.compat import Version, python_req
 from einspect.protocols.delayed_bind import bind_api
