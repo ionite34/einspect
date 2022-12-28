@@ -30,6 +30,11 @@ typing-extensions = "^4.4.0"
 pytest = "^7.2.0"
 pytest-cov = "^4.0.0"
 
+[tool.pytest.ini_options]
+markers = [
+    "run_in_subprocess: Run marked test in a subprocess",
+]
+
 [tool.mypy]
 python_version = 3.11
 allow_redefinition = true
