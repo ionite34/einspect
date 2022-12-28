@@ -30,13 +30,6 @@ repos:
     hooks:
       - id: black
 
-  # Format docs
-  - repo: https://github.com/asottile/blacken-docs
-    rev: v1.12.1
-    hooks:
-      - id: blacken-docs
-        additional_dependencies: [black>=21.12b0]
-
   # Flake8 for linting, line-length adjusted to match Black default
   - repo: https://github.com/PyCQA/flake8
     rev: 5.0.4
