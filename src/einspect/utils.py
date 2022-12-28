@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import ctypes
-from ctypes import pythonapi
 from typing import Any
+
+from einspect.api import Py
 
 
 def address(obj: Any) -> int:
@@ -19,5 +20,5 @@ def new_ref(obj: Any) -> int:
     Return the address of an object, and increments refcount by 1.
     """
     addr = address(obj)
-    pythonapi.Py_IncRef(ctypes.py_object(obj))
+    Py.IncRef(obj)
     return addr
