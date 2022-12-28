@@ -6,7 +6,7 @@ from einspect.structs import PyListObject
 
 
 @pytest.fixture(scope="function")
-def obj():
+def obj() -> list[int]:
     return [1, 2, 3]
 
 
