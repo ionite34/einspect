@@ -5,6 +5,7 @@ from ctypes import Array
 from typing import TypeVar
 
 from einspect.api import Py_ssize_t
+from einspect.compat import abc
 from einspect.structs.py_dict import PyDictObject
 from einspect.views import REF_DEFAULT
 from einspect.views.unsafe import unsafe
@@ -16,7 +17,7 @@ _KT = TypeVar("_KT")
 _VT = TypeVar("_VT")
 
 
-class DictView(View[dict, _KT, _VT], MutableMapping[_KT, _VT]):
+class DictView(View[dict, _KT, _VT], abc.MutableMapping[_KT, _VT]):
     _pyobject: PyDictObject[_KT, _VT]
 
     def __init__(self, obj: dict[_KT, _VT], ref: bool = REF_DEFAULT) -> None:

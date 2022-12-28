@@ -2,9 +2,16 @@
 from __future__ import annotations
 
 import sys
+import typing
+from collections import abc
 from dataclasses import dataclass
 from enum import Enum
 from typing import Generic, NoReturn, TypeVar
+
+if sys.version_info > (3, 8):
+    abc = typing
+
+__all__ = ("Version", "RequiresPythonVersion", "python_req", "abc")
 
 
 class Version(Enum):

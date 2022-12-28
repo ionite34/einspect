@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 from ctypes import Array
-from typing import Sequence, TypeVar, overload
+from typing import TypeVar, overload
 
+from einspect.compat import abc
 from einspect.api import Py_ssize_t
 from einspect.errors import UnsafeAttributeError
 from einspect.structs import PyListObject
@@ -14,7 +15,7 @@ __all__ = ("ListView",)
 _VT = TypeVar("_VT")
 
 
-class ListView(VarView[list, None, _VT], Sequence[_VT]):
+class ListView(VarView[list, None, _VT], abc.Sequence[_VT]):
     _pyobject: PyListObject[_VT]
 
     def __init__(self, obj: list[_VT], ref: bool = REF_DEFAULT) -> None:

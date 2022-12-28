@@ -5,6 +5,7 @@ import ctypes
 import logging
 import re
 import typing
+
 # noinspection PyProtectedMember
 from _ctypes import _SimpleCData
 from ctypes import POINTER

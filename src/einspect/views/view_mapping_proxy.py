@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from collections.abc import Iterator, MutableMapping
 from types import MappingProxyType
 from typing import TypeVar
 
+from einspect.compat import abc
 from einspect.structs.mapping_proxy import MappingProxyObject
 from einspect.views import REF_DEFAULT
 from einspect.views.unsafe import unsafe
@@ -15,11 +15,11 @@ _KT = TypeVar("_KT")
 _VT = TypeVar("_VT")
 
 
-class MappingProxyView(View[MappingProxyType, _KT, _VT], MutableMapping[_KT, _VT]):
+class MappingProxyView(View[MappingProxyType, _KT, _VT], abc.MutableMapping[_KT, _VT]):
     _pyobject: MappingProxyObject[_KT, _VT]
 
     def __init__(
-            self, obj: MappingProxyType[_KT, _VT], ref: bool = REF_DEFAULT
+        self, obj: MappingProxyType[_KT, _VT], ref: bool = REF_DEFAULT
     ) -> None:
         super().__init__(obj, ref)
 

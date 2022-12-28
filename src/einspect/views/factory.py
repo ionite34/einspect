@@ -47,7 +47,7 @@ def view(obj: list[_VT], ref: bool = REF_DEFAULT) -> ListView[_VT]:
 
 @overload
 def view(
-        obj: MappingProxyType[_KT, _VT], ref: bool = REF_DEFAULT
+    obj: MappingProxyType[_KT, _VT], ref: bool = REF_DEFAULT
 ) -> MappingProxyView[_KT, _VT]:
     ...
 

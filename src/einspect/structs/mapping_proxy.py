@@ -25,7 +25,7 @@ class MappingProxyObject(PyObject[MappingProxyType, _KT, _VT_co]):
 
     @classmethod
     def from_object(
-            cls, obj: MappingProxyType[_KT, _VT_co]
+        cls, obj: MappingProxyType[_KT, _VT_co]
     ) -> MappingProxyObject[MappingProxyType, _KT, _VT_co]:
         """Create a MappingProxyObject from an object."""
         return super(MappingProxyObject, cls).from_object(obj)  # type: ignore
