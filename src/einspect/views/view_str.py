@@ -10,10 +10,12 @@ from einspect.structs.py_unicode import Kind, State
 from einspect.views.unsafe import unsafe
 from einspect.views.view_base import View
 
+__all__ = ("StrView",)
+
 _T = TypeVar("_T")
 
 
-class StrView(View[_T], Sequence):
+class StrView(View[str, None, None], Sequence):
     _pyobject: PyUnicodeObject
 
     @property

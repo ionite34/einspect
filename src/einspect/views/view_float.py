@@ -1,18 +1,18 @@
 from __future__ import annotations
 
 import ctypes
-from ctypes import Array
-from typing import Iterable, TypeVar
+from typing import TypeVar
 
-from einspect.api import Py_ssize_t
 from einspect.structs.py_float import PyFloatObject
 from einspect.views.unsafe import unsafe
 from einspect.views.view_base import View
 
+__all__ = ("FloatView",)
+
 _T = TypeVar("_T")
 
 
-class FloatView(View[_T]):
+class FloatView(View[float, None, None]):
     _pyobject: PyFloatObject
 
     @property

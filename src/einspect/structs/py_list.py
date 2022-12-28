@@ -7,12 +7,12 @@ from einspect.protocols.delayed_bind import bind_api
 from einspect.structs.deco import struct
 from einspect.structs.py_object import PyObject, PyVarObject
 
-_T = TypeVar("_T", bound=list)
+_VT = TypeVar("_VT")
 
 
 # noinspection PyPep8Naming
 @struct
-class PyListObject(PyVarObject[_T]):
+class PyListObject(PyVarObject[list, None, _VT]):
     """
     Defines a PyListObject Structure.
 
@@ -52,5 +52,5 @@ class PyListObject(PyVarObject[_T]):
         """Set a value to a given index."""
 
     @bind_api(pythonapi["PyList_SetSlice"])
-    def SetSlice(self, low: int, high: int, item_list: _T) -> None:
+    def SetSlice(self, low: int, high: int, item_list: list[_VT]) -> None:
         """Set a value to a given index."""

@@ -1,20 +1,20 @@
 from __future__ import annotations
 
 import ctypes
-from ctypes import POINTER, pythonapi
-from typing import TypeVar
+from ctypes import pythonapi, pointer
+from typing import TypeVar, overload, Any
 
-from einspect.protocols.delayed_bind import bind_api
 from einspect.api import Py_ssize_t
+from einspect.protocols.delayed_bind import bind_api
 from einspect.structs.deco import struct
 from einspect.structs.py_object import PyObject, PyVarObject
 
-_Tuple = TypeVar("_Tuple", bound=tuple)
+_VT = TypeVar("_VT")
 
 
 # noinspection PyPep8Naming
 @struct
-class PyTupleObject(PyVarObject[_Tuple]):
+class PyTupleObject(PyVarObject[tuple, None, _VT]):
     """
     Defines a PyTupleObject Structure.
 
@@ -24,19 +24,37 @@ class PyTupleObject(PyVarObject[_Tuple]):
     _ob_item_0: Py_ssize_t * 0
 
     @bind_api(pythonapi["PyTuple_GetItem"])
-    def GetItem(self, index: int) -> POINTER(PyObject):
+    def GetItem(self, index: int) -> pointer[PyObject[_VT, None, None]]:
         """Return the item at the given index."""
 
+    @bind_api(pythonapi["PyTuple_GetSlice"])
+    def GetSlice(self, start: int, stop: int) -> pointer[PyTupleObject[_VT]]:
+        """Return a slice of the tuple."""
+
     @bind_api(pythonapi["PyTuple_SetItem"])
-    def SetItem(self, index: int, value: object) -> None:
-        """Set a value to a given index."""
+    def SetItem(self, index: int, value: object) -> int:
+        """
+        Set a value to a given index.
+
+        - Can only be used when refcount is equal to 1.
+        """
 
     @bind_api(pythonapi["_PyTuple_Resize"])
     def Resize(self, size: int) -> None:
         """Resize the tuple to the given size."""
 
+    @overload
     @classmethod
-    def from_object(cls, obj: _Tuple) -> PyTupleObject[_Tuple]:
+    def from_object(cls, obj: tuple[_VT, ...]) -> PyTupleObject[_VT]:
+        ...
+
+    @overload
+    @classmethod
+    def from_object(cls, obj: tuple[...]) -> PyTupleObject[Any]:
+        ...
+
+    @classmethod
+    def from_object(cls, obj: tuple[_VT, ...]) -> PyTupleObject[_VT]:
         """Create a PyTupleObject from an object."""
         return super(PyTupleObject, cls).from_object(obj)  # type: ignore
 

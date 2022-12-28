@@ -1,50 +1,74 @@
 from __future__ import annotations
 
-from ctypes import pythonapi
+from ctypes import Array
 from typing import Sequence, TypeVar, overload
 
+from einspect.api import Py_ssize_t
 from einspect.errors import UnsafeAttributeError
 from einspect.structs import PyListObject
-from einspect.utils import new_ref
+from einspect.views import REF_DEFAULT
 from einspect.views.view_base import VarView
 
-_T = TypeVar("_T")
+__all__ = ("ListView",)
+
+_VT = TypeVar("_VT")
 
 
-class ListView(VarView[_T], Sequence):
-    _pyobject: PyListObject
+class ListView(VarView[list, None, _VT], Sequence[_VT]):
+    _pyobject: PyListObject[_VT]
+
+    def __init__(self, obj: list[_VT], ref: bool = REF_DEFAULT) -> None:
+        super().__init__(obj, ref)
 
     @overload
-    def __getitem__(self, index: int):
+    def __getitem__(self, index: int) -> _VT:
         ...
 
     @overload
-    def __getitem__(self, index: slice):
+    def __getitem__(self, index: slice) -> list[_VT]:
         ...
 
-    def __getitem__(self, index: int | slice):
+    def __getitem__(self, index: int | slice) -> _VT | list[_VT]:
         if isinstance(index, int):
             try:
-                ret = pythonapi.PyList_GetItem(self._pyobject, index)
-                return ret
-            except IndexError as err:
+                ptr = self._pyobject.GetItem(index)
+                return ptr.contents.into_object().value
+            except (IndexError, ValueError) as err:
                 raise IndexError(f"Index {index} out of range") from err
         elif isinstance(index, slice):
-            raise NotImplementedError
+            try:
+                # Normalize slice start and stop
+                start = index.start if index.start is not None else 0
+                stop = index.stop if index.stop is not None else self.size
+                ptr = self._pyobject.GetSlice(start, stop)
+                ls = ptr.contents.into_object().value
+                # Get step if provided
+                if index.step is not None:
+                    ls = ls[::index.step]
+                return ls
+            except (IndexError, ValueError) as err:
+                raise IndexError(f"Slice {index} out of range") from err
+
+        raise TypeError(f"Invalid index type: {type(index)}")
+
+    def __setitem__(self, index: int, value: _VT) -> None:
+        if isinstance(index, int):
+            try:
+                self._pyobject.SetItem(index.__index__(), value)
+            except (IndexError, ValueError) as err:
+                raise IndexError(f"Index {index} out of range") from err
+        elif isinstance(index, slice):
+            try:
+                if index.step is not None:
+                    raise ValueError("Cannot set slice with step")
+                # Normalize slice start and stop
+                start = index.start if index.start is not None else 0
+                stop = index.stop if index.stop is not None else self.size
+                self._pyobject.SetSlice(start, stop, value)
+            except (IndexError, ValueError) as err:
+                raise IndexError(f"Slice {index} out of range") from err
         else:
             raise TypeError(f"Invalid index type: {type(index)}")
-
-    def __setitem__(self, key: int, value: _T) -> None:
-        # First use PyList_SetItem
-        try:
-            ref = new_ref(value)
-            pythonapi.PyList_SetItem(self._pyobject, key, ref)
-        except IndexError as err:
-            if not self._unsafe:
-                raise UnsafeAttributeError.from_attr("__setitem__") from err
-            else:
-                # If unsafe, use direct set
-                self._pyobject.ob_item[key] = new_ref(value)
 
     def __len__(self) -> int:
         x = self.size
@@ -64,9 +88,9 @@ class ListView(VarView[_T], Sequence):
         self._pyobject.allocated = value  # type: ignore
 
     @property
-    def item(self) -> list:
-        """List of items in the list."""
-        return self._pyobject.ob_item
+    def item(self) -> Array[Py_ssize_t]:
+        """Array of item pointers in the list."""
+        return self._pyobject.ob_item  # type: ignore
 
     @item.setter
     def item(self, value: list) -> None:

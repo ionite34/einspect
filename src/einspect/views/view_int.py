@@ -7,10 +7,12 @@ from einspect.api import Py_ssize_t
 from einspect.structs import PyLongObject
 from einspect.views.view_base import VarView
 
+__all__ = ("IntView",)
+
 _T = TypeVar("_T")
 
 
-class IntView(VarView[_T]):
+class IntView(VarView[int, None, None]):
     _pyobject: PyLongObject
 
     @property

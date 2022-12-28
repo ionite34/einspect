@@ -9,7 +9,7 @@ from collections.abc import Generator
 from contextlib import ExitStack, contextmanager
 from copy import deepcopy
 from ctypes import py_object
-from typing import Generic, TypeVar, get_type_hints
+from typing import Generic, TypeVar, get_type_hints, Type
 
 from typing_extensions import Self
 
@@ -20,16 +20,19 @@ from einspect.structs import PyObject, PyVarObject
 from einspect.views import factory
 from einspect.views.unsafe import Context, unsafe
 
+__all__ = ("View", "VarView")
+
 log = logging.getLogger(__name__)
 
 _T = TypeVar("_T")
+_KT = TypeVar("_KT")
+_VT = TypeVar("_VT")
 _V = TypeVar("_V", bound="View")
-
 
 REF_DEFAULT = True
 
 
-class BaseView(ABC, Generic[_T]):
+class BaseView(ABC, Generic[_T, _KT, _VT]):
     """Base class for all views."""
 
     def __init__(self, obj: _T, ref: bool = REF_DEFAULT) -> None:
@@ -70,7 +73,7 @@ class BaseView(ABC, Generic[_T]):
         self._local_unsafe = False
 
 
-class View(BaseView[_T]):
+class View(BaseView[_T, _KT, _VT]):
     """
     View for Python objects.
 
@@ -78,7 +81,7 @@ class View(BaseView[_T]):
         The _pyobject class annotation is used to determine
         the type of the underlying PyObject struct.
     """
-    _pyobject: PyObject[_T]
+    _pyobject: PyObject[_T, None, None]
 
     def __init__(self, obj: _T, ref: bool = REF_DEFAULT) -> None:
         super().__init__(obj, ref)
@@ -164,7 +167,7 @@ class View(BaseView[_T]):
         self._pyobject.ob_refcnt = value
 
     @property
-    def type(self) -> type:
+    def type(self) -> Type[_T]:
         """Type of the object."""
         return self._pyobject.ob_type  # type: ignore
 
@@ -255,7 +258,7 @@ class View(BaseView[_T]):
         return self.base.value
 
 
-class VarView(View[_T]):
+class VarView(View[_T, _KT, _VT]):
     _pyobject: PyVarObject
 
     @property

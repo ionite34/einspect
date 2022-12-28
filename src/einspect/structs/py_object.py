@@ -4,7 +4,7 @@ from __future__ import annotations
 import ctypes
 from contextlib import contextmanager
 from ctypes import Structure, py_object
-from typing import Generic, List, Tuple, TypeVar
+from typing import Generic, List, Tuple, TypeVar, Type
 
 from typing_extensions import Self
 
@@ -12,14 +12,16 @@ from einspect.protocols.delayed_bind import bind_api
 from einspect.structs.deco import struct
 
 _T = TypeVar("_T")
+_KT = TypeVar("_KT")
+_VT = TypeVar("_VT")
 
 
 # noinspection PyPep8Naming
 @struct
-class PyObject(Structure, Generic[_T]):
+class PyObject(Structure, Generic[_T, _KT, _VT]):
     """Defines a base PyObject Structure."""
     ob_refcnt: int
-    ob_type: py_object
+    ob_type: Type[_T]
     # Need to use generics from typing to work for py-3.8
     _fields_: List[Tuple[str, type]]
     _from_type_name_: str
@@ -95,7 +97,7 @@ class PyObject(Structure, Generic[_T]):
 
 
 @struct
-class PyVarObject(PyObject[_T]):
+class PyVarObject(PyObject[_T, _KT, _VT]):
     """
     Defines a base PyVarObject Structure.
 
