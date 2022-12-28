@@ -3,7 +3,6 @@ from ctypes import pythonapi
 
 from einspect.api import Py
 from einspect.compat import Version, RequiresPythonVersion
-
 from tests import get_addr
 
 
