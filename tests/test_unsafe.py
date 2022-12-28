@@ -1,4 +1,4 @@
-"""Test some unsafe hacks."""
+"""Test unsafe context and operations."""
 import pytest
 
 from einspect import view, errors
