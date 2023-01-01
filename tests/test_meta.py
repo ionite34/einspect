@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import importlib
 import inspect
 import pkgutil
 from types import ModuleType
@@ -23,13 +24,13 @@ def pkg_class(pkg: ModuleType):
     raise ValueError(f"Module {pkg} has no classes.")
 
 
-@pytest.mark.parametrize("mod_name", pkg_names(views))
+@pytest.mark.parametrize(
+    "mod_name",
+    filter(lambda x: x.startswith("view_") and not x.endswith("_base"), pkg_names(views))
+)
 def test_views_modules(mod_name: str):
     """Test that factory supports all views."""
-    if mod_name.endswith("_base") or not mod_name.startswith("view_"):
-        return
-
-    module: ModuleType = getattr(views, mod_name)
+    module = importlib.import_module(f"einspect.views.{mod_name}")
     m_dict = module.__dict__
     # Check all views have __all__
     if "__all__" not in m_dict:
