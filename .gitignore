@@ -10,7 +10,7 @@ __pycache__/
 *.so
 
 # Sphinx docs
-docs/_build/
+docs/build/
 
 # Distribution / packaging
 .Python
