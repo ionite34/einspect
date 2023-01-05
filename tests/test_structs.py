@@ -12,7 +12,7 @@ class TestPyObject:
         ls = []
         py_object = st.PyObject.from_object(ls)
         assert py_object.ob_refcnt == 1
-        assert py_object.ob_type == list
+        assert py_object.ob_type.contents.into_object().value == list
 
     @pytest.mark.parametrize(["obj", "ob_type"], [
         ("hello", str),
@@ -24,7 +24,7 @@ class TestPyObject:
     def test_obj(self, obj, ob_type):
         py_object = st.PyObject.from_object(obj)
         assert py_object.ob_refcnt >= 1
-        assert py_object.ob_type == ob_type
+        assert py_object.ob_type.contents.into_object().value == ob_type
 
 
 class TestPyListObject:
