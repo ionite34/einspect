@@ -8,6 +8,8 @@ from einspect.structs.py_long import PyLongObject
 from einspect.structs.py_object import PyObject, PyVarObject
 from einspect.structs.py_tuple import PyTupleObject
 from einspect.structs.py_unicode import PyUnicodeObject
+from einspect.structs.py_bool import PyBoolObject
+from einspect.structs.py_set import PySetObject
 
 __all__ = (
     "deco",
@@ -16,7 +18,9 @@ __all__ = (
     "PyTupleObject",
     "PyListObject",
     "PyLongObject",
+    "PyBoolObject",
     "PyUnicodeObject",
     "PyDictObject",
     "MappingProxyObject",
+    "PySetObject",
 )
