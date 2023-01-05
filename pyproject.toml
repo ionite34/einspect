@@ -30,6 +30,12 @@ typing-extensions = "^4.4.0"
 pytest = "^7.2.0"
 pytest-cov = "^4.0.0"
 
+[tool.poetry.group.docs.dependencies]
+Sphinx = ">4.0.0,<6.0.0"
+myst-parser = "^0.18.1"
+sphinx-copybutton = "^0.5.1"
+furo = "^2022.12.7"
+
 [tool.pytest.ini_options]
 markers = [
     "run_in_subprocess: Run marked test in a subprocess",
