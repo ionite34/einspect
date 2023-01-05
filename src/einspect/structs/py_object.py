@@ -9,6 +9,7 @@ from typing import Generic, List, Tuple, TypeVar, Type
 
 from typing_extensions import Self
 
+from einspect.compat import python_req, Version
 from einspect.protocols.delayed_bind import bind_api
 from einspect.structs.deco import struct
 
@@ -28,7 +29,7 @@ class PyObject(Structure, Generic[_T, _KT, _VT]):
     _fields_: List[Tuple[str, type]]
     _from_type_name_: str
 
-    @bind_api(ctypes.pythonapi["Py_NewRef"])
+    @bind_api(python_req(Version.PY_3_10) or ctypes.pythonapi["Py_NewRef"])
     def NewRef(self) -> object:
         """Returns new reference of the PyObject."""
 
