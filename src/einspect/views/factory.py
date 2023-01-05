@@ -4,8 +4,8 @@ from __future__ import annotations
 from types import MappingProxyType
 from typing import Final, Type, TypeVar, overload, Any
 
-from einspect.views import REF_DEFAULT
-from einspect.views.view_base import View
+from einspect.views.view_base import View, REF_DEFAULT
+from einspect.views.view_bool import BoolView
 from einspect.views.view_dict import DictView
 from einspect.views.view_float import FloatView
 from einspect.views.view_int import IntView
@@ -18,6 +18,7 @@ __all__ = ("view",)
 
 VIEW_TYPES: Final[dict[type, Type[View]]] = {
     int: IntView,
+    bool: BoolView,
     float: FloatView,
     str: StrView,
     list: ListView,
@@ -37,6 +38,11 @@ _T = TypeVar("_T")
 
 @overload
 def view(obj: int, ref: bool = REF_DEFAULT) -> IntView:
+    ...
+
+
+@overload
+def view(obj: bool, ref: bool = REF_DEFAULT) -> BoolView:
     ...
 
 
