@@ -1,14 +1,13 @@
 from __future__ import annotations
 
-from ctypes import Array
+from ctypes import Array, c_long
 from typing import TypeVar, overload
 
 from einspect.compat import abc
 from einspect.api import Py_ssize_t
 from einspect.errors import UnsafeAttributeError
 from einspect.structs import PyListObject
-from einspect.views import REF_DEFAULT
-from einspect.views.view_base import VarView
+from einspect.views.view_base import VarView, REF_DEFAULT
 
 __all__ = ("ListView",)
 
@@ -80,7 +79,7 @@ class ListView(VarView[list, None, _VT], abc.Sequence[_VT]):
     @property
     def allocated(self) -> int:
         """Allocated size of the list."""
-        return int(self._pyobject.allocated)  # type: ignore
+        return self._pyobject.allocated  # type: ignore
 
     @allocated.setter
     def allocated(self, value: int) -> None:

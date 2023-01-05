@@ -5,9 +5,8 @@ from typing import TypeVar
 
 from einspect.compat import abc
 from einspect.structs.mapping_proxy import MappingProxyObject
-from einspect.views import REF_DEFAULT
 from einspect.views.unsafe import unsafe
-from einspect.views.view_base import View
+from einspect.views.view_base import View, REF_DEFAULT
 
 __all__ = ("MappingProxyView",)
 
@@ -40,6 +39,7 @@ class MappingProxyView(View[MappingProxyType, _KT, _VT], abc.MutableMapping[_KT,
 
     @property
     def mapping(self) -> dict[_KT, _VT]:
+        """Return `MappingProxyObject.mapping`, casted to `dict`."""
         return self._pyobject.mapping.contents.into_object().value
 
     @mapping.setter

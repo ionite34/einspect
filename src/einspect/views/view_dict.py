@@ -7,9 +7,8 @@ from typing import TypeVar
 from einspect.api import Py_ssize_t
 from einspect.compat import abc
 from einspect.structs.py_dict import PyDictObject
-from einspect.views import REF_DEFAULT
 from einspect.views.unsafe import unsafe
-from einspect.views.view_base import View
+from einspect.views.view_base import View, REF_DEFAULT
 
 __all__ = ("DictView",)
 
