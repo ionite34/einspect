@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import ctypes
+from ctypes import pointer
 from contextlib import contextmanager
 from ctypes import Structure, py_object
 from typing import Generic, List, Tuple, TypeVar, Type
@@ -22,10 +23,14 @@ class PyObject(Structure, Generic[_T, _KT, _VT]):
     """Defines a base PyObject Structure."""
 
     ob_refcnt: int
-    ob_type: Type[_T]
+    ob_type: pointer[Self]
     # Need to use generics from typing to work for py-3.8
     _fields_: List[Tuple[str, type]]
     _from_type_name_: str
+
+    @bind_api(ctypes.pythonapi["Py_NewRef"])
+    def NewRef(self) -> object:
+        """Returns new reference of the PyObject."""
 
     @bind_api(ctypes.pythonapi["Py_IncRef"])
     def IncRef(self) -> None:
@@ -70,12 +75,10 @@ class PyObject(Structure, Generic[_T, _KT, _VT]):
             cls_name += f"[{type_name}]"
         return f"<{cls_name} at {self.address:#04x}>"
 
-    @contextmanager
-    def temp_ref(self) -> Self:
-        """Create a temporary reference to the PyObject."""
-        self.IncRef()
-        yield self
-        self.DecRef()
+    @classmethod
+    def _format_fields_(cls) -> dict[str, str]:
+        """Return a dict of (field: type) for the info display protocol."""
+        return {"ob_refcnt": "Py_ssize_t", "ob_type": "*PyTypeObject"}
 
     @classmethod
     def from_object(cls, obj: _T) -> Self:
@@ -106,3 +109,8 @@ class PyVarObject(PyObject[_T, _KT, _VT]):
     """
 
     ob_size: int
+
+    @classmethod
+    def _format_fields_(cls) -> dict[str, str]:
+        """Return a dict of (field: type) for the info display protocol."""
+        return super()._format_fields_() | {"ob_size": "Py_ssize_t"}

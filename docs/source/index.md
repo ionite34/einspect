@@ -7,6 +7,7 @@ hide-toc: true
 ```{toctree}
 :hidden:
 intro.md
+views.md
 ```
 
 ```{toctree}

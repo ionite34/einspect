@@ -1,7 +1,9 @@
 from __future__ import annotations
 
-from ctypes import POINTER, c_long, c_void_p, pythonapi
+from ctypes import POINTER, c_long, c_void_p, pythonapi, Array, pointer, py_object, cast
 from typing import TypeVar, List
+
+from typing_extensions import Annotated
 
 from einspect.protocols.delayed_bind import bind_api
 from einspect.structs.deco import struct
@@ -19,8 +21,19 @@ class PyListObject(PyVarObject[list, None, _VT]):
     https://github.com/python/cpython/blob/3.11/Include/cpython/listobject.h
     """
 
-    ob_item: POINTER(c_void_p)
-    allocated: c_long
+    _ob_item: POINTER(c_void_p)
+    allocated: Annotated[int, c_long]
+
+    @property
+    def ob_item(self) -> pointer[Array[pointer[PyObject[_VT, None, None]]]]:
+        arr_type = POINTER(PyObject) * self.allocated
+        # Cast _ob_item to a py_object array
+        return cast(self._ob_item, POINTER(arr_type))
+
+    @classmethod
+    def _format_fields_(cls) -> dict[str, str]:
+        """Return a dict of (field: type) for the info display protocol."""
+        return super()._format_fields_() | {"ob_item": "**PyObject", "allocated": "c_long"}
 
     @bind_api(pythonapi["PyList_GetItem"])
     def GetItem(self, index: int) -> POINTER(PyObject):

@@ -1,8 +1,19 @@
 from __future__ import annotations
 
-from ctypes import POINTER, c_ssize_t, c_uint64, c_void_p, pythonapi
+from ctypes import (
+    POINTER,
+    c_ssize_t,
+    c_uint64,
+    c_void_p,
+    pythonapi,
+    c_char,
+    c_uint32,
+    c_uint8,
+    Structure,
+)
 from typing import TypeVar, Dict
 
+from einspect.api import Py_ssize_t
 from einspect.protocols.delayed_bind import bind_api
 from einspect.structs.deco import struct
 from einspect.structs.py_object import PyObject
@@ -11,6 +22,24 @@ __all__ = ("PyDictObject",)
 
 _KT = TypeVar("_KT")
 _VT = TypeVar("_VT")
+
+
+@struct
+class DictKeysObject(Structure):
+    """
+    Defines a DictKeysObject Structure.
+
+    https://github.com/python/cpython/blob/3.11/Include/internal/pycore_dict.h#L87-L125
+    """
+
+    dk_refcnt: Py_ssize_t
+    dk_log2_size: c_uint8
+    dk_log2_index_bytes: c_uint8
+    dk_kind: c_uint8
+    dk_version: c_uint32
+    dk_usable: Py_ssize_t
+    dk_nentries: Py_ssize_t
+    dk_indices: POINTER(c_char)
 
 
 # noinspection PyPep8Naming
@@ -26,7 +55,7 @@ class PyDictObject(PyObject[dict, _KT, _VT]):
     ma_used: c_ssize_t
     # Dictionary version: globally unique, changes on modification
     ma_version_tag: c_uint64
-    ma_keys: POINTER(c_void_p)
+    ma_keys: POINTER(DictKeysObject)
     # If ma_values is NULL, the table is "combined": keys and values
     # are stored in ma_keys. Otherwise, keys are stored in ma_keys
     # and values are stored in ma_values
@@ -64,6 +93,6 @@ class PyDictObject(PyObject[dict, _KT, _VT]):
         """
 
     @classmethod
-    def from_object(cls, obj: Dict[_KT, _VT]) -> PyDictObject[Dict[_KT, _VT]]:
+    def from_object(cls, obj: Dict[_KT, _VT]) -> PyDictObject[_KT, _VT]:
         """Create a PyDictObject from an object."""
         return super(PyDictObject, cls).from_object(obj)  # type: ignore

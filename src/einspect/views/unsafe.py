@@ -2,11 +2,12 @@
 from __future__ import annotations
 
 from collections.abc import Generator
-from contextlib import ExitStack, contextmanager
+from contextlib import contextmanager
+from dataclasses import dataclass
 from functools import wraps
-from typing import TYPE_CHECKING, ContextManager, TypeVar
+from typing import TYPE_CHECKING, TypeVar
 
-from typing_extensions import ParamSpec
+from typing_extensions import ParamSpec, Self
 
 from einspect.errors import UnsafeError
 
@@ -17,32 +18,32 @@ _T = TypeVar("_T")
 _P = ParamSpec("_P")
 
 
-class Context:
+class UnsafeContext:
     _global_unsafe = False
 
-    def __enter__(self):
-        Context._global_unsafe = True
+    def __init__(self):
+        super().__init__()
+        self._local_unsafe = False
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        Context._global_unsafe = False
+    @property
+    def _unsafe(self) -> dict | None:
+        """Returns True if unsafe operations are allowed."""
+        return self._global_unsafe or self._local_unsafe
 
-    @classmethod
     @contextmanager
-    def unsafe(cls, *views: View) -> Generator[None, None, None]:
+    def unsafe(self) -> Generator[Self, None, None]:
         """Context manager for unsafe contexts."""
-        with ExitStack() as stack:
-            # If views, set unsafe on all views
-            if views:
-                for view in views:
-                    if not isinstance(view, View):
-                        raise TypeError(f"Expected View, got {type(view)}")
-                    ctx: ContextManager[View] = view.unsafe()  # type: ignore
-                    stack.enter_context(ctx)
-                yield
-            else:
-                # Otherwise, set global unsafe
-                stack.enter_context(cls())
-                yield
+        self._local_unsafe = True
+        yield self
+        self._local_unsafe = False
+
+
+@contextmanager
+def global_unsafe() -> Generator[None, None, None]:
+    """Context manager for global unsafe contexts."""
+    UnsafeContext._global_unsafe = True
+    yield None
+    UnsafeContext._global_unsafe = False
 
 
 def unsafe(func: _T) -> _T:

@@ -24,25 +24,11 @@ class PyTupleObject(PyVarObject[tuple, None, _VT]):
     # Size of this array is only known after creation
     _ob_item_0: Py_ssize_t * 0
 
-    @bind_api(pythonapi["PyTuple_GetItem"])
-    def GetItem(self, index: int) -> pointer[PyObject[_VT, None, None]]:
-        """Return the item at the given index."""
-
-    @bind_api(pythonapi["PyTuple_GetSlice"])
-    def GetSlice(self, start: int, stop: int) -> pointer[PyTupleObject[_VT]]:
-        """Return a slice of the tuple."""
-
-    @bind_api(pythonapi["PyTuple_SetItem"])
-    def SetItem(self, index: int, value: object) -> int:
-        """
-        Set a value to a given index.
-
-        - Can only be used when refcount is equal to 1.
-        """
-
-    @bind_api(pythonapi["_PyTuple_Resize"])
-    def Resize(self, size: int) -> None:
-        """Resize the tuple to the given size."""
+    @classmethod
+    def _format_fields_(cls) -> dict[str, str]:
+        return super()._format_fields_() | {
+            "ob_item": "*PyObject[]"
+        }
 
     @overload
     @classmethod
@@ -72,3 +58,23 @@ class PyTupleObject(PyVarObject[tuple, None, _VT]):
         items_addr = ctypes.addressof(self._ob_item_0)
         arr = Py_ssize_t * self.ob_size
         return arr.from_address(items_addr)
+
+    @bind_api(pythonapi["PyTuple_GetItem"])
+    def GetItem(self, index: int) -> pointer[PyObject[_VT, None, None]]:
+        """Return the item at the given index."""
+
+    @bind_api(pythonapi["PyTuple_GetSlice"])
+    def GetSlice(self, start: int, stop: int) -> pointer[PyTupleObject[_VT]]:
+        """Return a slice of the tuple."""
+
+    @bind_api(pythonapi["PyTuple_SetItem"])
+    def SetItem(self, index: int, value: object) -> int:
+        """
+        Set a value to a given index.
+
+        - Can only be used when refcount is equal to 1.
+        """
+
+    @bind_api(pythonapi["_PyTuple_Resize"])
+    def Resize(self, size: int) -> None:
+        """Resize the tuple to the given size."""

@@ -2,6 +2,7 @@
 import pytest
 
 from einspect import view, errors
+from ctypes import pointer, POINTER, c_int
 
 
 def test_unsafe_error():
