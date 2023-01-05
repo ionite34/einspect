@@ -12,6 +12,9 @@ __all__ = ("Py", "Py_ssize_t", "PyObj_FromPtr")
 Py_ssize_t = ctypes.c_ssize_t
 """Constant for type Py_ssize_t."""
 
+Py_hash_t = ctypes.c_uint64
+"""Constant for type Py_hash_t."""
+
 ObjectOrRef = Union[py_object, object]
 IntSize = Union[int, Py_ssize_t]
 PyObjectPtr = POINTER(py_object)
