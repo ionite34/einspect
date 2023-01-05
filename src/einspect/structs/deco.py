@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import logging
 from ctypes import Structure
-from typing import Callable, Type, TypeVar, get_type_hints
+from typing import Callable, Type, TypeVar, get_type_hints, get_args
+
+from typing_extensions import Annotated
 
 from einspect.protocols.type_parse import convert_type_hints, fix_ctypes_generics
 
@@ -31,6 +33,11 @@ def struct(cls: _T) -> _T:
         # Since get_type_hints also gets superclass hints, skip them
         if name not in cls.__annotations__:
             continue
+
+        # For Annotated, directly use fields 1 and 2
+        if type(type_hint) is Annotated:
+            args = get_args(type_hint)
+            fields.append((name, *args[1:3]))
 
         type_hint = convert_type_hints(type_hint, cls)
 
