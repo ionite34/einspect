@@ -6,8 +6,9 @@ on:
     branches: [ main ]
 
 jobs:
-  docs-check:
+  build:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v3
 
@@ -24,11 +25,10 @@ jobs:
         run: |
           poetry install --only docs
 
-      - uses: ammaraskar/sphinx-action@master
-        with:
-          docs-folder: "docs/"
+      - name: Build docs
+        run: cd docs; make html
 
-      - uses: actions/upload-artifact@v1
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v1
         with:
-          name: DocumentationHTML
-          path: docs/build/html/
+          path: ./docs/build/html
