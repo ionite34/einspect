@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import logging
 from ctypes import Structure
-from typing import Callable, Type, TypeVar, get_type_hints, get_args
+from typing import Callable, Type, TypeVar
 
 # noinspection PyUnresolvedReferences, PyProtectedMember
-from typing_extensions import _AnnotatedAlias
+from typing_extensions import _AnnotatedAlias, get_type_hints, get_args
 
 from einspect.protocols.type_parse import convert_type_hints, fix_ctypes_generics
 
