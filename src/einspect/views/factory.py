@@ -11,6 +11,7 @@ from einspect.views.view_float import FloatView
 from einspect.views.view_int import IntView
 from einspect.views.view_list import ListView
 from einspect.views.view_mapping_proxy import MappingProxyView
+from einspect.views.view_set import SetView
 from einspect.views.view_str import StrView
 from einspect.views.view_tuple import TupleView
 
@@ -24,6 +25,7 @@ VIEW_TYPES: Final[dict[type, Type[View]]] = {
     list: ListView,
     tuple: TupleView,
     dict: DictView,
+    set: SetView,
     MappingProxyType: MappingProxyView,
 }
 """Mapping of (type): (view class)."""
@@ -60,6 +62,11 @@ def view(
 
 @overload
 def view(obj: dict[_KT, _VT], ref: bool = REF_DEFAULT) -> DictView[_KT, _VT]:
+    ...
+
+
+@overload
+def view(obj: set[_VT], ref: bool = REF_DEFAULT) -> SetView[_VT]:
     ...
 
 
