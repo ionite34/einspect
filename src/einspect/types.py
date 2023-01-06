@@ -4,7 +4,7 @@ import typing
 from ctypes import pointer as ptr
 # noinspection PyUnresolvedReferences, PyProtectedMember
 from ctypes import _Pointer
-from typing import TypeVar, TYPE_CHECKING, get_origin, overload
+from typing import List, TypeVar, TYPE_CHECKING, get_origin, overload
 
 __all__ = ("ptr", "Array")
 
@@ -43,7 +43,7 @@ class Array(CArray[_T]):
         ...
 
     @overload
-    def __getitem__(self, item: slice) -> list[_T]:
+    def __getitem__(self, item: slice) -> List[_T]:
         ...
 
     def __getitem__(self, item):
