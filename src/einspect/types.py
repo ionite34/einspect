@@ -1,4 +1,5 @@
 import ctypes
+import sys
 import typing
 from ctypes import pointer as ptr
 # noinspection PyUnresolvedReferences, PyProtectedMember
@@ -24,7 +25,16 @@ class _Ptr(_Pointer):
         return ctypes.POINTER(item)
 
 
-class Array(ctypes.Array[_T]):
+if sys.version_info >= (3, 9):
+    CArray = ctypes.Array
+else:
+    class _ArrayGenericAlias:
+        def __class_getitem__(cls, item):
+            return ctypes.Array
+    CArray = _ArrayGenericAlias
+
+
+class Array(CArray[_T]):
     _length_ = 0
     _type_ = ctypes.c_void_p
 
