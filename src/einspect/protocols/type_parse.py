@@ -4,6 +4,7 @@ from __future__ import annotations
 import ctypes
 import logging
 import re
+import sys
 import typing
 
 # noinspection PyProtectedMember
@@ -42,23 +43,31 @@ aliases = {
 # ctypes generics to replace
 RE_PY_OBJECT = re.compile(r"^(py_object)(\[(.*)])$")
 RE_POINTER = re.compile(r"^(pointer)(\[(.*)])$")
+RE_ARRAY = re.compile(r"^(Array)(\[(.*)])$")
 
 
 def fix_ctypes_generics(type_hints: [str, str]) -> None:
     for name, hint in type_hints.items():
         if isinstance(hint, str):
+            # For python < 3.9, discard Array generic
+            if sys.version_info < (3, 9):
+                m_arr = RE_ARRAY.match(hint)
+                if m_arr:
+                    base = hint.replace(m_arr.group(2), "")
+                    type_hints[name] = base
+                    continue
             # Keep py_object and discard subscript
-            match = RE_PY_OBJECT.match(hint)
-            log.debug("Source: %r Match: %r", hint, match)
-            if match:
-                base = hint.replace(match.group(2), "")
+            m_pyobj = RE_PY_OBJECT.match(hint)
+            log.debug("Source: %r Match: %r", hint, m_pyobj)
+            if m_pyobj:
+                base = hint.replace(m_pyobj.group(2), "")
                 type_hints[name] = base
                 log.debug("Replacing %r with %r", hint, base)
             # For pointer, replace with POINTER
-            m2 = RE_POINTER.match(hint)
-            if m2:
+            m_ptr = RE_POINTER.match(hint)
+            if m_ptr:
                 # Get inner of []
-                base = m2.group(3)
+                base = m_ptr.group(3)
                 # Discard any other generics
                 base = base.split("[")[0]
                 type_hints[name] = base
