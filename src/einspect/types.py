@@ -53,5 +53,5 @@ class Array(CArray[_T]):
 if not TYPE_CHECKING:
     globals().update({
         "ptr": _Ptr,
-        "Array": ctypes.Array,
+        "Array": CArray,
     })
