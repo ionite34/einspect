@@ -40,15 +40,7 @@ def struct(cls: _T) -> _T:
             fields.append((name, *args[1:3]))
 
         type_hint = convert_type_hints(type_hint, cls)
-
-        # Check if there is a real class-attribute assigned
-        if hasattr(cls, name):
-            value = getattr(cls, name)
-            # use it as the default value
-            fields.append((name, type_hint, value))
-        else:
-            # otherwise no default value
-            fields.append((name, type_hint))
+        fields.append((name, type_hint))
 
     # We have to only set this once as _fields_ is final
     try:
