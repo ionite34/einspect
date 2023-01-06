@@ -10,8 +10,6 @@ jobs:
   coverage:
     uses: ./.github/workflows/coverage.yml
     secrets: inherit
-  docs-deploy:
-    uses: ./.github/workflows/docs-deploy.yml
   tests:
     needs: coverage
     uses: ./.github/workflows/tests.yml

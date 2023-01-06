@@ -2,6 +2,8 @@ name: Docs Deploy
 
 on:
   workflow_call:
+  push:
+    branches: [ main ]
 
 permissions:
   contents: read
