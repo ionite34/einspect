@@ -17,7 +17,7 @@ from einspect.structs import PyObject, PyVarObject
 from einspect.views._display import format_display
 from einspect.views.unsafe import UnsafeContext, unsafe
 
-__all__ = ("View", "VarView")
+__all__ = ("View", "VarView", "REF_DEFAULT")
 
 log = logging.getLogger(__name__)
 
