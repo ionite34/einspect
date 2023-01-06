@@ -1,4 +1,4 @@
-name: GitHub Pages - Python Sphinx
+name: Docs Deploy
 
 on:
   workflow_call:
