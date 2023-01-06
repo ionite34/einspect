@@ -31,7 +31,7 @@ jobs:
           poetry install --only docs
 
       - name: Build docs
-        run: cd docs; make html
+        run: cd docs; poetry run make html
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
