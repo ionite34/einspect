@@ -10,8 +10,6 @@ from einspect.views.view_int import IntView
 
 __all__ = ("BoolView",)
 
-_T = TypeVar("_T")
-
 
 class BoolView(IntView):
     _pyobject: PyBoolObject
