@@ -4,10 +4,13 @@ __pycache__/
 *$py.class
 
 # Demos
-_*/
+/_*/
 
 # C extensions
 *.so
+
+# Sphinx docs
+docs/build/
 
 # Distribution / packaging
 .Python

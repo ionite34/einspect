@@ -1,22 +1,30 @@
 from __future__ import annotations
 
+import logging
 from ctypes import Structure
-from typing import Callable, Type, TypeVar, get_type_hints
+from typing import Callable, Type, TypeVar
 
-from einspect.api import Py_ssize_t
+# noinspection PyUnresolvedReferences, PyProtectedMember
+from typing_extensions import _AnnotatedAlias, get_type_hints, get_args
+
+from einspect.protocols.type_parse import convert_type_hints, fix_ctypes_generics
+
+log = logging.getLogger(__name__)
 
 _T = TypeVar("_T", bound=Type[Structure])
-
-# Map of types hints that will be converted by @struct
-types_map = {
-    int: Py_ssize_t,
-}
 
 
 def struct(cls: _T) -> _T:
     """Decorator to declare _fields_ on Structures via type hints."""
     fields = []
-    for name, type_hint in get_type_hints(cls).items():
+    try:
+        hints = get_type_hints(cls, include_extras=True)
+    except TypeError:
+        # Normalize annotations of py_object subscripts
+        fix_ctypes_generics(cls.__annotations__)
+        hints = get_type_hints(cls, include_extras=True)
+
+    for name, type_hint in hints.items():
         # Skip actual values like _fields_
         if name.startswith("_") and name.endswith("_"):
             continue
@@ -26,20 +34,22 @@ def struct(cls: _T) -> _T:
         # Since get_type_hints also gets superclass hints, skip them
         if name not in cls.__annotations__:
             continue
-        # Convert type hint if needed
-        if type_hint in types_map:
-            type_hint = types_map[type_hint]
 
-        # Check if there is a real class-attribute assigned
-        if hasattr(cls, name):
-            value = getattr(cls, name)
-            # use it as the default value
-            fields.append((name, type_hint, value))
-        else:
-            # otherwise no default value
-            fields.append((name, type_hint))
+        # For Annotated, directly use fields 1 and 2
+        if type(type_hint) is _AnnotatedAlias:
+            args = get_args(type_hint)
+            res = (name, *args[1:3])
+            log.debug(f"Annotated: {type_hint} -> {res}")
+            fields.append((name, *args[1:3]))
+            continue
+
+        type_hint = convert_type_hints(type_hint, cls)
+        fields.append((name, type_hint))
 
     # We have to only set this once as _fields_ is final
-    cls._fields_ = fields
+    try:
+        cls._fields_ = fields
+    except TypeError as e:
+        raise TypeError(f"Failed to set _fields_ on {cls.__name__}: {fields}") from e
 
     return cls

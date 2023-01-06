@@ -1,72 +1,74 @@
 from __future__ import annotations
 
 import ctypes
-from collections.abc import Iterable
 from ctypes import Array
 from typing import Sequence, TypeVar, overload
 
 from einspect.api import Py_ssize_t
-from einspect.errors import UnsafeAttributeError, UnsafeIndexError
+from einspect.compat import abc
+from einspect.errors import UnsafeIndexError
 from einspect.structs import PyTupleObject
 from einspect.utils import new_ref
 from einspect.views.unsafe import unsafe
 from einspect.views.view_base import VarView
 
-_T = TypeVar("_T")
+__all__ = ("TupleView",)
+
+_VT = TypeVar("_VT")
 
 
-class TupleView(VarView[_T], Sequence):
-    _pyobject: PyTupleObject
+class TupleView(VarView[tuple, None, _VT], abc.Sequence):
+    _pyobject: PyTupleObject[_VT]
 
     @overload
-    def __getitem__(self, index: int):
+    def __getitem__(self, index: int) -> _VT:
         ...
 
     @overload
-    def __getitem__(self, index: slice):
+    def __getitem__(self, index: slice) -> tuple[_VT]:
         ...
 
-    def __getitem__(self, index: int):
+    def __getitem__(self, index: int | slice) -> _VT | tuple[_VT]:
         if isinstance(index, int):
-            # First use PyList_GetItem
+            # First use api GetItem
             try:
-                addr = self._pyobject.GetItem(self._pyobject, index)
-                return addr
+                ptr = self._pyobject.GetItem(index)
+                py_struct = ptr.contents
+                py_obj = py_struct.into_object()
+                return py_obj.value
             except IndexError as err:
                 raise IndexError(f"Index {index} out of range") from err
         elif isinstance(index, slice):
-            raise NotImplementedError
+            start = index.start if index.start is not None else 0
+            stop = index.stop if index.stop is not None else self.size
+            ptr = self._pyobject.GetSlice(start, stop)
+            return ptr.contents.into_object().value
         else:
             raise TypeError(f"Invalid index type: {type(index)}")
 
-    def __setitem__(self, key: int, value: _S) -> None:
-        # First use SetItem api
+    def __setitem__(self, index: int, value: _VT) -> None:
+        if isinstance(index, slice):
+            raise ValueError("Cannot set slice of tuple")
         try:
-            # Get current item and decref
-            prev_item = self._pyobject.GetItem(key)
-            # pythonapi.Py_DecRef(prev_item)
-            # ref = ctypes.py_object(value)
-            # pythonapi.Py_IncRef(ref)
             ref = new_ref(value)
             arr = self.item
-            arr[key] = ref
-            # self._pyobject.SetItem(self._pyobject, key, ref)
+            arr[index] = ref
         except IndexError as err:
             if not self._unsafe:
                 raise UnsafeIndexError(
-                    "Setting indices beyond current size requires entering the unsafe() context."
+                    "Setting indices beyond current size requires entering an unsafe context."
                 ) from err
             else:
-                if key < 0:
-                    raise IndexError(f"Index {key} out of range") from err
+                if index < 0:
+                    raise IndexError(f"Index {index} out of range") from err
 
                 # If unsafe, use direct set by creating a new array
                 # noinspection PyProtectedMember
                 start_addr = ctypes.addressof(self._pyobject._ob_item_0)
                 # Size should be higher of the current size and the index
-                size = max(self.size, key + 1)
+                size = max(self.size, index + 1)
                 arr = (Py_ssize_t * size).from_address(start_addr)
-                arr[key] = new_ref(value)
+                arr[index] = new_ref(value)
 
     def __len__(self) -> int:
         return self.size
@@ -80,11 +82,7 @@ class TupleView(VarView[_T], Sequence):
     def item(self, value: Array[Py_ssize_t] | Sequence[int]) -> None:
         if isinstance(value, Array):
             # For Array, we can just copy the memory
-            ctypes.memmove(
-                self._pyobject.ob_item,
-                value,
-                ctypes.sizeof(value)
-            )
+            ctypes.memmove(self._pyobject.ob_item, value, ctypes.sizeof(value))
         else:
             # Get the memory address for the start of the array
             # noinspection PyProtectedMember

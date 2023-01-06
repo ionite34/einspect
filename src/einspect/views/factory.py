@@ -1,48 +1,91 @@
 """Function factory to create views for objects."""
 from __future__ import annotations
 
-from typing import TypeVar, overload
+from types import MappingProxyType
+from typing import Final, Type, TypeVar, overload, Any
 
-from einspect.views.view_base import REF_DEFAULT, View
+from einspect.views.view_base import View, REF_DEFAULT
+from einspect.views.view_bool import BoolView
+from einspect.views.view_dict import DictView
+from einspect.views.view_float import FloatView
 from einspect.views.view_int import IntView
 from einspect.views.view_list import ListView
+from einspect.views.view_mapping_proxy import MappingProxyView
 from einspect.views.view_str import StrView
 from einspect.views.view_tuple import TupleView
 
-views_map = {
+__all__ = ("view",)
+
+VIEW_TYPES: Final[dict[type, Type[View]]] = {
     int: IntView,
+    bool: BoolView,
+    float: FloatView,
     str: StrView,
     list: ListView,
     tuple: TupleView,
+    dict: DictView,
+    MappingProxyType: MappingProxyView,
 }
 """Mapping of (type): (view class)."""
 
+# Collection generics
+_KT = TypeVar("_KT")
+_VT = TypeVar("_VT")
 
-_Int = TypeVar("_Int", bound=int)
-_Str = TypeVar("_Str", bound=str)
-_List = TypeVar("_List", bound=list)
-_Tuple = TypeVar("_Tuple", bound=tuple)
-_Object = TypeVar("_Object", bound=object)
-
-
-@overload
-def view(obj: _Int, ref: bool = REF_DEFAULT) -> IntView[_Int]: ...
+# Base case
+_T = TypeVar("_T")
 
 
 @overload
-def view(obj: _List, ref: bool = REF_DEFAULT) -> ListView[_List]: ...
+def view(obj: int, ref: bool = REF_DEFAULT) -> IntView:
+    ...
 
 
 @overload
-def view(obj: _Tuple, ref: bool = REF_DEFAULT) -> TupleView[_Tuple]: ...
+def view(obj: bool, ref: bool = REF_DEFAULT) -> BoolView:
+    ...
 
 
 @overload
-def view(obj: _Str, ref: bool = REF_DEFAULT) -> StrView[_Str]: ...
+def view(obj: list[_VT], ref: bool = REF_DEFAULT) -> ListView[_VT]:
+    ...
 
 
 @overload
-def view(obj: _Object, ref: bool = REF_DEFAULT) -> View[_Object]: ...
+def view(
+    obj: MappingProxyType[_KT, _VT], ref: bool = REF_DEFAULT
+) -> MappingProxyView[_KT, _VT]:
+    ...
+
+
+@overload
+def view(obj: dict[_KT, _VT], ref: bool = REF_DEFAULT) -> DictView[_KT, _VT]:
+    ...
+
+
+@overload
+def view(obj: tuple[_T, ...], ref: bool = REF_DEFAULT) -> TupleView[_T]:
+    ...
+
+
+@overload
+def view(obj: tuple, ref: bool = REF_DEFAULT) -> TupleView[Any]:
+    ...
+
+
+@overload
+def view(obj: str, ref: bool = REF_DEFAULT) -> StrView:
+    ...
+
+
+@overload
+def view(obj: float, ref: bool = REF_DEFAULT) -> FloatView:
+    ...
+
+
+@overload
+def view(obj: _T, ref: bool = REF_DEFAULT) -> View[_T]:
+    ...
 
 
 def view(obj, ref: bool = REF_DEFAULT):
@@ -51,17 +94,14 @@ def view(obj, ref: bool = REF_DEFAULT):
 
     Args:
         obj: The object to view.
-        ref: If True, hold a strong reference to the object.
+        ref: If True, hold a reference to the object.
 
     Returns:
         A view onto the object.
     """
-    if isinstance(obj, list):
-        return ListView(obj, ref=ref)
-    elif isinstance(obj, tuple):
-        return TupleView(obj, ref=ref)
-    elif isinstance(obj, int):
-        return IntView(obj, ref=ref)
-    elif isinstance(obj, str):
-        return StrView(obj, ref=ref)
+    obj_type = type(obj)
+
+    if obj_type in VIEW_TYPES:
+        return VIEW_TYPES[obj_type](obj, ref=ref)
+
     return View(obj, ref=ref)

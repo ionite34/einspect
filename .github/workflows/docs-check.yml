@@ -1,0 +1,34 @@
+name: Docs Check
+
+on:
+  workflow_call:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Run Poetry image
+        uses: abatilo/actions-poetry@v2.0.0
+        with:
+          poetry-version: "1.3.0"
+
+      - name: Install requirements
+        run: |
+          poetry install --only docs
+
+      - name: Build docs
+        run: cd docs; poetry run make html
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v1
+        with:
+          path: ./docs/build/html

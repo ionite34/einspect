@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "einspect"
-version = "0.2.1"
+version = "0.3.0"
 description = "Extended Inspect - view and modify memory structs of runtime objects."
 authors = ["ionite34 <dev@ionite.io>"]
 license = "MIT"
@@ -8,7 +8,6 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = ">=3.8,<3.12"
-pycapi = "^0.82.1"
 typing-extensions = "^4.4.0"
 
 [tool.poetry.group.dev.dependencies]
@@ -20,6 +19,31 @@ pre-commit = "^2.20.0"
 
 [tool.poetry.group.dev-extras.dependencies]
 jupyter = "^1.0.0"
+rich = "^12.6.0"
+
+[tool.poetry.group.ci.dependencies]
+typing-extensions = "^4.4.0"
+pytest = "^7.2.0"
+
+[tool.poetry.group.ci-cov.dependencies]
+typing-extensions = "^4.4.0"
+pytest = "^7.2.0"
+pytest-cov = "^4.0.0"
+
+[tool.poetry.group.docs.dependencies]
+Sphinx = ">4.0.0,<6.0.0"
+myst-parser = "^0.18.1"
+sphinx-copybutton = "^0.5.1"
+furo = "^2022.12.7"
+
+[tool.pytest.ini_options]
+markers = [
+    "run_in_subprocess: Run marked test in a subprocess",
+]
+
+[tool.mypy]
+python_version = 3.11
+allow_redefinition = true
 
 [build-system]
 requires = ["poetry-core"]

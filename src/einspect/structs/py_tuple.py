@@ -1,46 +1,47 @@
 from __future__ import annotations
 
 import ctypes
-from collections.abc import Callable
-from ctypes import pythonapi
-from types import MethodType
-from typing import Generic, TypeVar, get_args, overload
-
-from typing_extensions import Self
+from ctypes import pythonapi, pointer
+from typing import TypeVar, overload, Any, Tuple
 
 from einspect.api import Py_ssize_t
-from einspect.protocols import bind_api, delayed_bind
+from einspect.protocols.delayed_bind import bind_api
 from einspect.structs.deco import struct
-from einspect.structs.py_object import PyVarObject
+from einspect.structs.py_object import PyObject, PyVarObject
 
-_Tuple = TypeVar("_Tuple", bound=tuple)
+_VT = TypeVar("_VT")
 
 
 # noinspection PyPep8Naming
 @struct
-class PyTupleObject(PyVarObject[_Tuple]):
+class PyTupleObject(PyVarObject[tuple, None, _VT]):
     """
     Defines a PyTupleObject Structure.
 
     https://github.com/python/cpython/blob/3.11/Include/cpython/tupleobject.h
     """
+
     # Size of this array is only known after creation
     _ob_item_0: Py_ssize_t * 0
 
-    @bind_api(pythonapi["PyTuple_GetItem"])
-    def GetItem(self, index: int) -> object:
-        """Return the item at the given index."""
+    @classmethod
+    def _format_fields_(cls) -> dict[str, str]:
+        return super()._format_fields_() | {
+            "ob_item": "*PyObject[]"
+        }
 
-    @bind_api(pythonapi["PyTuple_SetItem"])
-    def SetItem(self, index: int, value: object) -> None:
-        """Set a value to a given index."""
+    @overload
+    @classmethod
+    def from_object(cls, obj: Tuple[_VT, ...]) -> PyTupleObject[_VT]:
+        ...
 
-    @bind_api(pythonapi["_PyTuple_Resize"])
-    def Resize(self, size: int) -> None:
-        """Resize the tuple to the given size."""
+    @overload
+    @classmethod
+    def from_object(cls, obj: Tuple[...]) -> PyTupleObject[Any]:
+        ...
 
     @classmethod
-    def from_object(cls, obj: _Tuple) -> PyTupleObject[_Tuple]:
+    def from_object(cls, obj: Tuple[_VT, ...]) -> PyTupleObject[_VT]:
         """Create a PyTupleObject from an object."""
         return super(PyTupleObject, cls).from_object(obj)  # type: ignore
 
@@ -57,3 +58,23 @@ class PyTupleObject(PyVarObject[_Tuple]):
         items_addr = ctypes.addressof(self._ob_item_0)
         arr = Py_ssize_t * self.ob_size
         return arr.from_address(items_addr)
+
+    @bind_api(pythonapi["PyTuple_GetItem"])
+    def GetItem(self, index: int) -> pointer[PyObject[_VT, None, None]]:
+        """Return the item at the given index."""
+
+    @bind_api(pythonapi["PyTuple_GetSlice"])
+    def GetSlice(self, start: int, stop: int) -> pointer[PyTupleObject[_VT]]:
+        """Return a slice of the tuple."""
+
+    @bind_api(pythonapi["PyTuple_SetItem"])
+    def SetItem(self, index: int, value: object) -> int:
+        """
+        Set a value to a given index.
+
+        - Can only be used when refcount is equal to 1.
+        """
+
+    @bind_api(pythonapi["_PyTuple_Resize"])
+    def Resize(self, size: int) -> None:
+        """Resize the tuple to the given size."""

@@ -2,9 +2,16 @@
 from __future__ import annotations
 
 import sys
+import typing
+from collections import abc
 from dataclasses import dataclass
 from enum import Enum
 from typing import Generic, NoReturn, TypeVar
+
+if sys.version_info > (3, 8):
+    abc = typing
+
+__all__ = ("Version", "RequiresPythonVersion", "python_req", "abc")
 
 
 class Version(Enum):
@@ -24,7 +31,9 @@ class RequiresPythonVersion(Generic[_V]):
     version: _V
 
     def __call__(self, *args, **kwargs) -> NoReturn:
-        raise RuntimeError(f"Requires Python {self.version.value[0]}.{self.version.value[1]}")
+        raise RuntimeError(
+            f"Requires Python {self.version.value[0]}.{self.version.value[1]}"
+        )
 
     def __getitem__(self, _item) -> RequiresPythonVersion[_V]:
         return self

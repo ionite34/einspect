@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import ctypes
-from ctypes import Array
+from ctypes import Array, POINTER, c_uint, c_int64
 from enum import IntEnum
+
+from typing_extensions import Annotated
 
 from einspect.structs.deco import struct
 from einspect.structs.py_object import PyObject
@@ -19,6 +21,7 @@ class Kind(IntEnum):
     Constants for the kind field of PyUnicodeObject.
     https://docs.python.org/3/c-api/unicode.html#c.PyUnicode_KIND
     """
+
     PyUnicode_WCHAR = 0
     PyUnicode_1BYTE = 1
     PyUnicode_2BYTE = 2
@@ -50,15 +53,16 @@ class PyUnicodeObject(PyObject):
     """
     Defines a PyUnicodeObject Structure
     """
+
     length: int
-    hash: ctypes.c_int64
-    _interned: ctypes.c_uint = 2
-    _kind: ctypes.c_uint = 3
-    compact: ctypes.c_uint = 1
-    ascii: ctypes.c_uint = 1
-    ready: ctypes.c_uint = 1
-    padding: ctypes.c_uint = 24
-    wstr: ctypes.POINTER(ctypes.c_wchar)
+    hash: Annotated[int, c_int64]
+    _interned: Annotated[int, c_uint, 2]
+    _kind: Annotated[int, c_uint, 3]
+    compact: Annotated[int, c_uint, 1]
+    ascii: Annotated[int, c_uint, 1]
+    ready: Annotated[int, c_uint, 1]
+    padding: Annotated[int, c_uint, 24]
+    wstr: POINTER(ctypes.c_wchar)
     # Fields after this do not exist if ascii
     utf8_length: int
     utf8: ctypes.c_char_p
@@ -114,4 +118,3 @@ class PyUnicodeObject(PyObject):
             return self.data.ucs4  # type: ignore
 
         raise ValueError(f"Unknown kind: {self.kind}")
-

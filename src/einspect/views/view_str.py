@@ -10,10 +10,12 @@ from einspect.structs.py_unicode import Kind, State
 from einspect.views.unsafe import unsafe
 from einspect.views.view_base import View
 
+__all__ = ("StrView",)
+
 _T = TypeVar("_T")
 
 
-class StrView(View[_T], Sequence):
+class StrView(View[str, None, None], Sequence):
     _pyobject: PyUnicodeObject
 
     @property
@@ -61,14 +63,12 @@ class StrView(View[_T], Sequence):
         return str.__len__(self.base.value)  # type: ignore
 
     @overload
-    def __getitem__(self, index: int) -> _T: ...
+    def __getitem__(self, index: int) -> _T:
+        ...
 
     @overload
-    def __getitem__(self, index: slice) -> Sequence[_T]: ...
+    def __getitem__(self, index: slice) -> Sequence[_T]:
+        ...
 
     def __getitem__(self, index: int | slice) -> _T:
         return str.__getitem__(self.base.value, index)  # type: ignore
-
-
-
-
