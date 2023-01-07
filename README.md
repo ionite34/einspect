@@ -76,6 +76,9 @@ print("meaning of life" == 42)
 True
 ```
 
+### Fully typed interface
+<img width="551" alt="image" src="https://user-images.githubusercontent.com/13956642/211129165-38a1c405-9d54-413c-962e-6917f1f3c2a1.png">
+
 ## Table of Contents
 - [Views](#views)
   - [Using the `einspect.view` constructor](#using-the-einspectview-constructor)
