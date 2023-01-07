@@ -1,7 +1,5 @@
 import ctypes
-import sys
 import typing
-from ctypes import pointer as ptr
 # noinspection PyUnresolvedReferences, PyProtectedMember
 from ctypes import _Pointer
 from typing import List, TypeVar, TYPE_CHECKING, get_origin, overload
@@ -10,9 +8,19 @@ __all__ = ("ptr", "Array")
 
 _T = TypeVar("_T")
 
+ptr = ctypes.pointer
+"""
+Dynamic typing alias for ctypes.pointer.
 
-# noinspection PyPep8Naming
+Resolves to the `_Ptr` class at runtime to allow for generic subscripting.
+"""
+
+
 class _Ptr(_Pointer):
+    """
+    Runtime alias for `ctypes.pointer` to allow generic subscripting.
+    """
+
     def __new__(cls, *args, **kwargs):
         return ctypes.pointer(*args, **kwargs)
 
@@ -25,33 +33,34 @@ class _Ptr(_Pointer):
         return ctypes.POINTER(item)
 
 
-if sys.version_info >= (3, 9):
-    CArray = ctypes.Array
-else:
-    class _ArrayGenericAlias:
-        def __class_getitem__(cls, item):
-            return ctypes.Array
-    CArray = _ArrayGenericAlias
+if TYPE_CHECKING:
+    # This cannot be defined at runtime since 3.8 does not support
+    # ctypes.Array subscripting
+    class Array(ctypes.Array[_T]):
+        """
+        A typing alias for ctypes.Array for non-simple types.
 
+        Resolves to ctypes.Array directly at runtime.
+        """
+        _length_ = 0
+        _type_ = ctypes.c_void_p
 
-class Array(CArray[_T]):
-    _length_ = 0
-    _type_ = ctypes.c_void_p
+        @overload
+        def __getitem__(self, item: int) -> _T:
+            ...
 
-    @overload
-    def __getitem__(self, item: int) -> _T:
-        ...
+        @overload
+        def __getitem__(self, item: slice) -> List[_T]:
+            ...
 
-    @overload
-    def __getitem__(self, item: slice) -> List[_T]:
-        ...
-
-    def __getitem__(self, item):
-        raise NotImplementedError
-
+        def __getitem__(self, item):
+            raise NotImplementedError
 
 if not TYPE_CHECKING:
+    # Runtime overrides
     globals().update({
+        # Overwrite ctypes.pointer -> _Ptr
         "ptr": _Ptr,
-        "Array": CArray,
+        # Define Array as ctypes.Array
+        "Array": ctypes.Array,
     })
