@@ -17,7 +17,7 @@ from einspect.structs import PyObject, PyVarObject
 from einspect.views._display import format_display
 from einspect.views.unsafe import UnsafeContext, unsafe
 
-__all__ = ("View", "VarView", "REF_DEFAULT")
+__all__ = ("View", "VarView", "AnyView", "REF_DEFAULT")
 
 log = logging.getLogger(__name__)
 
@@ -245,7 +245,24 @@ class View(BaseView[_T, _KT, _VT]):
         return self.base.value
 
 
+class VarView(View[_T, _KT, _VT]):
+    _pyobject: PyVarObject[_T, _KT, _VT]
+
+    @property
+    def size(self) -> int:
+        """Size of the list."""
+        return int(self._pyobject.ob_size)  # type: ignore
+
+    @size.setter
+    def size(self, value: int) -> None:
+        if not self._unsafe:
+            raise UnsafeAttributeError.from_attr("size")
+        self._pyobject.ob_size = value
+
+
 class AnyView(View[_T, None, None]):
+    _pyobject: PyObject[_T, _KT, _VT]
+
     @property
     def mem_size(self) -> int:
         """
@@ -262,18 +279,3 @@ class AnyView(View[_T, None, None]):
         addr = self._pyobject.address
         py_obj_cls = self._pyobject.__class__.__name__
         return f"{self.__class__.__name__}[{self._base_type.__name__}](<{py_obj_cls} at 0x{addr:x}>)"
-
-
-class VarView(View[_T, _KT, _VT]):
-    _pyobject: PyVarObject[_T, _KT, _VT]
-
-    @property
-    def size(self) -> int:
-        """Size of the list."""
-        return int(self._pyobject.ob_size)  # type: ignore
-
-    @size.setter
-    def size(self, value: int) -> None:
-        if not self._unsafe:
-            raise UnsafeAttributeError.from_attr("size")
-        self._pyobject.ob_size = value

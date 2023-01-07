@@ -1,4 +1,4 @@
-from einspect.views.view_base import View, VarView
+from einspect.views.view_base import View, VarView, AnyView
 from einspect.views.view_set import SetView
 from einspect.views.view_bool import BoolView
 from einspect.views.view_dict import DictView
