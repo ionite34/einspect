@@ -8,10 +8,10 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Generic, NoReturn, TypeVar
 
+__all__ = ("Version", "RequiresPythonVersion", "python_req", "abc")
+
 if sys.version_info > (3, 8):
     abc = typing
-
-__all__ = ("Version", "RequiresPythonVersion", "python_req", "abc")
 
 
 class Version(Enum):

@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import logging
 from ctypes import Structure
-from typing import Callable, Type, TypeVar
+from functools import partial
+from typing import Callable, Type, TypeVar, overload, Union, Sequence, Tuple
 
 # noinspection PyUnresolvedReferences, PyProtectedMember
 from typing_extensions import _AnnotatedAlias, get_type_hints, get_args
@@ -13,9 +14,43 @@ log = logging.getLogger(__name__)
 
 _T = TypeVar("_T", bound=Type[Structure])
 
+FieldsType = Sequence[Union[Tuple[str, type], Tuple[str, type, int]]]
 
-def struct(cls: _T) -> _T:
+_TYPE_REPLACED = object()
+
+
+@overload
+def struct(cls: _T, fields: None = None) -> _T:
+    ...
+
+
+# noinspection PyDefaultArgument
+@overload
+def struct(*args, fields: FieldsType = []) -> Callable[[_T], _T]:
+    ...
+
+
+def struct(cls=None, fields=None):
     """Decorator to declare _fields_ on Structures via type hints."""
+    # Normal decorator usage
+    if cls is not None:
+        return _struct(cls)
+
+    # Usage as a decorator factory
+    return partial(_struct, __fields=fields)
+
+
+def _struct(cls: _T, __fields: FieldsType | None = None) -> _T:
+    """Decorator to declare _fields_ on Structures via type hints."""
+    # if fields provided, replace type hints with temp sentinel
+    fields_overrides = {
+        tup[0]: tup for tup in __fields or ()
+    }
+    if __fields is not None:
+        for tup in __fields:
+            # This is to prevent errors during get_type_hints if there is an override
+            cls.__annotations__[tup[0]] = None
+
     fields = []
     try:
         hints = get_type_hints(cls, include_extras=True)
@@ -25,6 +60,10 @@ def struct(cls: _T) -> _T:
         hints = get_type_hints(cls, include_extras=True)
 
     for name, type_hint in hints.items():
+        # Use override if exists
+        if f := fields_overrides.get(name):
+            fields.append(f)
+            continue
         # Skip actual values like _fields_
         if name.startswith("_") and name.endswith("_"):
             continue

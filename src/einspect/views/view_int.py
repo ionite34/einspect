@@ -42,7 +42,7 @@ class IntView(VarView[int, None, None]):
 
         # The new value's ob_size must be equal or less than the current
         new_size = abs(new_val.ob_size)
-        cur_size = abs(self._pyobject.ob_size)
+        cur_size = max(abs(self._pyobject.ob_size), 1)
         if new_size > cur_size:
             raise ValueError(f"New value {obj!r} too large")
 
