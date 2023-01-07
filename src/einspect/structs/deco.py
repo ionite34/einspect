@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from ctypes import Structure
 from functools import partial
-from typing import Callable, Type, TypeVar, overload, Union, Sequence
+from typing import Callable, Type, TypeVar, overload, Union, Sequence, Tuple
 
 # noinspection PyUnresolvedReferences, PyProtectedMember
 from typing_extensions import _AnnotatedAlias, get_type_hints, get_args
@@ -14,7 +14,7 @@ log = logging.getLogger(__name__)
 
 _T = TypeVar("_T", bound=Type[Structure])
 
-FieldsType = Sequence[Union[tuple[str, type], tuple[str, type, int]]]
+FieldsType = Sequence[Union[Tuple[str, type], Tuple[str, type, int]]]
 
 _TYPE_REPLACED = object()
 
@@ -24,6 +24,7 @@ def struct(cls: _T, fields: None = None) -> _T:
     ...
 
 
+# noinspection PyDefaultArgument
 @overload
 def struct(*args, fields: FieldsType = []) -> Callable[[_T], _T]:
     ...
