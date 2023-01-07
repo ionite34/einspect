@@ -10,7 +10,7 @@
 
 > Extended Inspections for CPython
 
-### [Documentation](https://ionite.io/einspect)
+### [Documentation](https://docs.ionite.io/einspect)
 
 - View and modify memory structures of runtime objects.
 - Fully typed, extensible framework in pure Python.
