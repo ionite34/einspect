@@ -21,7 +21,9 @@ class SetEntry(Structure, Generic[_T]):
     hash: Annotated[int, Py_hash_t]
 
 
-@struct
+@struct(fields=[
+    ("smalltable", SetEntry * PySet_MINSIZE),
+])
 class PySetObject(PyObject[set, None, _T]):
     """
     Defines a PySetObject Structure.
@@ -35,7 +37,7 @@ class PySetObject(PyObject[set, None, _T]):
     table: ptr[SetEntry[_T]]
     hash: Annotated[int, Py_hash_t]
     finger: int
-    smalltable: Annotated[Array[SetEntry[_T]], SetEntry * PySet_MINSIZE]
+    smalltable: Array[SetEntry[_T]]
     weakreflist: ptr[PyObject]
 
     @classmethod
