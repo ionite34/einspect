@@ -1,6 +1,7 @@
 """Function factory to create views for objects."""
 from __future__ import annotations
 
+import warnings
 from types import MappingProxyType
 from typing import Final, Type, TypeVar, overload, Any
 
@@ -18,6 +19,7 @@ from einspect.views.view_tuple import TupleView
 __all__ = ("view",)
 
 VIEW_TYPES: Final[dict[type, Type[View]]] = {
+    object: View,
     int: IntView,
     bool: BoolView,
     float: FloatView,
@@ -90,11 +92,6 @@ def view(obj: float, ref: bool = REF_DEFAULT) -> FloatView:
     ...
 
 
-@overload
-def view(obj: _T, ref: bool = REF_DEFAULT) -> View[_T]:
-    ...
-
-
 def view(obj, ref: bool = REF_DEFAULT):
     """
     Create a view onto a Python object.
@@ -110,5 +107,12 @@ def view(obj, ref: bool = REF_DEFAULT):
 
     if obj_type in VIEW_TYPES:
         return VIEW_TYPES[obj_type](obj, ref=ref)
-
-    return View(obj, ref=ref)
+    else:
+        res = View(obj, ref=ref)
+        msg = (
+            "Using `einspect.view` on objects without"
+            " a concrete View subclass will be deprecated."
+            " Use `einspect.views.AnyView` instead."
+        )
+        warnings.warn(msg, DeprecationWarning, stacklevel=2)
+        return res
