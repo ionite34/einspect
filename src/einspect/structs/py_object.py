@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import ctypes
 from ctypes import Structure, pointer, py_object, pythonapi
-from typing import Dict, Generic, Tuple, Type, TypeVar, Union
+from typing import Dict, Generic, List, Tuple, Type, TypeVar, Union
 
 from typing_extensions import Self
 
@@ -26,7 +26,7 @@ class PyObject(Structure, Generic[_T, _KT, _VT]):
     ob_refcnt: int
     ob_type: pointer[Self]
     # Need to use generics from typing to work for py-3.8
-    _fields_: list[tuple[str, type]]
+    _fields_: List[Tuple[str, type]]
     _from_type_name_: str
 
     @property
