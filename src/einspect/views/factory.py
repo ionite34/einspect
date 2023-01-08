@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import warnings
 from types import MappingProxyType
-from typing import Any, Final, Type, TypeVar, overload
+from typing import Any, Final, TypeVar, overload
 
 from einspect.views.view_base import REF_DEFAULT, View
 from einspect.views.view_bool import BoolView
