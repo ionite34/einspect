@@ -4,7 +4,7 @@ import ctypes
 from ctypes import Array, c_uint32
 
 from einspect.structs.deco import struct
-from einspect.structs.py_object import PyVarObject
+from einspect.structs.py_object import PyVarObject, Fields
 
 
 @struct
@@ -17,9 +17,9 @@ class PyLongObject(PyVarObject):
 
     _ob_digit_0: ctypes.c_uint32 * 0
 
-    @classmethod
-    def _format_fields_(cls) -> dict[str, str]:
-        return super()._format_fields_() | {
+    def _format_fields_(self) -> Fields:
+        return {
+            **super()._format_fields_(),
             "ob_digit": "Array[c_uint32]"
         }
 

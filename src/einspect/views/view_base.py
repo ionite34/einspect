@@ -177,8 +177,9 @@ class View(BaseView[_T, _KT, _VT]):
             This is useful for when you want to drop the reference
             to the base object, but still want to access the view.
         """
-        self._pyobject = DroppedReference(type(self))  # type: ignore
-        self._base = None
+        ref = DroppedReference(type(self))
+        self._pyobject = ref  # type: ignore
+        self._base = ref  # type: ignore
         self._base_weakref = None
         self.__dropped = True
 

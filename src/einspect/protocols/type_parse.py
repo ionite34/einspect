@@ -4,7 +4,6 @@ from __future__ import annotations
 import ctypes
 import logging
 import re
-import sys
 import typing
 
 # noinspection PyProtectedMember

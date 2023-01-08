@@ -3,15 +3,16 @@ from __future__ import annotations
 
 import ctypes
 from ctypes import pointer
-from contextlib import contextmanager
-from ctypes import Structure, py_object
-from typing import Generic, List, Tuple, TypeVar, Type
+from ctypes import Structure, py_object, pythonapi
+from typing import Generic, List, Tuple, TypeVar, Type, Union, Dict
 
 from typing_extensions import Self
 
 from einspect.compat import python_req, Version
 from einspect.protocols.delayed_bind import bind_api
 from einspect.structs.deco import struct
+
+Fields = Dict[str, Union[str, Tuple[str, Type]]]
 
 _T = TypeVar("_T")
 _KT = TypeVar("_KT")
@@ -76,9 +77,13 @@ class PyObject(Structure, Generic[_T, _KT, _VT]):
             cls_name += f"[{type_name}]"
         return f"<{cls_name} at {self.address:#04x}>"
 
-    @classmethod
-    def _format_fields_(cls) -> dict[str, str]:
-        """Return a dict of (field: type) for the info display protocol."""
+    def _format_fields_(self) -> Fields:
+        """
+        Return an attribute mapping for info display.
+
+        Returns:
+            Dict mapping of field to type-hint or (type-hint, cast type)
+        """
         return {"ob_refcnt": "Py_ssize_t", "ob_type": "*PyTypeObject"}
 
     @classmethod
@@ -111,7 +116,5 @@ class PyVarObject(PyObject[_T, _KT, _VT]):
 
     ob_size: int
 
-    @classmethod
-    def _format_fields_(cls) -> dict[str, str]:
-        """Return a dict of (field: type) for the info display protocol."""
-        return super()._format_fields_() | {"ob_size": "Py_ssize_t"}
+    def _format_fields_(self) -> Fields:
+        return {**super()._format_fields_(), "ob_size": "Py_ssize_t"}
