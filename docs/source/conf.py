@@ -4,22 +4,18 @@
 # list see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
-# -- Path setup --------------------------------------------------------------
-
 import sys
 from pathlib import Path
-sys.path.insert(0, str(Path(__file__).parents[1]))
-sys.path.insert(0, str(Path(__file__).parents[2] / 'src'))
 
+# -- Path setup --------------------------------------------------------------
+sys.path.insert(0, str(Path(__file__).parents[1]))
+sys.path.insert(0, str(Path(__file__).parents[2] / "src"))
 
 # -- Project information -----------------------------------------------------
-
-project = 'einspect'
-copyright = '2023, Ionite'
-author = 'Ionite'
-
-# The full version, including alpha/beta/rc tags
-release = 'v0.3.0'
+project = "einspect"
+copyright = "2023, Ionite"
+author = "Ionite"
+release = "v0.3.1"
 
 
 # -- General configuration ---------------------------------------------------
