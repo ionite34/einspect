@@ -3,20 +3,10 @@ from __future__ import annotations
 import logging
 from ctypes import Structure
 from functools import partial
-from typing import (
-    Callable,
-    Literal,
-    Sequence,
-    Tuple,
-    Type,
-    TypeVar,
-    Union,
-    get_type_hints,
-    overload,
-)
+from typing import Callable, Literal, Sequence, Tuple, Type, TypeVar, Union, overload
 
 # noinspection PyUnresolvedReferences, PyProtectedMember
-from typing_extensions import _AnnotatedAlias, get_args
+from typing_extensions import _AnnotatedAlias, get_args, get_type_hints
 
 from einspect.protocols.type_parse import convert_type_hints, fix_ctypes_generics
 
