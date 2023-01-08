@@ -17,12 +17,6 @@ repos:
         name: isort (python)
         exclude: einspect/structs/__init__.py
 
-  - repo: https://github.com/asottile/pyupgrade
-    rev: v2.37.3
-    hooks:
-      - id: pyupgrade
-        args: [--py38-plus]
-
   - repo: https://github.com/psf/black
     rev: 22.8.0
     hooks:
@@ -34,5 +28,5 @@ repos:
       - id: flake8
         additional_dependencies: [flake8-builtins]
         args:
-          - --ignore=W503,E203
-          - --max-line-length=88
+          - --ignore=W503,E203,F842
+          - --max-line-length=120
