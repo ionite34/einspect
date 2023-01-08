@@ -3,9 +3,8 @@ from __future__ import annotations
 
 import ctypes
 from ctypes import pointer
-from contextlib import contextmanager
-from ctypes import Structure, py_object
-from typing import Generic, List, Tuple, TypeVar, Type
+from ctypes import Structure, py_object, pythonapi
+from typing import Generic, List, Tuple, TypeVar, Type, Union
 
 from typing_extensions import Self
 
