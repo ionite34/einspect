@@ -33,7 +33,7 @@ class _Ptr(_Pointer):
         return ctypes.POINTER(item)
 
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     # This cannot be defined at runtime since 3.8 does not support
     # ctypes.Array subscripting
     class Array(ctypes.Array[_T]):
