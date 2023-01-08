@@ -117,7 +117,5 @@ class PyVarObject(PyObject[_T, _KT, _VT]):
 
     ob_size: int
 
-    @classmethod
-    def _format_fields_(cls) -> dict[str, str]:
-        """Return a dict of (field: type) for the info display protocol."""
-        return super()._format_fields_() | {"ob_size": "Py_ssize_t"}
+    def _format_fields_(self) -> Fields:
+        return {**super()._format_fields_(), "ob_size": "Py_ssize_t"}

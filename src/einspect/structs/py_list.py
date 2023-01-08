@@ -8,7 +8,7 @@ from typing_extensions import Annotated
 from einspect.types import ptr
 from einspect.protocols.delayed_bind import bind_api
 from einspect.structs.deco import struct
-from einspect.structs.py_object import PyObject, PyVarObject
+from einspect.structs.py_object import PyObject, PyVarObject, Fields
 
 _VT = TypeVar("_VT")
 
@@ -29,10 +29,12 @@ class PyListObject(PyVarObject[list, None, _VT]):
     def from_object(cls, obj: List[_VT]) -> PyListObject[_VT]:
         return cls.from_address(id(obj))
 
-    @classmethod
-    def _format_fields_(cls) -> dict[str, str]:
-        """Return a dict of (field: type) for the info display protocol."""
-        return super()._format_fields_() | {"ob_item": "**PyObject", "allocated": "c_long"}
+    def _format_fields_(self) -> Fields:
+        return {
+            **super()._format_fields_(),
+            "ob_item": ("**PyObject", ptr[ptr[PyObject] * self.allocated]),
+            "allocated": "c_long"
+        }
 
     @bind_api(pythonapi["PyList_GetItem"])
     def GetItem(self, index: int) -> POINTER(PyObject):
