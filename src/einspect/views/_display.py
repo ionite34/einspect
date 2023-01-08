@@ -1,6 +1,7 @@
 """View formatted info implementation."""
 from __future__ import annotations
 
+import ctypes
 # noinspection PyUnresolvedReferences, PyProtectedMember
 from ctypes import pointer, _Pointer, Array
 from string import Template
@@ -21,8 +22,12 @@ DISP_TRANSFORMS = {
 }
 
 
-def format_value(obj: Any) -> str:
+def format_value(obj: Any, cast_to: type | None = None) -> str:
     """Format a value."""
+    # Cast if needed
+    if cast_to is not None:
+        obj = ctypes.cast(obj, cast_to)  # type: ignore
+        return format_value(obj)
     # Array: format as list
     if isinstance(obj, Array):
         res = list(map(format_value, obj))
@@ -43,10 +48,13 @@ def format_value(obj: Any) -> str:
         return repr(obj)
 
 
-def format_attr(struct: PyObject, attr: str, hint: str, types: bool) -> str:
+def format_attr(struct: PyObject, attr: str, hint: str | tuple[str, type], types: bool) -> str:
     value = getattr(struct, attr)
+    type_cast = None
+    if isinstance(hint, tuple):
+        hint, type_cast = hint
     type_str = f": {hint}" if types else ""
-    res = f"{attr}{type_str} = {format_value(value)}"
+    res = f"{attr}{type_str} = {format_value(value, cast_to=type_cast)}"
     return res
 
 
