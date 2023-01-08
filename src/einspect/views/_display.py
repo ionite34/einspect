@@ -2,9 +2,7 @@
 from __future__ import annotations
 
 import ctypes
-
-# noinspection PyUnresolvedReferences, PyProtectedMember
-from ctypes import Array, _Pointer, pointer
+from ctypes import Array
 from string import Template
 from typing import TYPE_CHECKING, Any
 
@@ -34,7 +32,8 @@ def format_value(obj: Any, cast_to: type | None = None) -> str:
         res = list(map(format_value, obj))
         return f"[{', '.join(res)}]"
     # For pointers, get the value
-    if isinstance(obj, _Pointer):
+    # noinspection PyUnresolvedReferences, PyProtectedMember
+    if isinstance(obj, ctypes._Pointer):
         val = format_value(obj.contents) if obj else "NULL"
         wrap = f"[{val}]" if not (val.startswith("[") and val.endswith("]")) else val
         return f"&{wrap}"
