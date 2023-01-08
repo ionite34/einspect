@@ -4,7 +4,7 @@ from __future__ import annotations
 import ctypes
 from ctypes import pointer
 from ctypes import Structure, py_object, pythonapi
-from typing import Generic, List, Tuple, TypeVar, Type, Union
+from typing import Generic, List, Tuple, TypeVar, Type, Union, Dict
 
 from typing_extensions import Self
 
@@ -12,7 +12,7 @@ from einspect.compat import python_req, Version
 from einspect.protocols.delayed_bind import bind_api
 from einspect.structs.deco import struct
 
-Fields = dict[str, Union[str, Tuple[str, Type]]]
+Fields = Dict[str, Union[str, Tuple[str, Type]]]
 
 _T = TypeVar("_T")
 _KT = TypeVar("_KT")
