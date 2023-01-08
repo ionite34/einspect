@@ -13,6 +13,8 @@ from einspect.compat import python_req, Version
 from einspect.protocols.delayed_bind import bind_api
 from einspect.structs.deco import struct
 
+Fields = dict[str, Union[str, Tuple[str, Type]]]
+
 _T = TypeVar("_T")
 _KT = TypeVar("_KT")
 _VT = TypeVar("_VT")
@@ -76,9 +78,13 @@ class PyObject(Structure, Generic[_T, _KT, _VT]):
             cls_name += f"[{type_name}]"
         return f"<{cls_name} at {self.address:#04x}>"
 
-    @classmethod
-    def _format_fields_(cls) -> dict[str, str]:
-        """Return a dict of (field: type) for the info display protocol."""
+    def _format_fields_(self) -> Fields:
+        """
+        Return an attribute mapping for info display.
+
+        Returns:
+            Dict mapping of field to type-hint or (type-hint, cast type)
+        """
         return {"ob_refcnt": "Py_ssize_t", "ob_type": "*PyTypeObject"}
 
     @classmethod
