@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from ctypes import Structure
 from functools import partial
-from typing import Callable, Type, TypeVar, overload, Union, Sequence, Tuple
+from typing import Callable, Type, TypeVar, overload, Union, Sequence, Tuple, Literal
 
 # noinspection PyUnresolvedReferences, PyProtectedMember
 from typing_extensions import _AnnotatedAlias, get_type_hints, get_args
@@ -20,17 +20,16 @@ _TYPE_REPLACED = object()
 
 
 @overload
-def struct(cls: _T, fields: None = None) -> _T:
+def struct(*, fields: FieldsType) -> Callable[[_T], _T]:
     ...
 
 
-# noinspection PyDefaultArgument
 @overload
-def struct(*args, fields: FieldsType = []) -> Callable[[_T], _T]:
+def struct(cls: _T, fields: Literal[None] = ...) -> _T:
     ...
 
 
-def struct(cls=None, fields=None):
+def struct(cls: _T | None = None, fields: FieldsType | None = None):
     """Decorator to declare _fields_ on Structures via type hints."""
     # Normal decorator usage
     if cls is not None:
