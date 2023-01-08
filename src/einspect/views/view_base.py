@@ -8,11 +8,15 @@ from abc import ABC
 from contextlib import ExitStack
 from copy import deepcopy
 from ctypes import py_object, sizeof
-from typing import Generic, Type, TypeVar, get_type_hints, Final
+from typing import Final, Generic, Type, TypeVar, get_type_hints
 
 from einspect.api import Py, PyObj_FromPtr
-from einspect.errors import (DroppedReference, MovedError,
-                             UnsafeAttributeError, UnsafeError)
+from einspect.errors import (
+    DroppedReference,
+    MovedError,
+    UnsafeAttributeError,
+    UnsafeError,
+)
 from einspect.structs import PyObject, PyVarObject
 from einspect.views._display import format_display
 from einspect.views.unsafe import UnsafeContext, unsafe
@@ -42,12 +46,10 @@ class BaseView(ABC, Generic[_T, _KT, _VT], UnsafeContext):
     def __init__(self, obj: _T, ref: bool = REF_DEFAULT) -> None:
         super().__init__()
         # Stores base info for repr and errors
-        self._base_type: Type[_T] = type(obj)
+        self._base_type: type[_T] = type(obj)
         self._base_id = id(obj)
         # Get a reference if ref=True
-        self._base: py_object[_T] | None = (
-            _wrap_py_object(obj) if ref else None
-        )
+        self._base: py_object[_T] | None = _wrap_py_object(obj) if ref else None
         # Attempt to get a weakref
         try:
             self._base_weakref = weakref.ref(obj)
@@ -93,7 +95,7 @@ class View(BaseView[_T, _KT, _VT]):
         self._pyobject.ob_refcnt = value
 
     @property
-    def type(self) -> Type[_T]:
+    def type(self) -> type[_T]:
         """Type of the object."""
         return self._pyobject.ob_type.contents.into_object().value  # type: ignore
 
@@ -205,6 +207,7 @@ class View(BaseView[_T, _KT, _VT]):
     def move_from(self, other: _V) -> _V:
         """Moves data at other View to this View."""
         from einspect.views import factory
+
         # Store our repr
         self_repr = repr(self)
         # Store our current address

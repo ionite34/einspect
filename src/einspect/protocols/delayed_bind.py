@@ -92,7 +92,7 @@ class delayed_bind(property):
         return arg_t, res_t
 
     # noinspection PyMethodOverriding
-    def __get__(self, instance: object | None, owner_cls: Type[_CT]) -> _F:
+    def __get__(self, instance: object | None, owner_cls: type[_CT]) -> _F:
         if self.attrname is None:
             raise TypeError(
                 "Cannot use bind instance without calling __set_name__ on it."

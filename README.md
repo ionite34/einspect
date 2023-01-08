@@ -158,7 +158,7 @@ print(tup)
 ```
 > ```
 > ('dog', 200)
-> 
+>
 > >> Process finished with exit code 139 (interrupted by signal 11: SIGSEGV)
 > ```
 
@@ -179,7 +179,7 @@ with view(tup).unsafe() as v:
     a = "bird"
     Py.IncRef(a)
     v.item[0] = id(a)
-    
+
     b = "kitten"
     Py.IncRef(b)
     v.item[1] = id(b)
@@ -187,7 +187,7 @@ with view(tup).unsafe() as v:
 print(tup)
 ```
 > `('bird', 'kitten')`
- 
+
 🎉 No more seg-faults, and we just successfully set both items in an otherwise immutable tuple.
 
 To make the above routine easier, you can access an abstraction by simply indexing the view.

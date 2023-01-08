@@ -13,10 +13,13 @@ def obj() -> set[int]:
 
 
 class TestSetView:
-    @pytest.mark.parametrize(["factory"], [
-        (view,),
-        (SetView,),
-    ])
+    @pytest.mark.parametrize(
+        ["factory"],
+        [
+            (view,),
+            (SetView,),
+        ],
+    )
     def test_factory(self, obj, factory):
         v = factory(obj)
         assert isinstance(v, SetView)

@@ -8,7 +8,7 @@ from einspect.compat import abc
 from einspect.structs import PyDictObject
 from einspect.structs.mapping_proxy import MappingProxyObject
 from einspect.views.unsafe import unsafe
-from einspect.views.view_base import View, REF_DEFAULT
+from einspect.views.view_base import REF_DEFAULT, View
 
 __all__ = ("MappingProxyView",)
 

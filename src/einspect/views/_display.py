@@ -2,8 +2,9 @@
 from __future__ import annotations
 
 import ctypes
+
 # noinspection PyUnresolvedReferences, PyProtectedMember
-from ctypes import pointer, _Pointer, Array
+from ctypes import Array, _Pointer, pointer
 from string import Template
 from typing import TYPE_CHECKING, Any
 
@@ -48,7 +49,9 @@ def format_value(obj: Any, cast_to: type | None = None) -> str:
         return repr(obj)
 
 
-def format_attr(struct: PyObject, attr: str, hint: str | tuple[str, type], types: bool) -> str:
+def format_attr(
+    struct: PyObject, attr: str, hint: str | tuple[str, type], types: bool
+) -> str:
     value = getattr(struct, attr)
     type_cast = None
     if isinstance(hint, tuple):
@@ -75,8 +78,6 @@ def format_display(v: View, types: bool = True) -> str:
 
     # Get attributes
     for attr, type_hint in struct._format_fields_().items():
-        lines.append(
-            indent(format_attr(struct, attr, type_hint, types))
-        )
+        lines.append(indent(format_attr(struct, attr, type_hint, types)))
 
     return "\n".join(lines)

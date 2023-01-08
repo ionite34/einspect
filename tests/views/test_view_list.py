@@ -13,10 +13,13 @@ def obj() -> list[int]:
 
 
 class TestListView:
-    @pytest.mark.parametrize(["factory"], [
-        (view,),
-        (ListView,),
-    ])
+    @pytest.mark.parametrize(
+        ["factory"],
+        [
+            (view,),
+            (ListView,),
+        ],
+    )
     def test_factory(self, obj, factory):
         """Test different ways of creating a ListView."""
         v = factory(obj)

@@ -23,7 +23,7 @@ PyListObject(at 0x2833738):
 
 - All move operations require an unsafe context.
 
-The left shift operator `<<` / `<<=` can be used to copy memory from a right-side `View` (or object mappable to a supported `View` type) to the left-side view’s memory location. 
+The left shift operator `<<` / `<<=` can be used to copy memory from a right-side `View` (or object mappable to a supported `View` type) to the left-side view’s memory location.
 
 The operation returns a new view at the left side view’s memory location, created using the right-side view type.
 
@@ -41,7 +41,7 @@ for i in num:
     print(i)
 ```
 
-By default, the move is offset by sizeof(Py_ssize_t) to start after `ob_refcnt`. 
+By default, the move is offset by sizeof(Py_ssize_t) to start after `ob_refcnt`.
 
 The `View.move_from` function can also be used, equivalent to the `<<` operator. This function form allows an optional `offset` amount to be specified.
 
