@@ -95,7 +95,7 @@ class View(BaseView[_T, _KT, _VT]):
         self._pyobject.ob_refcnt = value
 
     @property
-    def type(self) -> type[_T]:
+    def type(self) -> Type[_T]:
         """Type of the object."""
         return self._pyobject.ob_type.contents.into_object().value  # type: ignore
 

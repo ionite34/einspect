@@ -50,9 +50,9 @@ class PyLongObject(PyVarObject):
 
     @property
     def value(self) -> int:
-        digit: int
         if self.ob_size == 0:
             return 0
+        digit: int
         val = sum(digit * 1 << (30 * i) for i, digit in enumerate(self.ob_digit))
         size: int = self.ob_size  # type: ignore
         return val * (-1 if size < 0 else 1)

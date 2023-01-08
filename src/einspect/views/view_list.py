@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from ctypes import Array, c_long
+from ctypes import Array
 from typing import TypeVar, overload
 
 from einspect.api import Py_ssize_t

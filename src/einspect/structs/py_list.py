@@ -66,5 +66,5 @@ class PyListObject(PyVarObject[list, None, _VT]):
         """Set a value to a given index."""
 
     @bind_api(pythonapi["PyList_SetSlice"])
-    def SetSlice(self, low: int, high: int, item_list: list[_VT]) -> None:
+    def SetSlice(self, low: int, high: int, item_list: List[_VT]) -> None:
         """Set a value to a given index."""

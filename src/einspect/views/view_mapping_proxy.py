@@ -27,7 +27,7 @@ class MappingProxyView(View[MappingProxyType, _KT, _VT], abc.MutableMapping[_KT,
     def __len__(self) -> int:
         return dict.__len__(self.mapping)
 
-    def __iter__(self) -> Iterator[_KT]:
+    def __iter__(self) -> abc.Iterator[_KT]:
         return dict.__iter__(self.mapping)
 
     def __getitem__(self, __k: _KT) -> _VT:

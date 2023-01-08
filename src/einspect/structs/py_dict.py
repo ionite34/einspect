@@ -93,6 +93,6 @@ class PyDictObject(PyObject[dict, _KT, _VT]):
         """
 
     @classmethod
-    def from_object(cls, obj: dict[_KT, _VT]) -> PyDictObject[_KT, _VT]:
+    def from_object(cls, obj: Dict[_KT, _VT]) -> PyDictObject[_KT, _VT]:
         """Create a PyDictObject from an object."""
         return super().from_object(obj)  # type: ignore

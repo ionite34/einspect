@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from collections.abc import Iterator, MutableMapping
 from ctypes import Array
 from typing import TypeVar
 
@@ -25,7 +24,7 @@ class DictView(View[dict, _KT, _VT], abc.MutableMapping[_KT, _VT]):
     def __len__(self) -> int:
         return self.used
 
-    def __iter__(self) -> Iterator[_KT]:
+    def __iter__(self) -> abc.Iterator[_KT]:
         ...
 
     def __getitem__(self, key: _KT) -> _VT:

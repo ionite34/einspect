@@ -7,7 +7,7 @@ from collections.abc import Callable
 from functools import partial
 from inspect import signature
 from types import MethodType
-from typing import Type, TypeVar, get_type_hints
+from typing import TypeVar, get_type_hints
 
 from einspect.protocols.type_parse import (
     FuncPtr,

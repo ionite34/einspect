@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import ctypes
 from ctypes import pointer, pythonapi
-from typing import Any, Tuple, TypeVar, overload
+from typing import Any, TypeVar, overload
 
 from einspect.api import Py_ssize_t
 from einspect.protocols.delayed_bind import bind_api
