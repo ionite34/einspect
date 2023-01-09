@@ -1,16 +1,6 @@
 from __future__ import annotations
 
-from ctypes import (
-    CFUNCTYPE,
-    POINTER,
-    c_char,
-    c_char_p,
-    c_uint,
-    c_ulong,
-    c_void_p,
-    pointer,
-    pythonapi,
-)
+from ctypes import c_char, c_char_p, c_uint, c_ulong, c_void_p, pointer, pythonapi
 from typing import TypeVar
 
 from typing_extensions import Annotated, Self
@@ -43,7 +33,7 @@ class PyTypeObject(PyVarObject[_T, None, None]):
     tp_basicsize: int
     tp_itemsize: int
     # Methods to implement standard operations
-    tp_dealloc: CFUNCTYPE(None, POINTER(PyObject))
+    tp_dealloc: destructor
     tp_vectorcall_offset: int
     tp_getattr: getattrfunc
     tp_setattr: setattrfunc
