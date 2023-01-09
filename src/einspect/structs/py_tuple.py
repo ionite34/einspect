@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import ctypes
-from ctypes import pythonapi, pointer
-from typing import TypeVar, overload, Any, Tuple
+from ctypes import pointer, pythonapi
+from typing import Any, Tuple, TypeVar, overload
 
 from einspect.api import Py_ssize_t
 from einspect.protocols.delayed_bind import bind_api
@@ -26,24 +26,22 @@ class PyTupleObject(PyVarObject[tuple, None, _VT]):
 
     @classmethod
     def _format_fields_(cls) -> dict[str, str]:
-        return super()._format_fields_() | {
-            "ob_item": "*PyObject[]"
-        }
+        return super()._format_fields_() | {"ob_item": "*PyObject[]"}
 
     @overload
     @classmethod
-    def from_object(cls, obj: Tuple[_VT, ...]) -> PyTupleObject[_VT]:
+    def from_object(cls, obj: tuple[_VT, ...]) -> PyTupleObject[_VT]:
         ...
 
     @overload
     @classmethod
-    def from_object(cls, obj: Tuple[...]) -> PyTupleObject[Any]:
+    def from_object(cls, obj: tuple[...]) -> PyTupleObject[Any]:
         ...
 
     @classmethod
-    def from_object(cls, obj: Tuple[_VT, ...]) -> PyTupleObject[_VT]:
+    def from_object(cls, obj: tuple[_VT, ...]) -> PyTupleObject[_VT]:
         """Create a PyTupleObject from an object."""
-        return super(PyTupleObject, cls).from_object(obj)  # type: ignore
+        return super().from_object(obj)  # type: ignore
 
     @property
     def mem_size(self) -> int:

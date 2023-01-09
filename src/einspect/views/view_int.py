@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from ctypes import Array, sizeof, c_uint32
+from ctypes import Array, c_uint32, sizeof
 from typing import Iterable, TypeVar
 
 from einspect.structs import PyLongObject

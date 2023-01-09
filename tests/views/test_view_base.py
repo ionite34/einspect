@@ -2,7 +2,7 @@ import ctypes
 
 import pytest
 
-from einspect import structs, errors, view
+from einspect import errors, structs, view
 from einspect.views.view_base import View
 
 
@@ -68,5 +68,3 @@ class TestView:
         v.drop()
         with pytest.raises(errors.DroppedReferenceError):
             _ = v.base.value
-
-

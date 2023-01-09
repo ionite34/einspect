@@ -1,8 +1,9 @@
 import ctypes
 import typing
+
 # noinspection PyUnresolvedReferences, PyProtectedMember
 from ctypes import _Pointer
-from typing import List, TypeVar, TYPE_CHECKING, get_origin, overload
+from typing import TYPE_CHECKING, List, TypeVar, get_origin, overload
 
 __all__ = ("ptr", "Array")
 
@@ -42,6 +43,7 @@ if TYPE_CHECKING:  # pragma: no cover
 
         Resolves to ctypes.Array directly at runtime.
         """
+
         _length_ = 0
         _type_ = ctypes.c_void_p
 
@@ -56,11 +58,14 @@ if TYPE_CHECKING:  # pragma: no cover
         def __getitem__(self, item):
             raise NotImplementedError
 
+
 if not TYPE_CHECKING:
     # Runtime overrides
-    globals().update({
-        # Overwrite ctypes.pointer -> _Ptr
-        "ptr": _Ptr,
-        # Define Array as ctypes.Array
-        "Array": ctypes.Array,
-    })
+    globals().update(
+        {
+            # Overwrite ctypes.pointer -> _Ptr
+            "ptr": _Ptr,
+            # Define Array as ctypes.Array
+            "Array": ctypes.Array,
+        }
+    )

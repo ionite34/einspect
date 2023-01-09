@@ -1,14 +1,14 @@
 from __future__ import annotations
 
-from ctypes import Structure, POINTER, pointer, Array
-from typing import TypeVar, Generic
+from ctypes import POINTER, Array, Structure, pointer
+from typing import Generic, TypeVar
 
 from typing_extensions import Annotated
 
-from einspect.types import ptr
 from einspect.api import Py_hash_t
 from einspect.structs.deco import struct
 from einspect.structs.py_object import PyObject
+from einspect.types import ptr
 
 _T = TypeVar("_T")
 PySet_MINSIZE = 8
@@ -21,9 +21,11 @@ class SetEntry(Structure, Generic[_T]):
     hash: Annotated[int, Py_hash_t]
 
 
-@struct(fields=[
-    ("smalltable", SetEntry * PySet_MINSIZE),
-])
+@struct(
+    fields=[
+        ("smalltable", SetEntry * PySet_MINSIZE),
+    ]
+)
 class PySetObject(PyObject[set, None, _T]):
     """
     Defines a PySetObject Structure.
@@ -43,4 +45,3 @@ class PySetObject(PyObject[set, None, _T]):
     @classmethod
     def from_object(cls, obj: set[_T]) -> PySetObject[_T]:
         return cls.from_address(id(obj))
-

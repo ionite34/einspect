@@ -14,13 +14,16 @@ class TestPyObject:
         assert py_object.ob_refcnt == 1
         assert py_object.ob_type.contents.into_object().value == list
 
-    @pytest.mark.parametrize(["obj", "ob_type"], [
-        ("hello", str),
-        (1, int),
-        (1.0, float),
-        (True, bool),
-        (None, type(None)),
-    ])
+    @pytest.mark.parametrize(
+        ["obj", "ob_type"],
+        [
+            ("hello", str),
+            (1, int),
+            (1.0, float),
+            (True, bool),
+            (None, type(None)),
+        ],
+    )
     def test_obj(self, obj, ob_type):
         py_object = st.PyObject.from_object(obj)
         assert py_object.ob_refcnt >= 1
@@ -36,13 +39,16 @@ class TestPyListObject:
         assert ls == [1, 2]
 
 
-@pytest.mark.parametrize(["obj", "struct", "size"], [
-    (False, st.PyBoolObject, (3 * 8)),
-    (True, st.PyBoolObject, (3 * 8) + 4),
-    (0, st.PyLongObject, (3 * 8)),
-    (50, st.PyLongObject, (3 * 8) + 4),
-    ((1, 2), st.PyTupleObject, (3 * 8) + (2 * 8)),
-])
+@pytest.mark.parametrize(
+    ["obj", "struct", "size"],
+    [
+        (False, st.PyBoolObject, (3 * 8)),
+        (True, st.PyBoolObject, (3 * 8) + 4),
+        (0, st.PyLongObject, (3 * 8)),
+        (50, st.PyLongObject, (3 * 8) + 4),
+        ((1, 2), st.PyTupleObject, (3 * 8) + (2 * 8)),
+    ],
+)
 def test_mem_size_sizeof(obj, struct, size):
     """Test for structs matching __sizeof__."""
     py_object = struct.from_object(obj)
@@ -50,11 +56,14 @@ def test_mem_size_sizeof(obj, struct, size):
     assert py_object.mem_size == size
 
 
-@pytest.mark.parametrize(["obj", "struct", "delta"], [
-    ([1, 2], st.PyListObject, lambda s: s.allocated * 8),
-    ([1, 2, 3], st.PyListObject, lambda s: s.allocated * 8),
-    # ({"A": 1, "B": 2}, st.PyDictObject, 0),
-])
+@pytest.mark.parametrize(
+    ["obj", "struct", "delta"],
+    [
+        ([1, 2], st.PyListObject, lambda s: s.allocated * 8),
+        ([1, 2, 3], st.PyListObject, lambda s: s.allocated * 8),
+        # ({"A": 1, "B": 2}, st.PyDictObject, 0),
+    ],
+)
 def test_mem_size_basic(obj, struct, delta):
     """
     Test for structs not matching __sizeof__.

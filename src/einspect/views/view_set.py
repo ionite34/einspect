@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-from ctypes import cast, POINTER
+from ctypes import POINTER, cast
 from typing import TypeVar
 
 from einspect.structs import PyObject
-from einspect.types import Array, ptr
 from einspect.structs.py_set import PySetObject, SetEntry
+from einspect.types import Array, ptr
 from einspect.views.unsafe import unsafe
-from einspect.views.view_base import View, REF_DEFAULT
+from einspect.views.view_base import REF_DEFAULT, View
 
 __all__ = ("SetView",)
 
@@ -82,4 +82,3 @@ class SetView(View[set, None, _T]):
     @unsafe
     def weakreflist(self, value: ptr[PyObject]) -> None:
         self._pyobject.weakreflist = value
-

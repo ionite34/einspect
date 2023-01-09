@@ -2,13 +2,12 @@
 from __future__ import annotations
 
 import ctypes
-from ctypes import pointer
-from ctypes import Structure, py_object, pythonapi
-from typing import Generic, List, Tuple, TypeVar, Type, Union, Dict
+from ctypes import Structure, pointer, py_object, pythonapi
+from typing import Dict, Generic, List, Tuple, Type, TypeVar, Union
 
 from typing_extensions import Self
 
-from einspect.compat import python_req, Version
+from einspect.compat import Version, python_req
 from einspect.protocols.delayed_bind import bind_api
 from einspect.structs.deco import struct
 
@@ -27,7 +26,7 @@ class PyObject(Structure, Generic[_T, _KT, _VT]):
     ob_refcnt: int
     ob_type: pointer[Self]
     # Need to use generics from typing to work for py-3.8
-    _fields_: List[Tuple[str, type]]
+    _fields_: list[tuple[str, type]]
     _from_type_name_: str
 
     @bind_api(python_req(Version.PY_3_10) or ctypes.pythonapi["Py_NewRef"])

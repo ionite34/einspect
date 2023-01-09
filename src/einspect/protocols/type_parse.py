@@ -5,12 +5,11 @@ import ctypes
 import logging
 import re
 import typing
+from ctypes import POINTER
+from typing import Any, Protocol, Sequence, TypeVar, get_origin, runtime_checkable
 
 # noinspection PyProtectedMember
 from _ctypes import _SimpleCData
-from ctypes import POINTER
-from typing import Any, Protocol, Sequence, TypeVar, runtime_checkable, get_origin
-
 from typing_extensions import Self
 
 log = logging.getLogger(__name__)

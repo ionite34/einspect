@@ -26,7 +26,9 @@ def pkg_class(pkg: ModuleType):
 
 @pytest.mark.parametrize(
     "mod_name",
-    filter(lambda x: x.startswith("view_") and not x.endswith("_base"), pkg_names(views))
+    filter(
+        lambda x: x.startswith("view_") and not x.endswith("_base"), pkg_names(views)
+    ),
 )
 def test_views_modules(mod_name: str):
     """Test that factory supports all views."""

@@ -16,10 +16,13 @@ def obj() -> tuple[int, int, int]:
 
 
 class TestTupleView:
-    @pytest.mark.parametrize(["factory"], [
-        (view,),
-        (TupleView,),
-    ])
+    @pytest.mark.parametrize(
+        ["factory"],
+        [
+            (view,),
+            (TupleView,),
+        ],
+    )
     def test_factory(self, obj, factory):
         """Test different ways of creating a ListView."""
         v = factory(obj)
