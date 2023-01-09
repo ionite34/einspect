@@ -31,7 +31,10 @@ class _Ptr(_Pointer):
         if isinstance(item, typing._GenericAlias):
             item = get_origin(item)
 
-        return ctypes.POINTER(item)
+        try:
+            return ctypes.POINTER(item)
+        except TypeError as e:
+            raise TypeError(f"{e} (During POINTER({item}))") from e
 
 
 if TYPE_CHECKING:  # pragma: no cover
