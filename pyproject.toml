@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "einspect"
-version = "0.3.1"
+version = "0.4.0"
 description = "Extended Inspect - view and modify memory structs of runtime objects."
 authors = ["ionite34 <dev@ionite.io>"]
 license = "MIT"
