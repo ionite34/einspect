@@ -26,7 +26,7 @@ class PyTupleObject(PyVarObject[tuple, None, _VT]):
     _ob_item_0: ptr[PyObject] * 0
 
     def _format_fields_(self) -> Fields:
-        return {**super()._format_fields_(), "ob_item": "*PyObject[]"}
+        return {**super()._format_fields_(), "ob_item": "Array[*PyObject]"}
 
     @overload
     @classmethod
