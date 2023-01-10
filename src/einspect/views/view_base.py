@@ -254,8 +254,8 @@ class VarView(View[_T, _KT, _VT]):
 
     @property
     def size(self) -> int:
-        """Size of the list."""
-        return int(self._pyobject.ob_size)  # type: ignore
+        """Size (ob_size) of the PyVarObject."""
+        return self._pyobject.ob_size
 
     @size.setter
     def size(self, value: int) -> None:
