@@ -37,6 +37,12 @@ myst-parser = "^0.18.1"
 sphinx-copybutton = "^0.5.1"
 furo = "^2022.12.7"
 
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "@overload"
+]
+
 [tool.isort]
 skip = ["einspect/structs/__init__.py"]
 
