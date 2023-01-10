@@ -55,7 +55,7 @@ class PyTypeObject(PyVarObject[_T, None, None]):
     tp_setattro: setattrofunc
 
     # Functions to access object as input/output buffer
-    tp_as_buffer: c_void_p  # PyBufferProcs
+    tp_as_buffer: ptr[PyBufferProcs]
 
     # Flags to define presence of optional/expanded features
     tp_flags: Annotated[int, c_ulong]
