@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from ctypes import PYFUNCTYPE, Structure, c_char_p, c_int, c_void_p, py_object
 
 from typing_extensions import Annotated
