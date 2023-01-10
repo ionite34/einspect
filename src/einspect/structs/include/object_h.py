@@ -4,6 +4,7 @@ from enum import IntEnum
 
 from einspect.api import Py_ssize_t
 from einspect.structs.deco import struct
+from einspect.structs.include.pybuffer_h import getbufferproc, releasebufferproc
 from einspect.types import ptr
 
 __all__ = (
@@ -40,6 +41,7 @@ __all__ = (
     "sendfunc",
     "PySendResult",
     "TpFlags",
+    "PyBufferProcs",
     "PyAsyncMethods",
     "PyNumberMethods",
     "PyMappingMethods",
@@ -160,6 +162,12 @@ class PyAsyncMethods(Structure):
     am_aiter: unaryfunc
     am_anext: unaryfunc
     am_send: sendfunc
+
+
+@struct
+class PyBufferProcs(Structure):
+    bf_getbuffer: getbufferproc
+    bf_releasebuffer: releasebufferproc
 
 
 @struct
