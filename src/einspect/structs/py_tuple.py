@@ -7,7 +7,8 @@ from typing import Any, TypeVar, overload
 from einspect.api import Py_ssize_t
 from einspect.protocols.delayed_bind import bind_api
 from einspect.structs.deco import struct
-from einspect.structs.py_object import PyObject, PyVarObject
+from einspect.structs.py_object import Fields, PyObject, PyVarObject
+from einspect.types import ptr
 
 _VT = TypeVar("_VT")
 
@@ -22,11 +23,10 @@ class PyTupleObject(PyVarObject[tuple, None, _VT]):
     """
 
     # Size of this array is only known after creation
-    _ob_item_0: Py_ssize_t * 0
+    _ob_item_0: ptr[PyObject] * 0
 
-    @classmethod
-    def _format_fields_(cls) -> dict[str, str]:
-        return super()._format_fields_() | {"ob_item": "*PyObject[]"}
+    def _format_fields_(self) -> Fields:
+        return {**super()._format_fields_(), "ob_item": "*PyObject[]"}
 
     @overload
     @classmethod
