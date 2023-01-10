@@ -21,16 +21,27 @@ DISP_TRANSFORMS = {
 }
 
 
-def format_value(obj: Any, cast_to: type | None = None) -> str:
-    """Format a value."""
+def format_value(
+    obj: Any, cast_to: type | None = None, arr_bound: int | None = None
+) -> str:
+    """
+    Format a value.
+
+    Args:
+        obj: The value to format
+        cast_to: The type to cast the value to
+        arr_bound: The max number of pointers to dereference for Array[PyObject] types
+    """
     # Cast if needed
     if cast_to is not None:
         obj = ctypes.cast(obj, cast_to)  # type: ignore
         return format_value(obj)
     # Array: format as list
     if isinstance(obj, Array):
-        res = list(map(format_value, obj))
-        return f"[{', '.join(res)}]"
+        # Only get elements up to arr_bound
+        res = list(map(format_value, obj[:arr_bound]))
+        diff = len(obj) - len(res)
+        return f"[{', '.join(res)}{', ...' if diff > 0 else ''}]"
     # For pointers, get the value
     # noinspection PyUnresolvedReferences, PyProtectedMember
     if isinstance(obj, ctypes._Pointer):
