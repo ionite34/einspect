@@ -10,6 +10,7 @@ from typing_extensions import Self
 from einspect.compat import Version, python_req
 from einspect.protocols.delayed_bind import bind_api
 from einspect.structs.deco import struct
+from einspect.types import ptr
 
 Fields = Dict[str, Union[str, Tuple[str, Type]]]
 
@@ -88,9 +89,11 @@ class PyObject(Structure, Generic[_T, _KT, _VT]):
 
     def into_object(self) -> py_object[_T]:
         """Cast the PyObject into a Python object."""
-        ptr = ctypes.pointer(self)
-        obj = ctypes.cast(ptr, ctypes.py_object)
-        return obj
+        return ctypes.cast(self.as_ref(), ctypes.py_object)
+
+    def as_ref(self) -> ptr[Self]:
+        """Return a pointer to the PyObject."""
+        return ctypes.pointer(self)
 
     @bind_api(python_req(Version.PY_3_10) or pythonapi["Py_NewRef"])
     def NewRef(self) -> object:
