@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from ctypes import PYFUNCTYPE, Structure, c_int, c_void_p, py_object
 
 from einspect.api import Py_ssize_t

@@ -54,6 +54,24 @@ class TestPyListObject:
         pylist.ob_size = 2
         assert ls == [1, 2]
 
+    def test_item(self):
+        ls = [1, 2]
+        pylist = st.PyListObject.from_object(ls)
+        assert pylist.ob_item[0].contents.into_object().value == 1
+        assert pylist.ob_item[1].contents.into_object().value == 2
+
+        pylist.ob_item[0] = st.PyObject.from_object(5).as_ref()
+        assert ls == [5, 2]
+
+
+class TestPyTypeObject:
+    def test_new(self):
+        py_int = st.PyTypeObject.from_object(int)
+        repr_fn = py_int.tp_repr
+        assert repr_fn(1) == "1"
+        assert repr_fn(50) == "50"
+        assert repr_fn(True) == "1"
+
 
 @pytest.mark.parametrize(
     ["obj", "struct", "size"],
