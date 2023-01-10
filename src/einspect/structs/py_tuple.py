@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import ctypes
-from ctypes import pointer, pythonapi
+from ctypes import POINTER, Array, pointer, pythonapi
 from typing import Any, TypeVar, overload
 
 from einspect.api import Py_ssize_t
@@ -52,10 +52,15 @@ class PyTupleObject(PyVarObject[tuple, None, _VT]):
         return base + (int_size * self.ob_size)
 
     @property
-    def ob_item(self):
+    def ob_item(self) -> Array[ptr[PyObject]]:
         items_addr = ctypes.addressof(self._ob_item_0)
-        arr = Py_ssize_t * self.ob_size
+        arr = POINTER(PyObject) * self.ob_size
         return arr.from_address(items_addr)
+
+    @ob_item.setter
+    def ob_item(self, value: Array[ptr[PyObject]]) -> None:
+        items_addr = ctypes.addressof(self._ob_item_0)
+        ctypes.memmove(items_addr, value, ctypes.sizeof(value))
 
     @bind_api(pythonapi["PyTuple_GetItem"])
     def GetItem(self, index: int) -> pointer[PyObject[_VT, None, None]]:
