@@ -7,7 +7,7 @@ from typing import Sequence, TypeVar, overload
 from einspect.api import Py_ssize_t
 from einspect.compat import abc
 from einspect.errors import UnsafeIndexError
-from einspect.structs import PyTupleObject
+from einspect.structs import PyObject, PyTupleObject
 from einspect.utils import new_ref
 from einspect.views.unsafe import unsafe
 from einspect.views.view_base import VarView
@@ -50,9 +50,8 @@ class TupleView(VarView[tuple, None, _VT], abc.Sequence):
         if isinstance(index, slice):
             raise ValueError("Cannot set slice of tuple")
         try:
-            ref = new_ref(value)
-            arr = self.item
-            arr[index] = ref
+            ref = PyObject.from_object(value).as_ref()
+            self.item[index] = ref
         except IndexError as err:
             if not self._unsafe:
                 raise UnsafeIndexError(
