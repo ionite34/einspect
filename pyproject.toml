@@ -5,6 +5,25 @@ description = "Extended Inspect - view and modify memory structs of runtime obje
 authors = ["ionite34 <dev@ionite.io>"]
 license = "MIT"
 readme = "README.md"
+homepage = "https://github.com/ionite34/einspect"
+repository = "https://github.com/ionite34/einspect"
+documentation = "https://docs.ionite.io/einspect"
+
+keywords = [
+    "einspect",
+    "inspect",
+    "inspections",
+    "extensions",
+    "inspect-extensions",
+    "ctypes",
+    "ctypes-extensions",
+    "pointers",
+    "structs",
+    "memory",
+    "mutate",
+    "setattr",
+    "modify",
+]
 
 [tool.poetry.dependencies]
 python = ">=3.8.1,<3.12"
