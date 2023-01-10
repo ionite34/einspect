@@ -4,7 +4,7 @@ import ctypes
 from ctypes import Array, c_uint32
 
 from einspect.structs.deco import struct
-from einspect.structs.py_object import PyVarObject, Fields
+from einspect.structs.py_object import Fields, PyVarObject
 
 
 @struct
@@ -18,10 +18,7 @@ class PyLongObject(PyVarObject):
     _ob_digit_0: ctypes.c_uint32 * 0
 
     def _format_fields_(self) -> Fields:
-        return {
-            **super()._format_fields_(),
-            "ob_digit": "Array[c_uint32]"
-        }
+        return {**super()._format_fields_(), "ob_digit": "Array[c_uint32]"}
 
     @property
     def mem_size(self) -> int:
@@ -53,9 +50,9 @@ class PyLongObject(PyVarObject):
 
     @property
     def value(self) -> int:
-        digit: int
         if self.ob_size == 0:
             return 0
+        digit: int
         val = sum(digit * 1 << (30 * i) for i, digit in enumerate(self.ob_digit))
         size: int = self.ob_size  # type: ignore
         return val * (-1 if size < 0 else 1)

@@ -3,9 +3,9 @@ from __future__ import annotations
 
 import warnings
 from types import MappingProxyType
-from typing import Final, Type, TypeVar, overload, Any
+from typing import Any, Final, TypeVar, overload
 
-from einspect.views.view_base import View, REF_DEFAULT
+from einspect.views.view_base import REF_DEFAULT, View
 from einspect.views.view_bool import BoolView
 from einspect.views.view_dict import DictView
 from einspect.views.view_float import FloatView
@@ -18,7 +18,7 @@ from einspect.views.view_tuple import TupleView
 
 __all__ = ("view",)
 
-VIEW_TYPES: Final[dict[type, Type[View]]] = {
+VIEW_TYPES: Final[dict[type, type[View]]] = {
     object: View,
     int: IntView,
     bool: BoolView,

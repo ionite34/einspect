@@ -1,7 +1,7 @@
 import pytest
 
-from einspect import view, structs
-from einspect.structs.py_unicode import State, Kind
+from einspect import structs, view
+from einspect.structs.py_unicode import Kind, State
 from einspect.views.view_str import StrView
 
 TEXT = "2fe7b604-9664-41e6-9af0-9b472864bfc8"

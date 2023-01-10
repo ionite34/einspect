@@ -2,16 +2,16 @@ from __future__ import annotations
 
 from ctypes import (
     POINTER,
+    Structure,
+    c_char,
     c_ssize_t,
+    c_uint8,
+    c_uint32,
     c_uint64,
     c_void_p,
     pythonapi,
-    c_char,
-    c_uint32,
-    c_uint8,
-    Structure,
 )
-from typing import TypeVar, Dict
+from typing import Dict, TypeVar
 
 from einspect.api import Py_ssize_t
 from einspect.protocols.delayed_bind import bind_api
@@ -95,4 +95,4 @@ class PyDictObject(PyObject[dict, _KT, _VT]):
     @classmethod
     def from_object(cls, obj: Dict[_KT, _VT]) -> PyDictObject[_KT, _VT]:
         """Create a PyDictObject from an object."""
-        return super(PyDictObject, cls).from_object(obj)  # type: ignore
+        return super().from_object(obj)  # type: ignore

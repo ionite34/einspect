@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-import pytest
-
 from types import MappingProxyType
 
+import pytest
+
+from einspect.structs import MappingProxyObject
 from einspect.views.factory import view
 from einspect.views.view_mapping_proxy import MappingProxyView
-from einspect.structs import MappingProxyObject
 
 
 @pytest.fixture(scope="function")
@@ -16,10 +16,13 @@ def obj() -> MappingProxyType[str, int]:
 
 
 class TestTupleView:
-    @pytest.mark.parametrize(["factory"], [
-        (view,),
-        (MappingProxyView,),
-    ])
+    @pytest.mark.parametrize(
+        ["factory"],
+        [
+            (view,),
+            (MappingProxyView,),
+        ],
+    )
     def test_factory(self, obj, factory):
         """Test different ways of creating a ListView."""
         v = factory(obj)

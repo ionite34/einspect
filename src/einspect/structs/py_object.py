@@ -2,15 +2,15 @@
 from __future__ import annotations
 
 import ctypes
-from ctypes import pointer
-from ctypes import Structure, py_object, pythonapi
-from typing import Generic, List, Tuple, TypeVar, Type, Union, Dict
+from ctypes import Structure, pointer, py_object, pythonapi
+from typing import Dict, Generic, List, Tuple, Type, TypeVar, Union
 
 from typing_extensions import Self
 
-from einspect.compat import python_req, Version
+from einspect.compat import Version, python_req
 from einspect.protocols.delayed_bind import bind_api
 from einspect.structs.deco import struct
+from einspect.types import ptr
 
 Fields = Dict[str, Union[str, Tuple[str, Type]]]
 
@@ -29,18 +29,6 @@ class PyObject(Structure, Generic[_T, _KT, _VT]):
     # Need to use generics from typing to work for py-3.8
     _fields_: List[Tuple[str, type]]
     _from_type_name_: str
-
-    @bind_api(python_req(Version.PY_3_10) or ctypes.pythonapi["Py_NewRef"])
-    def NewRef(self) -> object:
-        """Returns new reference of the PyObject."""
-
-    @bind_api(ctypes.pythonapi["Py_IncRef"])
-    def IncRef(self) -> None:
-        """Increment the reference count of the PyObject."""
-
-    @bind_api(ctypes.pythonapi["Py_DecRef"])
-    def DecRef(self) -> None:
-        """Decrement the reference count of the PyObject."""
 
     @property
     def mem_size(self) -> int:
@@ -101,9 +89,31 @@ class PyObject(Structure, Generic[_T, _KT, _VT]):
 
     def into_object(self) -> py_object[_T]:
         """Cast the PyObject into a Python object."""
-        ptr = ctypes.pointer(self)
-        obj = ctypes.cast(ptr, ctypes.py_object)
-        return obj
+        return ctypes.cast(self.as_ref(), ctypes.py_object)
+
+    def as_ref(self) -> ptr[Self]:
+        """Return a pointer to the PyObject."""
+        return ctypes.pointer(self)
+
+    @bind_api(python_req(Version.PY_3_10) or pythonapi["Py_NewRef"])
+    def NewRef(self) -> object:
+        """Returns new reference of the PyObject."""
+
+    @bind_api(pythonapi["Py_IncRef"])
+    def IncRef(self) -> None:
+        """Increment the reference count of the PyObject."""
+
+    @bind_api(pythonapi["Py_DecRef"])
+    def DecRef(self) -> None:
+        """Decrement the reference count of the PyObject."""
+
+    @bind_api(pythonapi["PyObject_GetAttr"])
+    def GetAttr(self, name: str) -> object:
+        """Return the attribute of the PyObject."""
+
+    @bind_api(pythonapi["PyObject_SetAttr"])
+    def SetAttr(self, name: str, value: object) -> int:
+        """Set the attribute of the PyObject."""
 
 
 @struct

@@ -1,14 +1,14 @@
 from __future__ import annotations
 
 from ctypes import POINTER, c_long, pythonapi
-from typing import TypeVar, List
+from typing import List, TypeVar
 
 from typing_extensions import Annotated
 
-from einspect.types import ptr
 from einspect.protocols.delayed_bind import bind_api
 from einspect.structs.deco import struct
-from einspect.structs.py_object import PyObject, PyVarObject, Fields
+from einspect.structs.py_object import Fields, PyObject, PyVarObject
+from einspect.types import ptr
 
 _VT = TypeVar("_VT")
 
@@ -26,14 +26,14 @@ class PyListObject(PyVarObject[list, None, _VT]):
     allocated: Annotated[int, c_long]
 
     @classmethod
-    def from_object(cls, obj: List[_VT]) -> PyListObject[_VT]:
+    def from_object(cls, obj: list[_VT]) -> PyListObject[_VT]:
         return cls.from_address(id(obj))
 
     def _format_fields_(self) -> Fields:
         return {
             **super()._format_fields_(),
             "ob_item": ("**PyObject", ptr[ptr[PyObject] * self.allocated]),
-            "allocated": "c_long"
+            "allocated": "c_long",
         }
 
     @bind_api(pythonapi["PyList_GetItem"])

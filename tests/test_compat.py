@@ -1,6 +1,6 @@
 from unittest.mock import patch
 
-from einspect.compat import Version, python_req, RequiresPythonVersion
+from einspect.compat import RequiresPythonVersion, Version, python_req
 
 
 # Patch our python version to be 3.9

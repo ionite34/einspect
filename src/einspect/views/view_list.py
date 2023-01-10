@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-from ctypes import Array, c_long
+from ctypes import Array
 from typing import TypeVar, overload
 
-from einspect.compat import abc
 from einspect.api import Py_ssize_t
+from einspect.compat import abc
 from einspect.errors import UnsafeAttributeError
 from einspect.structs import PyListObject
-from einspect.views.view_base import VarView, REF_DEFAULT
+from einspect.views.view_base import REF_DEFAULT, VarView
 
 __all__ = ("ListView",)
 

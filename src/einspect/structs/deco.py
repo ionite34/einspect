@@ -3,10 +3,10 @@ from __future__ import annotations
 import logging
 from ctypes import Structure
 from functools import partial
-from typing import Callable, Type, TypeVar, overload, Union, Sequence, Tuple, Literal
+from typing import Callable, Literal, Sequence, Tuple, Type, TypeVar, Union, overload
 
 # noinspection PyUnresolvedReferences, PyProtectedMember
-from typing_extensions import _AnnotatedAlias, get_type_hints, get_args
+from typing_extensions import _AnnotatedAlias, get_args, get_type_hints
 
 from einspect.protocols.type_parse import convert_type_hints, fix_ctypes_generics
 
@@ -42,9 +42,7 @@ def struct(cls: _T | None = None, fields: FieldsType | None = None):
 def _struct(cls: _T, __fields: FieldsType | None = None) -> _T:
     """Decorator to declare _fields_ on Structures via type hints."""
     # if fields provided, replace type hints with temp sentinel
-    fields_overrides = {
-        tup[0]: tup for tup in __fields or ()
-    }
+    fields_overrides = {tup[0]: tup for tup in __fields or ()}
     if __fields is not None:
         for tup in __fields:
             # This is to prevent errors during get_type_hints if there is an override

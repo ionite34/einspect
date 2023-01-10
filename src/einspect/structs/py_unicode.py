@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import ctypes
-from ctypes import Array, POINTER, c_uint, c_int64
+from ctypes import POINTER, Array, c_int64, c_uint
 from enum import IntEnum
 
 from typing_extensions import Annotated

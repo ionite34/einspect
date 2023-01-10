@@ -5,38 +5,29 @@ import pytest
 from einspect.structs import PyListObject
 from einspect.views.factory import view
 from einspect.views.view_list import ListView
+from tests.views.test_view_base import TestView
 
 
-@pytest.fixture(scope="function")
-def obj() -> list[int]:
-    return [1, 2, 3]
+class TestListView(TestView):
+    view_type = ListView
+    obj_type = list
 
-
-class TestListView:
-    @pytest.mark.parametrize(["factory"], [
-        (view,),
-        (ListView,),
-    ])
-    def test_factory(self, obj, factory):
-        """Test different ways of creating a ListView."""
-        v = factory(obj)
-        assert isinstance(v, ListView)
-        assert isinstance(v._pyobject, PyListObject)
-        assert v.size == len(obj)
-        assert v.type == list
-        assert ~v is obj
+    def get_obj(self):
+        return [400, 500, 600]
 
     def test_sized(self):
-        ls = [1, 2]
-        v = view(ls)
-        assert len(v) == 2
-        ls.pop()
-        assert len(v) == 1
-        ls.clear()
+        obj = self.get_obj()
+        orig_len = len(obj)
+        v = self.view_type(obj)
+        assert len(v) == orig_len
+        obj.pop()
+        assert len(v) == orig_len - 1
+        obj.clear()
         assert len(v) == 0
 
-    def test_getitem(self, obj):
-        v = view(obj)
+    def test_getitem(self):
+        obj = self.get_obj()
+        v = self.view_type(obj)
         assert v[0] == obj[0]
         assert v[1] == obj[1]
         assert v[2] == obj[2]
@@ -44,12 +35,12 @@ class TestListView:
         assert v[:] == obj[:]
 
     def test_setitem(self):
-        ls = [1, 2, 3]
-        v = view(ls)
+        obj = [1, 2, 3]
+        v = self.view_type(obj)
         v[0] = 10
         v[1] = 20
-        assert ls == [10, 20, 3]
+        assert obj == [10, 20, 3]
         v[1:] = ["hi", "abc"]
-        assert ls == [10, "hi", "abc"]
+        assert obj == [10, "hi", "abc"]
         v[:] = ("A", "B")
-        assert ls == ["A", "B"]
+        assert obj == ["A", "B"]

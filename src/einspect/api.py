@@ -1,8 +1,9 @@
 """CPython API Methods."""
-import _ctypes
 import ctypes
 from ctypes import POINTER, py_object, pythonapi
-from typing import Union, Callable
+from typing import Callable, Union
+
+import _ctypes
 
 from einspect.compat import Version, python_req
 from einspect.protocols.delayed_bind import bind_api
@@ -74,7 +75,7 @@ class Py:
         """
         Set the item at position index in the tuple o to v.
         https://docs.python.org/3/c-api/tuple.html#c.PyTuple_SetItem
-        
+
         Notes:
             - This function steals a reference to v.
             - Requires tuple o to have a reference count == 1.

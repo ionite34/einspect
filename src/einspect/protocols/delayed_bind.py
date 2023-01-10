@@ -7,7 +7,7 @@ from collections.abc import Callable
 from functools import partial
 from inspect import signature
 from types import MethodType
-from typing import Type, TypeVar, get_type_hints
+from typing import TypeVar, get_type_hints
 
 from einspect.protocols.type_parse import (
     FuncPtr,
@@ -92,7 +92,7 @@ class delayed_bind(property):
         return arg_t, res_t
 
     # noinspection PyMethodOverriding
-    def __get__(self, instance: object | None, owner_cls: Type[_CT]) -> _F:
+    def __get__(self, instance: object | None, owner_cls: type[_CT]) -> _F:
         if self.attrname is None:
             raise TypeError(
                 "Cannot use bind instance without calling __set_name__ on it."

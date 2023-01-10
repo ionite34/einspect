@@ -15,7 +15,7 @@ sys.path.insert(0, str(Path(__file__).parents[2] / "src"))
 project = "einspect"
 copyright = "2023, Ionite"
 author = "Ionite"
-release = "v0.3.1"
+release = "v0.4.0"
 
 
 # -- General configuration ---------------------------------------------------
@@ -33,7 +33,7 @@ extensions = [
 ]
 
 # Autodoc style
-autodoc_member_order = 'groupwise'
+autodoc_member_order = "groupwise"
 
 # Prefix document path to section labels, to use:
 # `path/to/file:heading` instead of just `heading`
@@ -46,12 +46,12 @@ inline_highlight_respect_highlight = False
 inline_highlight_literals = False
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
+templates_path = ["_templates"]
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 
 # -- Options for HTML output -------------------------------------------------
@@ -59,9 +59,9 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'furo'
+html_theme = "furo"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+html_static_path = ["_static"]

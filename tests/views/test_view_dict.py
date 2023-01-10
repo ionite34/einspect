@@ -7,17 +7,17 @@ from einspect.views.view_dict import DictView
 
 @pytest.fixture(scope="function")
 def obj():
-    return {
-        "test": 1,
-        2: 2.0
-    }
+    return {"test": 1, 2: 2.0}
 
 
 class TestDictView:
-    @pytest.mark.parametrize(["factory"], [
-        (view,),
-        (DictView,),
-    ])
+    @pytest.mark.parametrize(
+        ["factory"],
+        [
+            (view,),
+            (DictView,),
+        ],
+    )
     def test_factory(self, obj, factory):
         """Test different ways of creating a ListView."""
         v = factory(obj)

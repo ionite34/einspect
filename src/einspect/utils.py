@@ -11,7 +11,7 @@ def address(obj: Any) -> int:
     source = ctypes.py_object(obj)
     addr = ctypes.c_void_p.from_buffer(source).value
     if addr is None:
-        raise ValueError("address: NULL object")
+        raise ValueError("address: NULL object")  # pragma: no cover
     return addr
 
 
