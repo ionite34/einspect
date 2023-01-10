@@ -25,6 +25,13 @@ class Unbuffered:
 
 def _run(func_path: Path, name: str):
     import importlib
+    import os
+
+    import coverage
+
+    # Need these for coverage.py to work
+    os.putenv("COVERAGE_PROCESS_START", "1")
+    coverage.process_startup()
 
     rel_path = func_path.relative_to(TESTS_DIR)
     module_name = "tests." + ".".join(rel_path.with_suffix("").parts)

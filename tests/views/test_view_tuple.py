@@ -1,40 +1,29 @@
 from __future__ import annotations
 
-import ctypes
+from ast import literal_eval
 
 import pytest
 
-from einspect.structs import PyTupleObject
 from einspect.views.factory import view
 from einspect.views.view_tuple import TupleView
+from tests.views.test_view_base import TestView
 
 
-@pytest.fixture(scope="function")
-def obj() -> tuple[int, int, int]:
-    tup = (25, 50, 100)
-    return tup
+class TestTupleView(TestView):
+    view_type = TupleView
+    obj_type = tuple
 
+    def get_obj(self):
+        return literal_eval("(1.2, 2.7, 3.0)")
 
-class TestTupleView:
-    @pytest.mark.parametrize(
-        ["factory"],
-        [
-            (view,),
-            (TupleView,),
-        ],
-    )
-    def test_factory(self, obj, factory):
-        """Test different ways of creating a ListView."""
-        v = factory(obj)
-        assert isinstance(v, TupleView)
-        assert isinstance(v._pyobject, PyTupleObject)
-        assert v.size == len(obj)
-        assert v.type == tuple
-        assert isinstance(v.item, ctypes.Array)
-        assert v.item[0] == id(obj[0])
+    def test_item(self):
+        obj = self.get_obj()
+        v = self.view_type(obj)
+        assert v.item[0].contents.into_object().value is obj[0]
 
-    def test_get_item(self, obj):
-        v = view(obj)
+    def test_get_item(self):
+        obj = self.get_obj()
+        v = self.view_type(obj)
         assert v[0] == obj[0]
         assert v[1] == obj[1]
         assert v[2] == obj[2]
@@ -42,7 +31,8 @@ class TestTupleView:
         assert v[:] == obj[:]
 
     def test_error_set_slice(self):
-        v = view((1, 2, 3))
+        obj = self.get_obj()
+        v = self.view_type(obj)
         with pytest.raises(ValueError):
             v[1:2] = (1, 2)
 
