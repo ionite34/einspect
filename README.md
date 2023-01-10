@@ -27,7 +27,7 @@ print(v.info())
 PyListObject(at 0x2833738):
    ob_refcnt: Py_ssize_t = 5
    ob_type: *PyTypeObject = &[list]
-   ob_item: **PyObject = &[&[1], &[2], &[3], &[NULL]]
+   ob_item: **PyObject = &[&[1], &[2], &[3]]
    allocated: Py_ssize_t = 4
 ```
 
