@@ -32,7 +32,7 @@ class PyListObject(PyVarObject[list, None, _VT]):
     def _format_fields_(self) -> Fields:
         return {
             **super()._format_fields_(),
-            "ob_item": ("**PyObject", ptr[ptr[PyObject] * self.allocated]),
+            "ob_item": ("**PyObject", ptr[ptr[PyObject] * self.ob_size]),
             "allocated": "c_long",
         }
 
