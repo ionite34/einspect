@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Generic, NoReturn, TypeVar
 
-__all__ = ("Version", "RequiresPythonVersion", "python_req", "abc")
+__all__ = ("Version", "RequiresPythonVersion", "python_req", "python_above", "abc")
 
 if sys.version_info > (3, 8):
     abc = typing  # noqa: F401, F811
@@ -48,3 +48,8 @@ def python_req(version: _V) -> RequiresPythonVersion[_V] | None:
     if sys.version_info < version.value:  # type: ignore
         return RequiresPythonVersion(version)
     return None
+
+
+def python_above(version: Version) -> bool:
+    """Returns True if equal or greater than current Python version."""
+    return sys.version_info >= version.value

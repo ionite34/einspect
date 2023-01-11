@@ -15,11 +15,13 @@ from einspect.views.view_mapping_proxy import MappingProxyView
 from einspect.views.view_set import SetView
 from einspect.views.view_str import StrView
 from einspect.views.view_tuple import TupleView
+from einspect.views.view_type import TypeView
 
 __all__ = ("view",)
 
 VIEW_TYPES: Final[dict[type, type[View]]] = {
     object: View,
+    type: TypeView,
     int: IntView,
     bool: BoolView,
     float: FloatView,
@@ -35,6 +37,9 @@ VIEW_TYPES: Final[dict[type, type[View]]] = {
 # Collection generics
 _KT = TypeVar("_KT")
 _VT = TypeVar("_VT")
+
+# TypeView
+_Type = TypeVar("_Type", bound=type)
 
 # Base case
 _T = TypeVar("_T")
@@ -89,6 +94,11 @@ def view(obj: str, ref: bool = REF_DEFAULT) -> StrView:
 
 @overload
 def view(obj: float, ref: bool = REF_DEFAULT) -> FloatView:
+    ...
+
+
+@overload
+def view(obj: _Type, ref: bool = REF_DEFAULT) -> TypeView[_Type]:
     ...
 
 

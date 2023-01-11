@@ -2,6 +2,7 @@
 
 [![Build](https://github.com/ionite34/einspect/actions/workflows/build.yml/badge.svg)](https://github.com/ionite34/einspect/actions/workflows/build.yml)
 [![codecov](https://codecov.io/gh/ionite34/einspect/branch/main/graph/badge.svg?token=v71SdG5Bo6)](https://codecov.io/gh/ionite34/einspect)
+[![security](https://snyk-widget.herokuapp.com/badge/pip/einspect/badge.svg)](https://security.snyk.io/package/pip/einspect)
 
 [![PyPI](https://img.shields.io/pypi/v/einspect)][pypi]
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/einspect)][pypi]
@@ -12,8 +13,10 @@
 
 ### [Documentation](https://docs.ionite.io/einspect)
 
-- View and modify memory structures of runtime objects.
-- Fully typed, extensible framework in pure Python.
+- [View and modify memory structures of live objects.](#check-detailed-states-of-built-in-objects)
+- [Able to mutate immutable objects like tuples and ints.](#mutate-tuples-strings-ints-or-other-immutable-types)
+- [Modify slot functions or attributes of built-in types.](#modify-attributes-on-built-in-types)
+- [Fully typed, extensible framework in pure Python.](#move-objects-in-memory)
 
 ### Check detailed states of built-in objects
 ```python
@@ -27,7 +30,7 @@ print(v.info())
 PyListObject(at 0x2833738):
    ob_refcnt: Py_ssize_t = 5
    ob_type: *PyTypeObject = &[list]
-   ob_item: **PyObject = &[&[1], &[2], &[3], &[NULL]]
+   ob_item: **PyObject = &[&[1], &[2], &[3]]
    allocated: Py_ssize_t = 4
 ```
 
@@ -56,6 +59,23 @@ print("hello", 100)
 ```
 ```python
 world 5
+```
+
+### Modify attributes of built-in types
+```python
+from einspect import view
+
+v = view(int)
+v["__iter__"] = lambda self: iter(range(self))
+v["__str__"] = lambda self: "custom: " + repr(self)
+
+for i in 3:
+    print(i)
+```
+```python
+custom: 0
+custom: 1
+custom: 2
 ```
 
 ### Move objects in memory
