@@ -2,6 +2,7 @@
 
 [![Build](https://github.com/ionite34/einspect/actions/workflows/build.yml/badge.svg)](https://github.com/ionite34/einspect/actions/workflows/build.yml)
 [![codecov](https://codecov.io/gh/ionite34/einspect/branch/main/graph/badge.svg?token=v71SdG5Bo6)](https://codecov.io/gh/ionite34/einspect)
+[![security](https://snyk-widget.herokuapp.com/badge/pip/einspect/badge.svg)](https://security.snyk.io/package/pip/einspect)
 
 [![PyPI](https://img.shields.io/pypi/v/einspect)][pypi]
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/einspect)][pypi]
