@@ -258,9 +258,8 @@ class VarView(View[_T, _KT, _VT]):
         return self._pyobject.ob_size
 
     @size.setter
+    @unsafe
     def size(self, value: int) -> None:
-        if not self._unsafe:
-            raise UnsafeAttributeError.from_attr("size")
         self._pyobject.ob_size = value
 
 
