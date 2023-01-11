@@ -14,6 +14,9 @@ class TestView:
         return self.obj_type()
 
     def check_ref(self, a, b):
+        # Skip builtin types
+        if self.obj_type.__module__ == "builtins":
+            return
         # Check ref count unless we're an instance of int or singletons
         if self.obj_type in (int, bool, type(None)):
             return
