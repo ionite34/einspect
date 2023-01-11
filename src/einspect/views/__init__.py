@@ -8,6 +8,7 @@ from einspect.views.view_mapping_proxy import MappingProxyView
 from einspect.views.view_set import SetView
 from einspect.views.view_str import StrView
 from einspect.views.view_tuple import TupleView
+from einspect.views.view_type import TypeView
 
 __all__ = (
     "AnyView",
@@ -22,4 +23,5 @@ __all__ = (
     "StrView",
     "SetView",
     "TupleView",
+    "TypeView",
 )
