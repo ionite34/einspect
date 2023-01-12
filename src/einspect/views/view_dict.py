@@ -5,7 +5,8 @@ from typing import TypeVar
 
 from einspect.api import Py_ssize_t
 from einspect.compat import abc
-from einspect.structs.py_dict import PyDictObject
+from einspect.structs.py_dict import DictKeysObject, PyDictObject
+from einspect.types import ptr
 from einspect.views.unsafe import unsafe
 from einspect.views.view_base import REF_DEFAULT, View
 
@@ -28,6 +29,7 @@ class DictView(View[dict, _KT, _VT], abc.MutableMapping[_KT, _VT]):
         ...
 
     def __getitem__(self, key: _KT) -> _VT:
+        """Get an item from the dictionary. Equivalent to dict[key]."""
         return self._pyobject.GetItem(key)
 
     def __setitem__(self, key: _KT, value: _VT) -> None:
@@ -40,7 +42,7 @@ class DictView(View[dict, _KT, _VT], abc.MutableMapping[_KT, _VT]):
 
     @property
     def used(self) -> int:
-        return self._pyobject.ma_used  # type: ignore
+        return self._pyobject.ma_used
 
     @used.setter
     @unsafe
@@ -49,7 +51,7 @@ class DictView(View[dict, _KT, _VT], abc.MutableMapping[_KT, _VT]):
 
     @property
     def version_tag(self) -> int:
-        return self._pyobject.ma_version_tag  # type: ignore
+        return self._pyobject.ma_version_tag
 
     @version_tag.setter
     @unsafe
@@ -57,8 +59,8 @@ class DictView(View[dict, _KT, _VT], abc.MutableMapping[_KT, _VT]):
         self._pyobject.ma_version_tag = value
 
     @property
-    def ma_keys(self) -> Array[Py_ssize_t]:
-        return self._pyobject.ma_keys  # type: ignore
+    def ma_keys(self) -> ptr[DictKeysObject]:
+        return self._pyobject.ma_keys
 
     @ma_keys.setter
     @unsafe
