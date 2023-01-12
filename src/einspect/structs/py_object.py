@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import ctypes
-from ctypes import Structure, pointer, py_object, pythonapi
+from ctypes import Structure, pythonapi
 from typing import Dict, Generic, List, Tuple, Type, TypeVar, Union
 
 from typing_extensions import Self
@@ -20,14 +20,14 @@ _VT = TypeVar("_VT")
 
 
 # noinspection PyPep8Naming
-@struct
+@struct(fields=[("ob_type", ptr[Self])])
 class PyObject(Structure, Generic[_T, _KT, _VT]):
     """Defines a base PyObject Structure."""
 
     ob_refcnt: int
-    ob_type: pointer[Self]
+    ob_type: ptr[PyObject[Type[_T], None, None]]
     # Need to use generics from typing to work for py-3.8
-    _fields_: List[Tuple[str, type]]
+    _fields_: List[Union[Tuple[str, type], Tuple[str, type, int]]]
     _from_type_name_: str
 
     @property
@@ -87,9 +87,10 @@ class PyObject(Structure, Generic[_T, _KT, _VT]):
         inst._from_type_name_ = type_repr
         return inst
 
-    def into_object(self) -> py_object[_T]:
+    def into_object(self) -> _T:
         """Cast the PyObject into a Python object."""
-        return ctypes.cast(self.as_ref(), ctypes.py_object)
+        py_obj = ctypes.cast(self.as_ref(), ctypes.py_object)
+        return py_obj.value
 
     def as_ref(self) -> ptr[Self]:
         """Return a pointer to the PyObject."""
