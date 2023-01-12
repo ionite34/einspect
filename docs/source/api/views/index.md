@@ -12,4 +12,5 @@ view_list
 view_mapping_proxy
 view_str
 view_tuple
+view_type
 ```
