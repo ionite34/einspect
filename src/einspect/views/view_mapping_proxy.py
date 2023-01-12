@@ -42,7 +42,7 @@ class MappingProxyView(View[MappingProxyType, _KT, _VT], abc.MutableMapping[_KT,
     @property
     def mapping(self) -> dict[_KT, _VT]:
         """Return `MappingProxyObject.mapping`, casted to `dict`."""
-        return self._pyobject.mapping.contents.into_object().value
+        return self._pyobject.mapping.contents.into_object()
 
     @mapping.setter
     @unsafe

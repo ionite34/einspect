@@ -49,7 +49,8 @@ class BaseView(ABC, Generic[_T, _KT, _VT], UnsafeContext):
         self._base_type: type[_T] = type(obj)
         self._base_id = id(obj)
         # Get a reference if ref=True
-        self._base: py_object[_T] | None = _wrap_py_object(obj) if ref else None
+        self._base: py_object[_T] | None
+        self._base = _wrap_py_object(obj) if ref else None
         # Attempt to get a weakref
         try:
             self._base_weakref = weakref.ref(obj)
@@ -97,7 +98,7 @@ class View(BaseView[_T, _KT, _VT]):
     @property
     def type(self) -> Type[_T]:
         """Type of the object."""
-        return self._pyobject.ob_type.contents.into_object().value  # type: ignore
+        return self._pyobject.ob_type.contents.into_object()
 
     @type.setter
     def type(self, value: type) -> None:
@@ -106,7 +107,7 @@ class View(BaseView[_T, _KT, _VT]):
         self._pyobject.ob_type = value
 
     @property
-    def base(self) -> py_object[_T]:
+    def base(self) -> _T:
         """
         Returns the base object of the view.
 
@@ -128,7 +129,7 @@ class View(BaseView[_T, _KT, _VT]):
         """
         # Prioritize strong ref if it exists
         if self._base is not None:
-            return self._base
+            return self._base.value
         # If no weakref, error if no unsafe context
         if self._base_weakref is None:
             if not self._unsafe:
@@ -149,7 +150,7 @@ class View(BaseView[_T, _KT, _VT]):
         else:
             base = self._base_weakref()
             if base is not None:
-                return py_object(base)
+                return base
             else:
                 if not self._unsafe:
                     raise MovedError(

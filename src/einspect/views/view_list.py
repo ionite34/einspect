@@ -32,7 +32,7 @@ class ListView(VarView[list, None, _VT], abc.Sequence[_VT]):
         if isinstance(index, int):
             try:
                 ptr = self._pyobject.GetItem(index)
-                return ptr.contents.into_object().value
+                return ptr.contents.into_object()
             except (IndexError, ValueError) as err:
                 raise IndexError(f"Index {index} out of range") from err
         elif isinstance(index, slice):
@@ -41,7 +41,7 @@ class ListView(VarView[list, None, _VT], abc.Sequence[_VT]):
                 start = index.start if index.start is not None else 0
                 stop = index.stop if index.stop is not None else self.size
                 ptr = self._pyobject.GetSlice(start, stop)
-                ls = ptr.contents.into_object().value
+                ls = ptr.contents.into_object()
                 # Get step if provided
                 if index.step is not None:
                     ls = ls[:: index.step]

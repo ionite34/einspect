@@ -34,15 +34,14 @@ class TupleView(VarView[tuple, None, _VT], abc.Sequence):
             try:
                 ptr = self._pyobject.GetItem(index)
                 py_struct = ptr.contents
-                py_obj = py_struct.into_object()
-                return py_obj.value
+                return py_struct.into_object()
             except IndexError as err:
                 raise IndexError(f"Index {index} out of range") from err
         elif isinstance(index, slice):
             start = index.start if index.start is not None else 0
             stop = index.stop if index.stop is not None else self.size
             ptr = self._pyobject.GetSlice(start, stop)
-            return ptr.contents.into_object().value
+            return ptr.contents.into_object()
         else:
             raise TypeError(f"Invalid index type: {type(index)}")
 

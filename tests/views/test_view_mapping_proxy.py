@@ -30,5 +30,5 @@ class TestTupleView:
         assert isinstance(v._pyobject, MappingProxyObject)
         assert v.type == MappingProxyType
         assert v.mapping == {"a": 1, "b": 2}
-        assert v.base.value is obj
+        assert v.base is obj
         assert ~v is obj

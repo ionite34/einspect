@@ -3,27 +3,19 @@ import pytest
 from einspect.structs import PyDictObject
 from einspect.views.factory import view
 from einspect.views.view_dict import DictView
+from tests.views.test_view_base import TestView
 
 
-@pytest.fixture(scope="function")
-def obj():
-    return {"test": 1, 2: 2.0}
+class TestDictView(TestView):
+    view_type = DictView
+    obj_type = dict
 
+    def get_obj(self):
+        return {"a": 1, "b": 2}
 
-class TestDictView:
-    @pytest.mark.parametrize(
-        ["factory"],
-        [
-            (view,),
-            (DictView,),
-        ],
-    )
-    def test_factory(self, obj, factory):
-        """Test different ways of creating a ListView."""
-        v = factory(obj)
-        assert isinstance(v, DictView)
-        assert isinstance(v._pyobject, PyDictObject)
-        assert v.type == dict
+    def test_dict(self):
+        obj = self.get_obj()
+        v = self.view_type(obj)
+        assert v.type is dict
         assert v.used == len(obj)
-        assert v.base.value is obj
-        assert ~v is obj
+        # assert v.ma_keys.contents == 0
