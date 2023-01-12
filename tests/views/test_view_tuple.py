@@ -19,7 +19,7 @@ class TestTupleView(TestView):
     def test_item(self):
         obj = self.get_obj()
         v = self.view_type(obj)
-        assert v.item[0].contents.into_object().value is obj[0]
+        assert v.item[0].contents.into_object() is obj[0]
 
     def test_get_item(self):
         obj = self.get_obj()

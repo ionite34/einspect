@@ -8,7 +8,7 @@ from einspect.structs.py_object import Fields, PyVarObject
 
 
 @struct
-class PyLongObject(PyVarObject):
+class PyLongObject(PyVarObject[int, None, None]):
     """
     Defines a PyLongObject Structure.
 

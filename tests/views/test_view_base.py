@@ -59,8 +59,7 @@ class TestView:
         """Access base with reference."""
         obj = self.get_obj()
         v = self.view_type(obj, ref=True)
-        assert isinstance(v.base, ctypes.py_object)
-        assert v.base.value is obj
+        assert v.base is obj
 
     def test_base_weakref(self):
         """Access base after weakref is deleted."""
@@ -87,7 +86,7 @@ class TestView:
             # Check weakref exists
             assert v._base_weakref is not None
             assert v._base_weakref() is obj
-            assert v.base.value is obj
+            assert v.base is obj
 
     def test_base_unsafe(self):
         """Access base with unsafe."""
@@ -96,13 +95,13 @@ class TestView:
         self.check_ref(v.ref_count, 1)
 
         with v.unsafe():
-            assert v.base.value is obj
+            assert v.base is obj
 
     def test_drop(self):
         """Test accessing after drop."""
         obj = self.get_obj()
         v = self.view_type(obj, ref=True)
-        assert v.base.value is obj
+        assert v.base is obj
         v.drop()
         with pytest.raises(errors.DroppedReferenceError):
-            _ = v.base.value
+            _ = v.base

@@ -16,7 +16,7 @@ class TestPyObject:
         ls = []
         py_object = st.PyObject.from_object(ls)
         assert py_object.ob_refcnt == 1
-        assert py_object.ob_type.contents.into_object().value == list
+        assert py_object.ob_type.contents.into_object() == list
 
     @pytest.mark.parametrize(
         ["obj", "ob_type"],
@@ -31,7 +31,7 @@ class TestPyObject:
     def test_obj(self, obj, ob_type):
         py_object = st.PyObject.from_object(obj)
         assert py_object.ob_refcnt >= 1
-        assert py_object.ob_type.contents.into_object().value == ob_type
+        assert py_object.ob_type.contents.into_object() == ob_type
 
     def test_api_setattr(self):
         obj = UserClass()
@@ -57,8 +57,8 @@ class TestPyListObject:
     def test_item(self):
         ls = [1, 2]
         pylist = st.PyListObject.from_object(ls)
-        assert pylist.ob_item[0].contents.into_object().value == 1
-        assert pylist.ob_item[1].contents.into_object().value == 2
+        assert pylist.ob_item[0].contents.into_object() == 1
+        assert pylist.ob_item[1].contents.into_object() == 2
 
         pylist.ob_item[0] = st.PyObject.from_object(5).as_ref()
         assert ls == [5, 2]

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import ctypes
+import inspect
 import logging
 from collections.abc import Callable
 from functools import partial
@@ -85,7 +86,12 @@ class delayed_bind(property):
         # Insert current class type as first argument
         # If there is a "self" parameter
         if signature(self.func).parameters.get("self") and "self" not in hints:
-            arg_t.insert(0, owner_cls)
+            # Here we want to insert the actual class the function is defined
+            # Not subclasses (in case a subclass gets the first call)
+            def_cls = _get_defining_class_of_bound_method(self.func, owner_cls)
+            log.debug("Found defining class: %s of %s", def_cls, self.func)
+            arg_t.insert(0, def_cls)
+            # arg_t.insert(0, owner_cls)
 
         arg_t = [convert_type_hints(t, owner_cls) for t in arg_t]
 
@@ -139,3 +145,11 @@ class delayed_bind(property):
             raise TypeError(msg) from None
 
         return bound_func
+
+
+def _get_defining_class_of_bound_method(method, current_cls) -> type:
+    """Get defining class of a bound method."""
+    for cls in inspect.getmro(current_cls):
+        if method.__name__ in cls.__dict__:
+            return cls
+    raise ValueError(f"Failed to find defining class of {method!r}")

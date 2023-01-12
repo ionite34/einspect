@@ -5,7 +5,9 @@ import typing
 from ctypes import _Pointer
 from typing import TYPE_CHECKING, List, TypeVar, get_origin, overload
 
-__all__ = ("ptr", "Array")
+from typing_extensions import Self
+
+__all__ = ("ptr", "Array", "_SelfPtr")
 
 _T = TypeVar("_T")
 
@@ -15,6 +17,9 @@ Dynamic typing alias for ctypes.pointer.
 
 Resolves to the `_Ptr` class at runtime to allow for generic subscripting.
 """
+
+_SelfPtr = object()
+"""Singleton object returned on ptr[Self]."""
 
 
 class _Ptr(_Pointer):
@@ -26,6 +31,10 @@ class _Ptr(_Pointer):
         return ctypes.pointer(*args, **kwargs)
 
     def __class_getitem__(cls, item):
+        # For ptr[Self], return a special object
+        if item is Self:
+            return _SelfPtr
+
         # Get base of generic alias
         # noinspection PyUnresolvedReferences, PyProtectedMember
         if isinstance(item, typing._GenericAlias):

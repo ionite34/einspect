@@ -51,7 +51,7 @@ def format_value(
     # For PyObject, get the object
     if isinstance(obj, PyObject):
         obj.IncRef()
-        return format_value(obj.into_object().value)
+        return format_value(obj.into_object())
     # Other cases
     try:
         return DISP_TRANSFORMS[type(obj)](obj)
