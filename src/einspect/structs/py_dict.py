@@ -4,7 +4,6 @@ from ctypes import (
     POINTER,
     Structure,
     c_char,
-    c_ssize_t,
     c_uint8,
     c_uint32,
     c_uint64,
@@ -13,12 +12,16 @@ from ctypes import (
 )
 from typing import Dict, TypeVar
 
+from typing_extensions import Annotated
+
 from einspect.api import Py_ssize_t
 from einspect.protocols.delayed_bind import bind_api
 from einspect.structs.deco import struct
 from einspect.structs.py_object import PyObject
+from einspect.types import ptr
 
 __all__ = ("PyDictObject",)
+
 
 _KT = TypeVar("_KT")
 _VT = TypeVar("_VT")
@@ -52,10 +55,10 @@ class PyDictObject(PyObject[dict, _KT, _VT]):
     """
 
     # Number of items in the dictionary
-    ma_used: c_ssize_t
+    ma_used: int
     # Dictionary version: globally unique, changes on modification
-    ma_version_tag: c_uint64
-    ma_keys: POINTER(DictKeysObject)
+    ma_version_tag: Annotated[int, c_uint64]
+    ma_keys: ptr[DictKeysObject]
     # If ma_values is NULL, the table is "combined": keys and values
     # are stored in ma_keys. Otherwise, keys are stored in ma_keys
     # and values are stored in ma_values
