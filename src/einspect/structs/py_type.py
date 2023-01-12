@@ -1,7 +1,17 @@
 from __future__ import annotations
 
-from ctypes import c_char, c_char_p, c_uint, c_ulong, c_void_p, pointer, pythonapi
-from typing import TypeVar
+from ctypes import (
+    POINTER,
+    c_char,
+    c_char_p,
+    c_uint,
+    c_ulong,
+    c_void_p,
+    pointer,
+    py_object,
+    pythonapi,
+)
+from typing import Type, TypeVar
 
 from typing_extensions import Annotated, Self
 
@@ -15,7 +25,7 @@ from einspect.types import ptr
 
 __all__ = ("PyTypeObject",)
 
-_T = TypeVar("_T", bound=type)
+_T = TypeVar("_T")
 
 
 # noinspection PyPep8Naming
@@ -111,9 +121,21 @@ class PyTypeObject(PyVarObject[_T, None, None]):
     tp_watched: c_char
 
     @classmethod
-    def from_object(cls, obj: _T) -> PyTypeObject[_T]:
+    def from_object(cls, obj: Type[_T]) -> PyTypeObject[Type[_T]]:
         return super().from_object(obj)  # type: ignore
 
     @bind_api(pythonapi["PyType_Modified"])
     def Modified(self) -> None:
         """Mark the type as modified."""
+
+
+# Patch PyTypeObject back into PyObject
+def _patch_py_object():
+    # noinspection PyProtectedMember
+    fields = PyObject._fields_
+    fields[1] = ("ob_type", POINTER(PyTypeObject))
+    offset = object.__basicsize__ + tuple.__itemsize__ * 3
+    py_object.from_address(id(PyObject.ob_type) + offset).value = POINTER(PyTypeObject)
+
+
+_patch_py_object()

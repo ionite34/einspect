@@ -41,6 +41,7 @@ aliases = {
 # ctypes generics to replace
 RE_PY_OBJECT = re.compile(r"^(py_object)(\[(.*)])$")
 RE_POINTER = re.compile(r"^(pointer)(\[(.*)])$")
+RE_ANNOTATED = re.compile(r"^(Annotated)(\[(.*)])$")
 
 
 def fix_ctypes_generics(
@@ -56,6 +57,16 @@ def fix_ctypes_generics(
     for name, hint in type_hints.items():
         if not isinstance(hint, str):
             continue
+        # For Annotated c_void_p, directly set it here to avoid name errors
+        if m := RE_ANNOTATED.match(hint):
+            inner = m.group(3)
+            # Split from right to first ,
+            _, last = inner.rsplit(",", 1)
+            log.debug(last)
+            if last.strip() == "c_void_p":
+                log.debug("RE_ANNOTATED Set: %r -> %r", name, ctypes.c_void_p)
+                type_hints[name] = ctypes.c_void_p
+
         # Keep py_object and discard subscript
         if m := RE_PY_OBJECT.match(hint):
             log.debug("Source: %r Match: %r", hint, m)

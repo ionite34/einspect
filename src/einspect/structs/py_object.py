@@ -2,15 +2,18 @@
 from __future__ import annotations
 
 import ctypes
-from ctypes import Structure, pythonapi
-from typing import Dict, Generic, List, Tuple, Type, TypeVar, Union
+from ctypes import Structure, c_void_p, pythonapi
+from typing import TYPE_CHECKING, Dict, Generic, List, Tuple, Type, TypeVar, Union
 
-from typing_extensions import Self
+from typing_extensions import Annotated, Self
 
 from einspect.compat import Version, python_req
 from einspect.protocols.delayed_bind import bind_api
 from einspect.structs.deco import struct
 from einspect.types import ptr
+
+if TYPE_CHECKING:
+    from einspect.structs import PyTypeObject
 
 Fields = Dict[str, Union[str, Tuple[str, Type]]]
 
@@ -19,14 +22,12 @@ _KT = TypeVar("_KT")
 _VT = TypeVar("_VT")
 
 
-# noinspection PyPep8Naming
-@struct(fields=[("ob_type", ptr[Self])])
+@struct
 class PyObject(Structure, Generic[_T, _KT, _VT]):
     """Defines a base PyObject Structure."""
 
     ob_refcnt: int
-    ob_type: ptr[PyObject[Type[_T], None, None]]
-    # Need to use generics from typing to work for py-3.8
+    ob_type: Annotated[ptr[PyTypeObject[Type[_T]]], c_void_p]
     _fields_: List[Union[Tuple[str, type], Tuple[str, type, int]]]
     _from_type_name_: str
 
