@@ -43,25 +43,33 @@ RE_PY_OBJECT = re.compile(r"^(py_object)(\[(.*)])$")
 RE_POINTER = re.compile(r"^(pointer)(\[(.*)])$")
 
 
-def fix_ctypes_generics(type_hints: [str, str]) -> None:
+def fix_ctypes_generics(
+    type_hints: dict[str, str | type], cls_name: str | None = None
+) -> None:
+    """
+    Replace some unresolvable ctypes hints in __annotations__.
+
+    Args:
+        type_hints: The __annotations__ dict to fix.
+        cls_name: The name of the class to fix.
+    """
     for name, hint in type_hints.items():
-        if isinstance(hint, str):
-            # Keep py_object and discard subscript
-            m_pyobj = RE_PY_OBJECT.match(hint)
-            log.debug("Source: %r Match: %r", hint, m_pyobj)
-            if m_pyobj:
-                base = hint.replace(m_pyobj.group(2), "")
-                type_hints[name] = base
-                log.debug("Replacing %r with %r", hint, base)
-            # For pointer, replace with POINTER
-            m_ptr = RE_POINTER.match(hint)
-            if m_ptr:
-                # Get inner of []
-                base = m_ptr.group(3)
-                # Discard any other generics
-                base = base.split("[")[0]
-                type_hints[name] = base
-                log.debug("Replacing %r with %r", hint, base)
+        if not isinstance(hint, str):
+            continue
+        # Keep py_object and discard subscript
+        if m := RE_PY_OBJECT.match(hint):
+            log.debug("Source: %r Match: %r", hint, m)
+            base = hint.replace(m.group(2), "")
+            type_hints[name] = base
+            log.debug("Replacing %r with %r", hint, base)
+        # For pointer, replace with POINTER
+        if m := RE_POINTER.match(hint):
+            # Get inner of []
+            base = m.group(3)
+            # Discard any other generics
+            base = base.split("[")[0]
+            type_hints[name] = base
+            log.debug("Replacing %r with %r", hint, base)
 
 
 def convert_type_hints(source: type, owner_cls: type) -> type | None:
