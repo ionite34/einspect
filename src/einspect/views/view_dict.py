@@ -38,7 +38,9 @@ class DictView(View[dict, _KT, _VT], abc.MutableMapping[_KT, _VT]):
         return None
 
     def __delitem__(self, key: _KT) -> None:
-        ...
+        if self._pyobject.DelItem(key) < 0:
+            raise RuntimeError("Failed to delete item")
+        return None
 
     @property
     def used(self) -> int:
