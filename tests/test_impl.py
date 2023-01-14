@@ -6,6 +6,25 @@ import pytest
 from einspect import impl, orig
 
 
+def test_impl_new_func():
+    @impl(int)
+    def _foo_fn(self, x: int) -> str:
+        return str(self + x)
+
+    # noinspection PyUnresolvedReferences
+    assert (10)._foo_fn(5) == "15"
+
+
+def test_impl_new_property():
+    @impl(int)
+    @property
+    def _custom_as_str(self) -> str:
+        return orig(int).__str__(self)
+
+    # noinspection PyUnresolvedReferences
+    assert (10)._custom_as_str == "10"
+
+
 @pytest.mark.run_in_subprocess
 def test_impl_func():
     # Implement an override for list __add__
