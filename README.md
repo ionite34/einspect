@@ -15,7 +15,7 @@
 
 - [View and modify memory structures of live objects.](#check-detailed-states-of-built-in-objects)
 - [Able to mutate immutable objects like tuples and ints.](#mutate-tuples-strings-ints-or-other-immutable-types)
-- [Modify slot functions or attributes of built-in types.](#modify-attributes-on-built-in-types)
+- [Modify slot functions or attributes of built-in types.](#modify-attributes-of-built-in-types-get-original-attributes-with-orig)
 - [Fully typed, extensible framework in pure Python.](#move-objects-in-memory)
 
 ### Check detailed states of built-in objects
@@ -61,21 +61,39 @@ print("hello", 100)
 world 5
 ```
 
-### Modify attributes of built-in types
+### Modify attributes of built-in types, get original attributes with `orig`
 ```python
-from einspect import view
+from einspect import view, orig
 
 v = view(int)
-v["__iter__"] = lambda self: iter(range(self))
-v["__str__"] = lambda self: "custom: " + repr(self)
+v["__name__"] = "custom_int"
+v["__iter__"] = lambda s: iter(range(s))
+v["__repr__"] = lambda s: "custom: " + orig(int).__repr__(s)
 
+print(int)
 for i in 3:
     print(i)
 ```
 ```python
+<class 'custom_int'>
 custom: 0
 custom: 1
 custom: 2
+```
+
+### Implement methods on built-in types with `@impl`
+```python
+from einspect import impl, orig
+
+@impl(int)
+def __add__(self, other):
+    other = int(other)
+    return orig(int).__add__(self, other)
+
+print(50 + "25")
+```
+```python
+75
 ```
 
 ### Move objects in memory
