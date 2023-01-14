@@ -26,7 +26,7 @@ class DictView(View[dict, _KT, _VT], abc.MutableMapping[_KT, _VT]):
         return self.used
 
     def __iter__(self) -> abc.Iterator[_KT]:
-        ...
+        return self.base.__iter__()
 
     def __getitem__(self, key: _KT) -> _VT:
         """Get an item from the dictionary. Equivalent to dict[key]."""
