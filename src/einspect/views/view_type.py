@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Generator
 from contextlib import contextmanager
-from typing import Any, TypeVar
+from typing import Any, Type, TypeVar
 
 from typing_extensions import Self
 
@@ -11,9 +11,12 @@ from einspect.errors import UnsafeError
 from einspect.structs.include.object_h import TpFlags
 from einspect.structs.py_type import PyTypeObject
 from einspect.structs.slots_map import Slot, get_slot
+from einspect.type_orig import add_cache, in_cache
 from einspect.views.view_base import REF_DEFAULT, VarView
 
-__all__ = ("TypeView",)
+__all__ = ("TypeView", "impl")
+
+MISSING = object()
 
 _T = TypeVar("_T")
 
@@ -67,12 +70,17 @@ class TypeView(VarView[_T, None, None]):
             new = slot.ptr_type()
             ptr.contents = new
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: str):
         """Get an attribute from the type object."""
         return self._pyobject.GetAttr(key)
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: str, value):
         """Set an attribute on the type object."""
+        # Cache original implementation
+        base = self.base
+        if not in_cache(base, key):
+            if (attr := getattr(base, key, MISSING)) is not MISSING:
+                add_cache(base, key, attr)
         # Check if this is a slots attr
         if slot := get_slot(key):
             # Allocate sub-struct if needed
@@ -80,7 +88,7 @@ class TypeView(VarView[_T, None, None]):
 
         with self.as_mutable():
             self._pyobject.Modified()
-            self._pyobject.SetAttr(key, value)
+            self._pyobject.setattr_safe(key, value)
 
         # Invalidate type lookup cache
         self._pyobject.Modified()
@@ -101,3 +109,22 @@ class TypeView(VarView[_T, None, None]):
             setattr(self._pyobject, key, value)
             return
         super().__setattr__(key, value)
+
+
+def impl(cls: Type[_T]):
+    """Decorator for implementing methods on built-in types."""
+    if not isinstance(cls, type):
+        raise TypeError("cls must be a type")
+
+    t_view = TypeView(cls)
+
+    def wrapper(func):
+        if isinstance(func, property):
+            name = func.fget.__name__
+        else:
+            name = func.__name__
+
+        t_view[name] = func
+        return func
+
+    return wrapper

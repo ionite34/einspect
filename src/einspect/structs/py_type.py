@@ -11,7 +11,7 @@ from ctypes import (
     py_object,
     pythonapi,
 )
-from typing import Type, TypeVar
+from typing import Any, Type, TypeVar
 
 from typing_extensions import Annotated, Self
 
@@ -21,6 +21,7 @@ from einspect.structs.include.descrobject_h import PyGetSetDef, PyMemberDef
 from einspect.structs.include.methodobject_h import PyMethodDef
 from einspect.structs.include.object_h import *
 from einspect.structs.py_object import PyObject, PyVarObject
+from einspect.structs.slots_map import get_slot
 from einspect.types import ptr
 
 __all__ = ("PyTypeObject",)
@@ -38,7 +39,7 @@ class PyTypeObject(PyVarObject[_T, None, None]):
     """
 
     # const char *tp_name; /* For printing, in format "<module>.<name>" */
-    tp_name: c_char_p
+    tp_name: Annotated[bytes, c_char_p]
     # For allocation
     tp_basicsize: int
     tp_itemsize: int
@@ -70,7 +71,7 @@ class PyTypeObject(PyVarObject[_T, None, None]):
     # Flags to define presence of optional/expanded features
     tp_flags: Annotated[int, c_ulong]
 
-    tp_doc: c_char_p  # Documentation string
+    tp_doc: Annotated[bytes, c_char_p]  # Documentation string
 
     # Assigned meaning in release 2.0
     # call function for all accessible objects
@@ -124,9 +125,28 @@ class PyTypeObject(PyVarObject[_T, None, None]):
     def from_object(cls, obj: Type[_T]) -> PyTypeObject[Type[_T]]:
         return super().from_object(obj)  # type: ignore
 
+    def setattr_safe(self, name: str, value: Any) -> None:
+        """Set an attribute on the type object. Uses custom overrides if available."""
+        # Resolve the slot into an attr name, if any
+        if (slot := get_slot(name)) is not None:
+            # Override c_char_p types
+            if type_object_fields.get(slot.name) is c_char_p:
+                setattr(self, slot.name, value.encode())
+                return
+            # Override ptr[PyObject] types
+            if type_object_fields.get(slot.name) == ptr[PyObject]:
+                setattr(self, slot.name, PyObject.from_object(value).as_ref())
+                return
+        self.SetAttr(name, value)
+
     @bind_api(pythonapi["PyType_Modified"])
     def Modified(self) -> None:
         """Mark the type as modified."""
+
+
+# Mapping of CField name to type
+# noinspection PyProtectedMember
+type_object_fields = {name: t for name, t, *_ in PyTypeObject._fields_}
 
 
 # Patch PyTypeObject back into PyObject
