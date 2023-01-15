@@ -6,7 +6,9 @@ from typing import Any, Type, TypeVar
 _T = TypeVar("_T")
 MISSING = object()
 
+obj_getattr = object.__getattribute__
 type_hash = type.__hash__
+str_eq = str.__eq__
 dict_setdefault = dict.setdefault
 dict_contains = dict.__contains__
 dict_get = dict.get
@@ -57,8 +59,8 @@ class orig:
     def __getattribute__(self, name: str):
         """Get an attribute from the original type."""
         # Overrides
-        _type = object.__getattribute__(self, "_orig__type")
-        if name in ("_orig__type",):
+        _type = obj_getattr(self, "_orig__type")
+        if str_eq(name, "_orig__type"):
             return _type
 
         # Check if the attribute is cached
