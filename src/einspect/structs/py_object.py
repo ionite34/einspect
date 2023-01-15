@@ -122,7 +122,7 @@ class PyObject(Structure, AsRef, Generic[_T, _KT, _VT]):
 
         https://github.com/python/cpython/blob/3.11/Include/internal/pycore_gc.h#L28-L32
         """
-        if not self.IS_GC():
+        if not self.is_gc():
             return False
         if self.ob_type.contents.into_object() is tuple:
             return self.gc_is_tracked()
