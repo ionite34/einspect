@@ -57,8 +57,10 @@ class TypeView(VarView[_T, None, None]):
             yield self
             return
         self.immutable = False
+        self._pyobject.Modified()
         yield self
         self.immutable = True
+        self._pyobject.Modified()
 
     def _try_alloc(self, slot: Slot):
         # Check if there is a ptr class
@@ -88,11 +90,7 @@ class TypeView(VarView[_T, None, None]):
             self._try_alloc(slot)
 
         with self.as_mutable():
-            self._pyobject.Modified()
             self._pyobject.setattr_safe(key, value)
-
-        # Invalidate type lookup cache
-        self._pyobject.Modified()
 
     def __getattr__(self, item: str):
         # Forward `tp_` attributes from PyTypeObject
