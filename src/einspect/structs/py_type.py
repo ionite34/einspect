@@ -143,6 +143,15 @@ class PyTypeObject(PyVarObject[_T, None, None]):
     def Modified(self) -> None:
         """Mark the type as modified."""
 
+    def is_gc(self) -> bool:
+        """
+        Return True if the type has GC support.
+
+        https://docs.python.org/3/c-api/type.html#c.PyType_IS_GC
+        https://github.com/python/cpython/blob/3.11/Include/objimpl.h#L160-L161
+        """
+        return bool(self.tp_flags & TpFlags.HAVE_GC)
+
 
 # Mapping of CField name to type
 # noinspection PyProtectedMember
