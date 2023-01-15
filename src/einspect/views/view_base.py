@@ -172,6 +172,25 @@ class View(BaseView[_T, _KT, _VT]):
         """Memory size of the object in bytes."""
         return sizeof(self._pyobject)
 
+    def is_gc(self) -> bool:
+        """
+        Returns True if the object implements the Garbage Collector protocol.
+
+        If True, a PyGC_HEAD struct will precede the object struct in memory.
+        """
+        return self._pyobject.is_gc()
+
+    def gc_may_be_tracked(self) -> bool:
+        """
+        Return True if the object may be tracked by
+        the GC in the future, or already is.
+        """
+        return self._pyobject.gc_may_be_tracked()
+
+    def gc_is_tracked(self) -> bool:
+        """Returns True if the object is tracked by the GC."""
+        return self._pyobject.is_gc() and self._pyobject.gc_is_tracked()
+
     def drop(self) -> None:
         """
         Drop all references to the base object.
