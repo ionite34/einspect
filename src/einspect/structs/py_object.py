@@ -10,7 +10,8 @@ from typing_extensions import Annotated, Self
 from einspect.compat import Version, python_req
 from einspect.protocols.delayed_bind import bind_api
 from einspect.structs.deco import struct
-from einspect.types import ptr
+from einspect.structs.py_gc import PyGC_Head
+from einspect.types import AsRef, ptr
 
 if TYPE_CHECKING:
     from einspect.structs import PyTypeObject
@@ -23,7 +24,7 @@ _VT = TypeVar("_VT")
 
 
 @struct
-class PyObject(Structure, Generic[_T, _KT, _VT]):
+class PyObject(Structure, AsRef, Generic[_T, _KT, _VT]):
     """Defines a base PyObject Structure."""
 
     ob_refcnt: int
@@ -93,9 +94,39 @@ class PyObject(Structure, Generic[_T, _KT, _VT]):
         py_obj = ctypes.cast(self.as_ref(), ctypes.py_object)
         return py_obj.value
 
-    def as_ref(self) -> ptr[Self]:
-        """Return a pointer to the PyObject."""
-        return ctypes.pointer(self)
+    def is_gc(self) -> bool:
+        """
+        Returns True if the object implements the GC protocol.
+
+        The object cannot be tracked by the garbage collector if False.
+
+        https://github.com/python/cpython/blob/3.11/Include/internal/pycore_object.h#L209-L216
+        """
+        return (type_obj := self.ob_type.contents).is_gc() and (
+            not type_obj.tp_is_gc or type_obj.tp_is_gc(self.into_object())
+        )
+
+    def as_gc(self) -> PyGC_Head:
+        """Return the PyGC_Head struct of this object."""
+        addr = self.address - ctypes.sizeof(PyGC_Head)
+        return PyGC_Head.from_address(addr)  # type: ignore
+
+    def gc_is_tracked(self) -> bool:
+        """Return True if the PyObject is currently tracked by the GC."""
+        return self.as_gc()._gc_next != 0
+
+    def gc_may_be_tracked(self) -> bool:
+        """
+        Return True if the PyObject may be tracked by
+        the GC in the future, or already is.
+
+        https://github.com/python/cpython/blob/3.11/Include/internal/pycore_gc.h#L28-L32
+        """
+        if not self.IS_GC():
+            return False
+        if self.ob_type.contents.into_object() is tuple:
+            return self.gc_is_tracked()
+        return True
 
     @bind_api(python_req(Version.PY_3_10) or pythonapi["Py_NewRef"])
     def NewRef(self) -> object:
