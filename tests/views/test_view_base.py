@@ -1,4 +1,4 @@
-import ctypes
+import gc
 
 import pytest
 
@@ -105,3 +105,15 @@ class TestView:
         v.drop()
         with pytest.raises(errors.DroppedReferenceError):
             _ = v.base
+
+    def test_is_gc(self):
+        obj = self.get_obj()
+        v = self.view_type(obj, ref=True)
+        if gc.is_tracked(obj):
+            assert v.is_gc()
+            assert v.gc_is_tracked()
+            assert v.gc_may_be_tracked()
+
+        if not v.is_gc():
+            assert not v.gc_is_tracked()
+            assert not v.gc_may_be_tracked()
