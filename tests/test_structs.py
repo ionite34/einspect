@@ -1,6 +1,7 @@
 import pytest
 
 from einspect import structs as st
+from einspect.structs.py_gc import PyGC_Head
 
 
 class UserClass:
@@ -75,6 +76,9 @@ class TestPyObject:
         py_obj = st.PyObject.from_object(t)
         gc_head = py_obj.as_gc()
         assert gc_head._gc_next != 0
+        assert isinstance(gc_head.Next().contents, PyGC_Head)
+        assert isinstance(gc_head.Prev().contents, PyGC_Head)
+        assert gc_head.Finalized() is False
 
 
 class TestPyListObject:
