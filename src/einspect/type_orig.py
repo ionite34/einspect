@@ -1,8 +1,7 @@
 """Proxy for retrieving original methods and slot wrappers of types."""
 from __future__ import annotations
 
-from types import WrapperDescriptorType
-from typing import Type, TypeVar
+from typing import Any, Type, TypeVar
 
 _T = TypeVar("_T")
 MISSING = object()
@@ -13,14 +12,14 @@ dict_contains = dict.__contains__
 dict_get = dict.get
 dict_getitem = dict.__getitem__
 
-_slots_cache: dict[type, dict[str, WrapperDescriptorType]] = {}
+_slots_cache: dict[type, dict[str, Any]] = {}
 
 
-def add_cache(type_: type, method_name: str, method: WrapperDescriptorType):
+def add_cache(type_: type, name: str, method: Any):
     """Add a method to the cache."""
     type_methods = dict_setdefault(_slots_cache, type_, {})
     # Only allow adding once, ignore if already added
-    dict_setdefault(type_methods, method_name, method)
+    dict_setdefault(type_methods, name, method)
 
 
 def in_cache(type_: type, name: str) -> bool:
@@ -29,7 +28,7 @@ def in_cache(type_: type, name: str) -> bool:
     return dict_contains(type_methods, name)
 
 
-def get_cache(type_: type, name: str) -> WrapperDescriptorType:
+def get_cache(type_: type, name: str) -> Any:
     """Get the method from the type in cache."""
     type_methods = dict_setdefault(_slots_cache, type_, {})
     return dict_getitem(type_methods, name)
