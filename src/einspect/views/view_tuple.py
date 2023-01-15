@@ -5,7 +5,6 @@ from ctypes import Array
 from typing import Sequence, TypeVar, overload
 
 from einspect.api import Py_ssize_t
-from einspect.compat import abc
 from einspect.errors import UnsafeIndexError
 from einspect.structs import PyObject, PyTupleObject
 from einspect.utils import new_ref
@@ -17,7 +16,7 @@ __all__ = ("TupleView",)
 _VT = TypeVar("_VT")
 
 
-class TupleView(VarView[tuple, None, _VT], abc.Sequence):
+class TupleView(VarView[tuple, None, _VT]):
     _pyobject: PyTupleObject[_VT]
 
     @overload

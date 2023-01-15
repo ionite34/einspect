@@ -1,6 +1,7 @@
 import pytest
 
 from einspect import structs as st
+from einspect.structs.py_gc import PyGC_Head
 
 
 class UserClass:
@@ -44,6 +45,40 @@ class TestPyObject:
         py_object = st.PyObject.from_object(obj)
         obj.xy = "test"
         assert py_object.GetAttr("xy") == "test"
+
+    @pytest.mark.parametrize(
+        ["obj", "expected"],
+        [
+            # Untracked types
+            (True, False),
+            (False, False),
+            (None, False),
+            (1, False),
+            (15.75, False),
+            ("hello", False),
+            # Cached literal tuples aren't tracked
+            ((), False),
+            ((1, 2), False),
+            (([1], [2]), True),
+            # Tracked types
+            ([], True),
+            ({}, True),
+            (set(), True),
+            (frozenset(), True),
+        ],
+    )
+    def test_gc_may_be_tracked(self, obj, expected):
+        py_obj = st.PyObject.from_object(obj)
+        assert py_obj.gc_may_be_tracked() == expected
+
+    def test_gc_struct(self):
+        t = [1, 2]
+        py_obj = st.PyObject.from_object(t)
+        gc_head = py_obj.as_gc()
+        assert gc_head._gc_next != 0
+        assert isinstance(gc_head.Next().contents, PyGC_Head)
+        assert isinstance(gc_head.Prev().contents, PyGC_Head)
+        assert gc_head.Finalized() is False
 
 
 class TestPyListObject:

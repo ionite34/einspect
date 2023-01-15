@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Generator
 from contextlib import contextmanager
-from typing import Any, Type, TypeVar
+from typing import Any, Callable, Type, TypeVar
 
 from typing_extensions import Self
 
@@ -19,6 +19,7 @@ __all__ = ("TypeView", "impl")
 MISSING = object()
 
 _T = TypeVar("_T")
+_Fn = TypeVar("_Fn", bound=Callable)
 
 
 class TypeView(VarView[_T, None, None]):
@@ -56,8 +57,10 @@ class TypeView(VarView[_T, None, None]):
             yield self
             return
         self.immutable = False
+        self._pyobject.Modified()
         yield self
         self.immutable = True
+        self._pyobject.Modified()
 
     def _try_alloc(self, slot: Slot):
         # Check if there is a ptr class
@@ -87,11 +90,7 @@ class TypeView(VarView[_T, None, None]):
             self._try_alloc(slot)
 
         with self.as_mutable():
-            self._pyobject.Modified()
             self._pyobject.setattr_safe(key, value)
-
-        # Invalidate type lookup cache
-        self._pyobject.Modified()
 
     def __getattr__(self, item: str):
         # Forward `tp_` attributes from PyTypeObject
@@ -111,14 +110,14 @@ class TypeView(VarView[_T, None, None]):
         super().__setattr__(key, value)
 
 
-def impl(cls: Type[_T]):
+def impl(cls: Type[_T]) -> Callable[[_Fn], _Fn]:
     """Decorator for implementing methods on built-in types."""
     if not isinstance(cls, type):
         raise TypeError("cls must be a type")
 
     t_view = TypeView(cls)
 
-    def wrapper(func):
+    def wrapper(func: _Fn) -> _Fn:
         if isinstance(func, property):
             name = func.fget.__name__
         else:
