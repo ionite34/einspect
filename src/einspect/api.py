@@ -1,4 +1,4 @@
-"""CPython API Methods."""
+"""CPython API Methods and intrinsic constants."""
 import ctypes
 from ctypes import POINTER, py_object, pythonapi
 from typing import Callable, Union
