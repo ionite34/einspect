@@ -22,3 +22,13 @@ def test_move_from():
         v.move_from(view(5))
     assert x == 5
     assert id(x) != id(5)
+
+
+@pytest.mark.run_in_subprocess
+def test_move_tuple():
+    tup = literal_eval("(1, 2)")
+    v = view(tup)
+    with v.unsafe():
+        v <<= ("A", "B", "C")
+
+    assert tup == ("A", "B", "C")
