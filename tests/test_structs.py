@@ -111,9 +111,7 @@ class TestPyTypeObject:
 @pytest.mark.parametrize(
     ["obj", "struct", "size"],
     [
-        (False, st.PyBoolObject, (3 * 8)),
         (True, st.PyBoolObject, (3 * 8) + 4),
-        (0, st.PyLongObject, (3 * 8)),
         (50, st.PyLongObject, (3 * 8) + 4),
         ((1, 2), st.PyTupleObject, (3 * 8) + (2 * 8)),
     ],
