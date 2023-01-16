@@ -90,6 +90,12 @@ class PyObject(Structure, AsRef, Generic[_T, _KT, _VT]):
         inst._from_type_name_ = type_repr
         return inst
 
+    @classmethod
+    def from_gc(cls, gc: PyGC_Head) -> Self:
+        """Create a PyObject from a PyGC_Head struct."""
+        addr = ctypes.addressof(gc) + ctypes.sizeof(PyGC_Head)
+        return cls.from_address(addr)
+
     def into_object(self) -> _T:
         """Cast the PyObject into a Python object."""
         py_obj = ctypes.cast(self.as_ref(), ctypes.py_object)
