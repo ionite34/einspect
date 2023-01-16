@@ -7,7 +7,7 @@ import weakref
 from abc import ABC
 from contextlib import ExitStack
 from copy import deepcopy
-from ctypes import py_object, sizeof
+from ctypes import py_object
 from typing import Final, Generic, Type, TypeVar, get_type_hints
 
 from einspect.api import Py, PyObj_FromPtr
@@ -179,7 +179,7 @@ class View(BaseView[_T, _KT, _VT]):
     @property
     def mem_size(self) -> int:
         """Memory size of the object in bytes."""
-        return sizeof(self._pyobject)
+        return self._pyobject.mem_size
 
     def is_gc(self) -> bool:
         """
