@@ -32,7 +32,16 @@ class TestListView(TestView):
         assert v[1] == obj[1]
         assert v[2] == obj[2]
         assert v[:2] == obj[:2]
+        assert v[::-1] == obj[::-1]
         assert v[:] == obj[:]
+
+    def test_getitem_error(self):
+        obj = self.get_obj()
+        v = self.view_type(obj)
+        with pytest.raises(IndexError):
+            _ = v[len(obj)]
+        with pytest.raises(TypeError):
+            _ = v["abc"]  # type: ignore
 
     def test_setitem(self):
         obj = [1, 2, 3]
