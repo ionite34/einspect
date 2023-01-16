@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, List, TypeVar, get_origin, overload
 
 from typing_extensions import Self
 
-__all__ = ("ptr", "Array", "AsRef", "_SelfPtr")
+__all__ = ("ptr", "Array", "_SelfPtr")
 
 _T = TypeVar("_T")
 
@@ -81,9 +81,3 @@ if not TYPE_CHECKING:
             "Array": ctypes.Array,
         }
     )
-
-
-class AsRef:
-    def as_ref(self) -> ptr[Self]:
-        """Return a pointer to the Structure."""
-        return ctypes.pointer(self)  # type: ignore

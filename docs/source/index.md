@@ -14,6 +14,7 @@ views.md
 :caption: API
 :hidden:
 api/views/index.md
+api/structs/index.md
 ```
 
 ```{toctree}

@@ -26,7 +26,7 @@ class PyLongObject(PyVarObject[int, None, None]):
         # Need to add size(uint32) * ob_size to our base size
         base = super().mem_size
         # use size 1 if ob_size is 0 due to allocation
-        size = min(1, abs(self.ob_size))
+        size = max(1, abs(self.ob_size))
         return base + ctypes.sizeof(c_uint32) * size
 
     @property

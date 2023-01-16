@@ -30,6 +30,12 @@ class TestTupleView(TestView):
         assert v[:2] == obj[:2]
         assert v[:] == obj[:]
 
+    def test_get_item_error(self):
+        obj = self.get_obj()
+        v = self.view_type(obj)
+        with pytest.raises(IndexError):
+            _ = v[len(obj)]
+
     def test_error_set_slice(self):
         obj = self.get_obj()
         v = self.view_type(obj)

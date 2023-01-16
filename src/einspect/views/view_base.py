@@ -7,10 +7,10 @@ import weakref
 from abc import ABC
 from contextlib import ExitStack
 from copy import deepcopy
-from ctypes import py_object, sizeof
+from ctypes import py_object
 from typing import Final, Generic, Type, TypeVar, get_type_hints
 
-from einspect.api import Py, PyObj_FromPtr
+from einspect.api import Py, PyObj_FromPtr, align_size
 from einspect.errors import (
     DroppedReference,
     MovedError,
@@ -18,7 +18,7 @@ from einspect.errors import (
     UnsafeError,
 )
 from einspect.structs import PyObject, PyVarObject
-from einspect.views._display import format_display
+from einspect.views._display import Formatter
 from einspect.views.unsafe import UnsafeContext, unsafe
 
 __all__ = ("View", "VarView", "AnyView", "REF_DEFAULT")
@@ -80,9 +80,18 @@ class View(BaseView[_T, _KT, _VT]):
         py_obj_cls = self._pyobject.__class__.__name__
         return f"{self.__class__.__name__}(<{py_obj_cls} at 0x{addr:x}>)"
 
-    def info(self, types: bool = True) -> str:
-        """Returns info about the view."""
-        return format_display(self, types=types)
+    def info(self, types: bool = True, arr_max: int | None = 64) -> str:
+        """
+        Return a formatted info string of the view struct.
+
+        Args:
+            types: If True, include types as annotations.
+            arr_max: Maximum length of Array elements to display.
+
+        Returns:
+            A formatted info string of the view struct.
+        """
+        return Formatter(types, arr_max).format_view(self)
 
     @property
     def ref_count(self) -> int:
@@ -170,7 +179,12 @@ class View(BaseView[_T, _KT, _VT]):
     @property
     def mem_size(self) -> int:
         """Memory size of the object in bytes."""
-        return sizeof(self._pyobject)
+        return self._pyobject.mem_size
+
+    @property
+    def mem_allocated(self) -> int:
+        """Memory allocated for the object in bytes."""
+        return align_size(self.mem_size)
 
     def is_gc(self) -> bool:
         """

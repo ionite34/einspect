@@ -11,7 +11,8 @@ from einspect.compat import Version, python_req
 from einspect.protocols.delayed_bind import bind_api
 from einspect.structs.deco import struct
 from einspect.structs.py_gc import PyGC_Head
-from einspect.types import AsRef, ptr
+from einspect.structs.traits import AsRef
+from einspect.types import ptr
 
 if TYPE_CHECKING:
     from einspect.structs import PyTypeObject
@@ -88,6 +89,12 @@ class PyObject(Structure, AsRef, Generic[_T, _KT, _VT]):
         inst = cls.from_address(addr)
         inst._from_type_name_ = type_repr
         return inst
+
+    @classmethod
+    def from_gc(cls, gc: PyGC_Head) -> Self:
+        """Create a PyObject from a PyGC_Head struct."""
+        addr = ctypes.addressof(gc) + ctypes.sizeof(PyGC_Head)
+        return cls.from_address(addr)
 
     def into_object(self) -> _T:
         """Cast the PyObject into a Python object."""
