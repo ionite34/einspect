@@ -2,11 +2,12 @@ from __future__ import annotations
 
 import ctypes
 from ctypes import Array
-from typing import Sequence, TypeVar, overload
+from typing import TypeVar, overload
 
 from einspect.api import Py_ssize_t
 from einspect.errors import UnsafeIndexError
 from einspect.structs import PyObject, PyTupleObject
+from einspect.types import ptr
 from einspect.utils import new_ref
 from einspect.views.unsafe import unsafe
 from einspect.views.view_base import VarView
@@ -71,22 +72,12 @@ class TupleView(VarView[tuple, None, _VT]):
         return self.size
 
     @property
-    def item(self) -> Array[Py_ssize_t]:
+    def item(self) -> Array[ptr[PyObject]]:
+        """The array of PyObject pointers."""
         return self._pyobject.ob_item
 
     @item.setter
     @unsafe
-    def item(self, value: Array[Py_ssize_t] | Sequence[int]) -> None:
-        if isinstance(value, Array):
-            # For Array, we can just copy the memory
-            ctypes.memmove(self._pyobject.ob_item, value, ctypes.sizeof(value))
-        else:
-            # Get the memory address for the start of the array
-            # noinspection PyProtectedMember
-            start_addr = ctypes.addressof(self._pyobject._ob_item_0)
-            # Get the size of the new array
-            size = len(value)
-            # Create a new array at the same address
-            arr = (Py_ssize_t * size).from_address(start_addr)
-            # Copy the values
-            arr[:] = value
+    def item(self, value: Array[ptr[PyObject]]) -> None:
+        """Set the array of PyObject pointers."""
+        self._pyobject.ob_item = value
