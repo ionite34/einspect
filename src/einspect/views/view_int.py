@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from ctypes import Array, c_uint32, sizeof
+from ctypes import Array, c_uint32
 from typing import Iterable, TypeVar
 
 from einspect.structs import PyLongObject
@@ -13,12 +13,6 @@ _T = TypeVar("_T")
 
 class IntView(VarView[int, None, None]):
     _pyobject: PyLongObject
-
-    @property
-    def mem_size(self) -> int:
-        size = min(1, self.size)
-        arr_size = size * sizeof(c_uint32)
-        return sizeof(PyLongObject) + arr_size
 
     @property
     def digits(self) -> Array[c_uint32]:
