@@ -7,7 +7,8 @@ from typing_extensions import Annotated
 
 from einspect.api import uintptr_t
 from einspect.structs.deco import struct
-from einspect.types import AsRef, ptr
+from einspect.structs.traits import AsRef
+from einspect.types import ptr
 
 
 class PyGC(IntEnum):

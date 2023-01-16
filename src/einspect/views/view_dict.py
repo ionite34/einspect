@@ -5,7 +5,7 @@ from typing import TypeVar
 
 from einspect.api import Py_ssize_t
 from einspect.compat import abc
-from einspect.structs.py_dict import DictKeysObject, PyDictObject
+from einspect.structs.py_dict import PyDictKeysObject, PyDictObject
 from einspect.types import ptr
 from einspect.views.unsafe import unsafe
 from einspect.views.view_base import REF_DEFAULT, View
@@ -61,7 +61,7 @@ class DictView(View[dict, _KT, _VT], abc.MutableMapping[_KT, _VT]):
         self._pyobject.ma_version_tag = value
 
     @property
-    def ma_keys(self) -> ptr[DictKeysObject]:
+    def ma_keys(self) -> ptr[PyDictKeysObject]:
         return self._pyobject.ma_keys
 
     @ma_keys.setter
