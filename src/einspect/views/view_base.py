@@ -8,6 +8,7 @@ from abc import ABC
 from contextlib import ExitStack
 from copy import deepcopy
 from ctypes import py_object
+from functools import cached_property
 from typing import Final, Generic, Type, TypeVar, get_type_hints
 
 from einspect.api import Py, PyObj_FromPtr, align_size
@@ -74,6 +75,7 @@ class View(BaseView[_T, _KT, _VT]):
         struct_type = get_type_hints(self.__class__)["_pyobject"]
         self._pyobject = struct_type.from_object(obj)
         self.__dropped = False
+        _ = self.mem_allocated  # cache allocated property
 
     def __repr__(self) -> str:
         addr = self._pyobject.address
@@ -181,7 +183,7 @@ class View(BaseView[_T, _KT, _VT]):
         """Memory size of the object in bytes."""
         return self._pyobject.mem_size
 
-    @property
+    @cached_property
     def mem_allocated(self) -> int:
         """Memory allocated for the object in bytes."""
         return align_size(self.mem_size)

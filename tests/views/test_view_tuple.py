@@ -4,6 +4,7 @@ from ast import literal_eval
 
 import pytest
 
+from einspect.errors import UnsafeError
 from einspect.views.factory import view
 from einspect.views.view_tuple import TupleView
 from tests.views.test_view_base import TestView
@@ -36,12 +37,6 @@ class TestTupleView(TestView):
         with pytest.raises(IndexError):
             _ = v[len(obj)]
 
-    def test_error_set_slice(self):
-        obj = self.get_obj()
-        v = self.view_type(obj)
-        with pytest.raises(ValueError):
-            v[1:2] = (1, 2)
-
 
 @pytest.mark.run_in_subprocess
 def test_tuple_setitem():
@@ -51,3 +46,31 @@ def test_tuple_setitem():
     v[1] = 4
     v[2] = 5
     assert tup == ("hm", 4, 5)
+    v[:] = (123, 456)
+    assert tup == (123, 456)
+
+
+@pytest.mark.run_in_subprocess
+def test_tuple_mutable_sequence():
+    tup = (1, 2)
+    v = view(tup)
+    v.append(3)
+    assert tup == (1, 2, 3)
+
+    with pytest.raises(UnsafeError):
+        v.extend([1, 2, 3, 4, 5])
+
+    with pytest.raises(UnsafeError):
+        v.append(4)
+
+    v[:] = (100, 200, 300)
+    assert tup == (100, 200, 300)
+    assert v.pop() == 300
+    assert len(tup) == 2
+    assert len(v) == 2
+
+    v.insert(1, 123)
+    assert tup == (100, 123, 200)
+    assert v.pop(0) == 100
+    v.clear()
+    assert tup == ()
