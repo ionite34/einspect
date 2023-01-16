@@ -10,6 +10,7 @@ view_float
 view_int
 view_list
 view_mapping_proxy
+view_set
 view_str
 view_tuple
 view_type
