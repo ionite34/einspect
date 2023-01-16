@@ -2,6 +2,7 @@ import ctypes
 
 import pytest
 
+from einspect.api import ALIGNMENT
 from einspect.views import BoolView
 from einspect.views.view_int import IntView
 from tests.views.test_view_base import TestView
@@ -13,6 +14,17 @@ class TestIntView(TestView):
 
     def get_obj(self):
         return 2**128 + 5
+
+    def test_memsize(self):
+        obj = self.get_obj()
+        v = self.view_type(obj)
+        expected = obj.__sizeof__()
+        assert v.mem_size == expected
+
+        if v.mem_size % ALIGNMENT == 0:
+            assert v.mem_allocated == expected
+        else:
+            assert v.mem_allocated == expected + (ALIGNMENT - expected % ALIGNMENT)
 
     def test_digits(self):
         obj = self.get_obj()
@@ -35,8 +47,8 @@ class TestBoolView(TestIntView):
 
     def test_memsize(self):
         v = self.view_type(True)
-        expect_size = True.__sizeof__()
-        assert v.mem_size == expect_size
+        expected = True.__sizeof__()
+        assert v.mem_size == expected
 
     def test_singleton_true(self):
         v = self.view_type(True)
