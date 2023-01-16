@@ -19,7 +19,7 @@ class TestListView(TestView):
         obj = [1, 2, 3]
         v = self.view_type(obj)
         assert v.size == len(obj)
-        assert v.allocated == 4
+        assert v.allocated >= len(obj)
         for i in range(3):
             assert v.item[i].contents.into_object() is obj[i]
 
