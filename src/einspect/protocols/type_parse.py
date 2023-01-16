@@ -25,7 +25,7 @@ class FuncPtr(Protocol):
     argtypes: Sequence[type]
 
     def __call__(self, *args: Any, **kwargs: Any) -> Any:
-        ...
+        ...  # pragma: no cover
 
 
 aliases = {
