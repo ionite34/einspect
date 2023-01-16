@@ -20,7 +20,7 @@ class StrView(View[str, None, None], Sequence):
 
     @property
     def mem_size(self) -> int:
-        return object.__sizeof__(self.base.value)
+        return object.__sizeof__(self.base)
 
     @property
     def length(self) -> int:
@@ -60,7 +60,7 @@ class StrView(View[str, None, None], Sequence):
         return self._pyobject.buffer
 
     def __len__(self) -> int:
-        return str.__len__(self.base.value)  # type: ignore
+        return str.__len__(self.base)
 
     @overload
     def __getitem__(self, index: int) -> _T:
@@ -71,4 +71,4 @@ class StrView(View[str, None, None], Sequence):
         ...
 
     def __getitem__(self, index: int | slice) -> _T:
-        return str.__getitem__(self.base.value, index)  # type: ignore
+        return str.__getitem__(self.base, index)
