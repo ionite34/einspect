@@ -10,7 +10,7 @@ from copy import deepcopy
 from ctypes import py_object
 from typing import Final, Generic, Type, TypeVar, get_type_hints
 
-from einspect.api import Py, PyObj_FromPtr
+from einspect.api import Py, PyObj_FromPtr, align_size
 from einspect.errors import (
     DroppedReference,
     MovedError,
@@ -180,6 +180,11 @@ class View(BaseView[_T, _KT, _VT]):
     def mem_size(self) -> int:
         """Memory size of the object in bytes."""
         return self._pyobject.mem_size
+
+    @property
+    def mem_allocated(self) -> int:
+        """Memory allocated for the object in bytes."""
+        return align_size(self.mem_size)
 
     def is_gc(self) -> bool:
         """
