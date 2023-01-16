@@ -30,50 +30,34 @@ class ListView(VarView[list, None, _VT], abc.Sequence[_VT]):
 
     def __getitem__(self, index: int | slice) -> _VT | list[_VT]:
         if isinstance(index, int):
-            try:
-                ptr = self._pyobject.GetItem(index)
-                return ptr.contents.into_object()
-            except (IndexError, ValueError) as err:
-                raise IndexError(f"Index {index} out of range") from err
+            ptr = self._pyobject.GetItem(index)
+            return ptr.contents.into_object()
         elif isinstance(index, slice):
-            try:
-                # Normalize slice start and stop
-                start = index.start if index.start is not None else 0
-                stop = index.stop if index.stop is not None else self.size
-                ptr = self._pyobject.GetSlice(start, stop)
-                ls = ptr.contents.into_object()
-                # Get step if provided
-                if index.step is not None:
-                    ls = ls[:: index.step]
-                return ls
-            except (IndexError, ValueError) as err:
-                raise IndexError(f"Slice {index} out of range") from err
-
+            # Normalize slice start and stop
+            start = index.start if index.start is not None else 0
+            stop = index.stop if index.stop is not None else self.size
+            ptr = self._pyobject.GetSlice(start, stop)
+            ls = ptr.contents.into_object()
+            # Get step if provided
+            if index.step is not None:
+                ls = ls[:: index.step]
+            return ls
         raise TypeError(f"Invalid index type: {type(index)}")
 
     def __setitem__(self, index: int, value: _VT) -> None:
         if isinstance(index, int):
-            try:
-                self._pyobject.SetItem(index.__index__(), value)
-            except (IndexError, ValueError) as err:
-                raise IndexError(f"Index {index} out of range") from err
+            self._pyobject.SetItem(index.__index__(), value)
         elif isinstance(index, slice):
-            try:
-                if index.step is not None:
-                    raise ValueError("Cannot set slice with step")
-                # Normalize slice start and stop
-                start = index.start if index.start is not None else 0
-                stop = index.stop if index.stop is not None else self.size
-                self._pyobject.SetSlice(start, stop, value)
-            except (IndexError, ValueError) as err:
-                raise IndexError(f"Slice {index} out of range") from err
+            if index.step is not None:
+                raise ValueError("Cannot set slice with step")
+            # Normalize slice start and stop
+            start = index.start if index.start is not None else 0
+            stop = index.stop if index.stop is not None else self.size
+            self._pyobject.SetSlice(start, stop, value)
         else:
             raise TypeError(f"Invalid index type: {type(index)}")
 
     def __len__(self) -> int:
-        x = self.size
-        if x > 5:
-            return x
         return self.size
 
     @property
