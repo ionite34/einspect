@@ -1,6 +1,6 @@
 """CPython API Methods and intrinsic constants."""
 import ctypes
-from ctypes import POINTER, py_object, pythonapi
+from ctypes import POINTER, c_void_p, py_object, pythonapi, sizeof
 from typing import Callable, Union
 
 import _ctypes
@@ -8,7 +8,16 @@ import _ctypes
 from einspect.compat import Version, python_req
 from einspect.protocols.delayed_bind import bind_api
 
-__all__ = ("Py", "Py_ssize_t", "Py_hash_t", "uintptr_t", "PyObj_FromPtr")
+__all__ = (
+    "Py",
+    "Py_ssize_t",
+    "Py_hash_t",
+    "uintptr_t",
+    "PyObj_FromPtr",
+    "ALIGNMENT",
+    "ALIGNMENT_SHIFT",
+    "align_size",
+)
 
 Py_ssize_t = ctypes.c_ssize_t
 """Constant for type Py_ssize_t."""
@@ -22,6 +31,15 @@ uintptr_t = ctypes.c_uint64
 ObjectOrRef = Union[py_object, object]
 IntSize = Union[int, Py_ssize_t]
 PyObjectPtr = POINTER(py_object)
+
+# Alignments (must be powers of 2)
+# https://github.com/python/cpython/blob/3.11/Objects/obmalloc.c#L878-L884
+if sizeof(c_void_p) > 4:
+    ALIGNMENT = 16
+    ALIGNMENT_SHIFT = 4
+else:
+    ALIGNMENT = 8
+    ALIGNMENT_SHIFT = 3
 
 
 # noinspection PyPep8Naming
@@ -113,3 +131,8 @@ class Py:
 
 PyObj_FromPtr: Callable[[IntSize], object] = _ctypes.PyObj_FromPtr
 """(Py_ssize_t ptr) -> Py_ssize_t"""
+
+
+def align_size(size: int, alignment: int = ALIGNMENT) -> int:
+    """Align size to alignment."""
+    return (size + alignment - 1) & ~(alignment - 1)
