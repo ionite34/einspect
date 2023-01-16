@@ -11,7 +11,8 @@ from einspect.compat import Version, python_req
 from einspect.protocols.delayed_bind import bind_api
 from einspect.structs.deco import struct
 from einspect.structs.py_gc import PyGC_Head
-from einspect.types import AsRef, ptr
+from einspect.structs.traits import AsRef
+from einspect.types import ptr
 
 if TYPE_CHECKING:
     from einspect.structs import PyTypeObject
