@@ -26,8 +26,8 @@ class TypeView(VarView[_T, None, None]):
     _pyobject: PyTypeObject[_T]
 
     def __init__(self, obj: _T, ref: bool = REF_DEFAULT) -> None:
+        """Create a new TypeView."""
         super().__init__(obj, ref)
-        self._store = []
 
     @property
     def immutable(self) -> bool:
