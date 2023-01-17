@@ -6,7 +6,7 @@ from contextlib import contextmanager
 from functools import wraps
 from typing import TYPE_CHECKING, TypeVar
 
-from typing_extensions import ParamSpec, Self
+from typing_extensions import ContextManager, ParamSpec, Self
 
 from einspect.errors import UnsafeError
 
@@ -25,16 +25,32 @@ class UnsafeContext:
         self._local_unsafe = False
 
     @property
-    def _unsafe(self) -> dict | None:
+    def _unsafe(self) -> bool:
         """Returns True if unsafe operations are allowed."""
         return self._global_unsafe or self._local_unsafe
 
-    @contextmanager
-    def unsafe(self) -> Generator[Self, None, None]:
-        """Context manager for unsafe contexts."""
-        self._local_unsafe = True
-        yield self
-        self._local_unsafe = False
+    def unsafe(self) -> ContextManager[Self]:
+        """
+        Context manager to enter an unsafe context.
+
+        Examples:
+            >>> from einspect import view
+            >>> v = view(100)
+            >>> with v.unsafe():
+            >>>     v.size += 1
+
+            >>> with view(100).unsafe() as v:
+            >>>     v.size -= 1
+        """
+
+        def ctx() -> Generator[Self, None, None]:
+            self._local_unsafe = True
+            try:
+                yield self
+            finally:
+                self._local_unsafe = False
+
+        return contextmanager(ctx)()
 
 
 @contextmanager
