@@ -19,10 +19,6 @@ class StrView(View[str, None, None], Sequence):
     _pyobject: PyUnicodeObject
 
     @property
-    def mem_size(self) -> int:
-        return object.__sizeof__(self.base)
-
-    @property
     def length(self) -> int:
         return self._pyobject.length
 

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "einspect"
-version = "0.4.6a1"
+version = "0.4.6"
 description = "Extended Inspect - view and modify memory structs of runtime objects."
 authors = ["ionite34 <dev@ionite.io>"]
 license = "MIT"
@@ -25,6 +25,15 @@ keywords = [
     "modify",
 ]
 
+classifiers = [
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Operating System :: OS Independent",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Software Development :: Debuggers",
+    "Typing :: Typed",
+]
+
 [tool.poetry.dependencies]
 python = ">=3.8,<3.12"
 typing-extensions = "^4.4.0"
@@ -36,6 +45,7 @@ pytest-xdist = "^3.1.0"
 mypy = "^0.991"
 pre-commit = "^2.20.0"
 flake8 = { version = "^6.0.0", python = ">= 3.8.1" }
+flake8-print = { version = "^5.0.0", python = ">= 3.8.1" }
 
 [tool.poetry.group.dev-extras.dependencies]
 jupyter = "^1.0.0"

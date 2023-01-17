@@ -1,14 +1,7 @@
 from __future__ import annotations
 
-import pytest
-
 from einspect.views.view_set import SetView
 from tests.views.test_view_base import TestView
-
-
-@pytest.fixture(scope="function")
-def obj() -> set[int]:
-    return {1, 2, 3}
 
 
 class TestSetView(TestView):

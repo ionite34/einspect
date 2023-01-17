@@ -30,16 +30,19 @@ class DictView(View[dict, _KT, _VT], abc.MutableMapping[_KT, _VT]):
 
     def __getitem__(self, key: _KT) -> _VT:
         """Get an item from the dictionary. Equivalent to dict[key]."""
-        return self._pyobject.GetItem(key)
+        obj = self._pyobject.GetItem(key)
+        if not obj:  # Null pointer
+            raise KeyError(key)
+        return obj.contents.into_object()
 
     def __setitem__(self, key: _KT, value: _VT) -> None:
         if self._pyobject.SetItem(key, value) < 0:
-            raise RuntimeError("Failed to set item")
+            raise SystemError("Call to PyDict_SetItem failed.")  # pragma: no cover
         return None
 
     def __delitem__(self, key: _KT) -> None:
         if self._pyobject.DelItem(key) < 0:
-            raise RuntimeError("Failed to delete item")
+            raise SystemError("Call to PyDict_DelItem failed.")  # pragma: no cover
         return None
 
     @property

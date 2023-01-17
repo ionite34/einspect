@@ -52,7 +52,6 @@ class Formatter:
                 diff = len(obj) - self.arr_max
                 obj = obj[: self.arr_max]
             res = list(map(self.format_value, obj))
-            print(f"diff: {diff}")
             return f"[{', '.join(res)}{', ...' if diff > 0 else ''}]"
         # For pointers, get the value
         # noinspection PyUnresolvedReferences, PyProtectedMember

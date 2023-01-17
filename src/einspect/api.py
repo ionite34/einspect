@@ -37,7 +37,7 @@ PyObjectPtr = POINTER(py_object)
 if sizeof(c_void_p) > 4:
     ALIGNMENT = 16
     ALIGNMENT_SHIFT = 4
-else:
+else:  # pragma: no cover
     ALIGNMENT = 8
     ALIGNMENT_SHIFT = 3
 
