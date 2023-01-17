@@ -52,7 +52,7 @@ class PyLongObject(PyVarObject[int, None, None]):
     def value(self) -> int:
         if self.ob_size == 0:
             return 0
-        digit: int
+        digit: int  # noqa: F842
         val = sum(digit * 1 << (30 * i) for i, digit in enumerate(self.ob_digit))
         size: int = self.ob_size  # type: ignore
         return val * (-1 if size < 0 else 1)
