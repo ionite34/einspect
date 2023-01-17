@@ -1,3 +1,5 @@
+import ctypes
+
 import pytest
 
 from einspect import structs as st
@@ -97,6 +99,29 @@ class TestPyListObject:
 
         pylist.ob_item[0] = st.PyObject.from_object(5).as_ref()
         assert ls == [5, 2]
+
+
+class TestPyDictObject:
+    def test_new(self):
+        d = {1: 10, 5: 20}
+        py_dict = st.PyDictObject.from_object(d)
+        assert py_dict.ma_used == 2
+
+    @pytest.mark.parametrize(
+        ["obj", "s_type"],
+        [
+            ({"hello": 123}, "c_char"),
+            (dict((i, i) for i in range(0xFF)), "c_char"),
+            (dict((i, i) for i in range(0xFFFF)), "c_int16"),
+        ],
+    )
+    def test_dk_indices(self, obj: dict, s_type):
+        py_obj = st.PyDictObject.from_object(obj)
+        keys = py_obj.ma_keys.contents
+        assert py_obj._format_fields_()
+        assert isinstance(keys.dk_indices, ctypes.Array)
+        s_type = keys._dk_indices_type()[1]
+        assert s_type == s_type
 
 
 class TestPyTypeObject:
