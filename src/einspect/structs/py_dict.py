@@ -76,9 +76,9 @@ class PyDictKeysObject(Structure, Display):
             return c_char, "c_char"
         elif self._dk_size <= 0xFFFF:
             return c_int16, "c_int16"
-        elif self._dk_size <= 0xFFFFFFFF:
+        elif self._dk_size <= 0xFFFFFFFF:  # pragma: no branch
             return c_int32, "c_int32"
-        return c_int64, "c_int64"
+        return c_int64, "c_int64"  # pragma: no cover
 
     def _format_fields_(self) -> Fields:
         indice_type, indice_name = self._dk_indices_type()
