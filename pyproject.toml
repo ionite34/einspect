@@ -45,6 +45,7 @@ pytest-xdist = "^3.1.0"
 mypy = "^0.991"
 pre-commit = "^2.20.0"
 flake8 = { version = "^6.0.0", python = ">= 3.8.1" }
+flake8-print = { version = "^5.0.0", python = ">= 3.8.1" }
 
 [tool.poetry.group.dev-extras.dependencies]
 jupyter = "^1.0.0"
