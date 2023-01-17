@@ -28,16 +28,13 @@ class Kind(IntEnum):
     PyUnicode_4BYTE = 4
 
     def type(self):
-        if self == self.PyUnicode_WCHAR:
-            return ctypes.c_wchar
-        elif self == self.PyUnicode_1BYTE:
-            return ctypes.c_uint8
-        elif self == self.PyUnicode_2BYTE:
-            return ctypes.c_uint16
-        elif self == self.PyUnicode_4BYTE:
-            return ctypes.c_uint32
-        else:
-            raise ValueError(f"Unknown kind: {self}")
+        types_map = {
+            self.PyUnicode_WCHAR: ctypes.c_wchar,
+            self.PyUnicode_1BYTE: ctypes.c_uint8,
+            self.PyUnicode_2BYTE: ctypes.c_uint16,
+            self.PyUnicode_4BYTE: ctypes.c_uint32,
+        }
+        return types_map[self]
 
 
 @struct
