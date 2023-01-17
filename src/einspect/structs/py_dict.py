@@ -62,7 +62,6 @@ class PyDictKeysObject(Structure, Display):
 
     @property
     def dk_indices(self) -> Array[int]:
-        print("dk_indices", self._dk_indices)
         items_addr = addressof(self._dk_indices)
         item_type = self._dk_indices_type()[0]
         arr = item_type * self._dk_size
