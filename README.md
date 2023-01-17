@@ -34,31 +34,43 @@ PyListObject(at 0x2833738):
    allocated: Py_ssize_t = 4
 ```
 
+[doc_tuple_view]: https://docs.ionite.io/einspect/api/views/view_tuple.html#einspect.views.view_tuple
+[py_doc_mutable_seq]: https://docs.python.org/3/library/stdtypes.html#mutable-sequence-types
 ### Mutate tuples, strings, ints, or other immutable types
+> [TupleView][doc_tuple_view] supports all [MutableSequence][py_doc_mutable_seq] methods (append, extend, insert, pop, remove, reverse, clear).
 ```python
 from einspect import view
 
-t = ("A", "B")
-view(t)[1] = 10
-print(t)
-```
-```python
-("A", 10)
+tup = (1, 2)
+v = view(tup)
+
+v[1] = 500
+print(tup)      # (1, 500)
+v.append(3)
+print(tup)      # (1, 500, 3)
+
+del v[:2]
+print(tup)      # (3,)
+print(v.pop())  # 3
+
+v.extend([1, 2])
+print(tup)      # (1, 2)
+
+v.clear()
+print(tup)      # ()
 ```
 
 ```python
 from einspect import view
 
-a = "hello"
-b = 100
+text = "hello"
+num = 100
 
-view(a).buffer[:] = b"world"
-view(b).value = 5
+view(text).buffer[:] = b"world"
+view(num).value = 5
 
-print("hello", 100)
-```
-```python
-world 5
+print(text)  # world
+print(num)   # 5
 ```
 
 ### Modify attributes of built-in types, get original attributes with `orig`
@@ -90,10 +102,7 @@ def __add__(self, other):
     other = int(other)
     return orig(int).__add__(self, other)
 
-print(50 + "25")
-```
-```python
-75
+print(50 + "25")  # 75
 ```
 
 ### Move objects in memory
@@ -106,12 +115,8 @@ v = view(s)
 with v.unsafe():
     v <<= 42
 
-print("meaning of life")
-print("meaning of life" == 42)
-```
-```python
-42
-True
+print("meaning of life")        # 42
+print("meaning of life" == 42)  # True
 ```
 
 ### Fully typed interface
