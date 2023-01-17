@@ -25,6 +25,15 @@ keywords = [
     "modify",
 ]
 
+classifiers = [
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Operating System :: OS Independent",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Software Development :: Debuggers",
+    "Typing :: Typed",
+]
+
 [tool.poetry.dependencies]
 python = ">=3.8,<3.12"
 typing-extensions = "^4.4.0"
