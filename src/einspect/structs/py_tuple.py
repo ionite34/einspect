@@ -1,14 +1,14 @@
 from __future__ import annotations
 
 import ctypes
-from ctypes import POINTER, Array, pointer, pythonapi
+from ctypes import POINTER, pointer, pythonapi
 from typing import Any, TypeVar, overload
 
 from einspect.api import Py_ssize_t
 from einspect.protocols.delayed_bind import bind_api
 from einspect.structs.deco import struct
 from einspect.structs.py_object import Fields, PyObject, PyVarObject
-from einspect.types import ptr
+from einspect.types import Array, ptr
 
 _VT = TypeVar("_VT")
 
