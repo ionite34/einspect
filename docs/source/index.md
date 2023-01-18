@@ -4,6 +4,17 @@ hide-toc: true
 
 # einspect
 
+Extended Inspections for CPython.
+
+```{include} ../../README.md
+:start-after: <!-- start badges -->
+:end-before: <!-- end badges -->
+```
+```{include} ../../README.md
+:start-after: <!-- start intro -->
+:end-before: <!-- end intro -->
+```
+
 ```{toctree}
 :hidden:
 
