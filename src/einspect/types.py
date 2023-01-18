@@ -28,9 +28,11 @@ class _Ptr(_Pointer):
     """
 
     def __new__(cls, *args, **kwargs):
+        """Alias to `ctypes.pointer(*args, **kwargs)`"""
         return ctypes.pointer(*args, **kwargs)
 
     def __class_getitem__(cls, item):
+        """Return a `ctypes.POINTER` of the given type."""
         # For ptr[Self], return a special object
         if item is Self:
             return _SelfPtr
