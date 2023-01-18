@@ -27,11 +27,14 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.coverage",
     "sphinx.ext.napoleon",
+    "sphinx.ext.intersphinx",
     "sphinx.ext.autosectionlabel",
     "myst_parser",
     "sphinx_copybutton",
     "sphinx_autodoc_typehints",
 ]
+
+intersphinx_mapping = {"python": ("https://docs.python.org/3.11", None)}
 
 # Autodoc style
 autodoc_member_order = "groupwise"
