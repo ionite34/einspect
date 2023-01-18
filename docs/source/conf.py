@@ -30,6 +30,7 @@ extensions = [
     "sphinx.ext.autosectionlabel",
     "myst_parser",
     "sphinx_copybutton",
+    "sphinx_autodoc_typehints",
 ]
 
 # Autodoc style

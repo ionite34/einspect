@@ -65,6 +65,7 @@ Sphinx = ">4.0.0,<6.0.0"
 myst-parser = "^0.18.1"
 sphinx-copybutton = "^0.5.1"
 furo = "^2022.12.7"
+sphinx-autodoc-typehints = "^1.23.4"
 
 [tool.coverage.report]
 exclude_lines = [
