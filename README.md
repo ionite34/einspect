@@ -15,7 +15,7 @@
 
 > Extended Inspections for CPython
 
-### [Documentation](https://docs.ionite.io/einspect)
+## [Documentation](https://docs.ionite.io/einspect)
 
 - [View and modify memory structures of live objects.](#check-detailed-states-of-built-in-objects)
 - [Able to mutate immutable objects like tuples and ints.](#mutate-tuples-strings-ints-or-other-immutable-types)
