@@ -51,8 +51,7 @@ class _Ptr(_Pointer):
 
 
 if python_above(Version.PY_3_9):  # pragma: no cover
-    # This cannot be defined at runtime since 3.8 does not support
-    # ctypes.Array subscripting
+    # This cannot be defined in 3.8 as ctypes.Array doesn't support subscripting
     class Array(ctypes.Array[_T]):
         """
         A typing alias for ctypes.Array for non-simple types.
