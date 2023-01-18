@@ -6,20 +6,25 @@ hide-toc: true
 
 ```{toctree}
 :hidden:
-intro.md
-views.md
+
+intro
+views
+structs
 ```
 
 ```{toctree}
 :caption: API
 :hidden:
-api/views/index.md
-api/structs/index.md
+
+api/views/index
+api/structs/index
+api/types
 ```
 
 ```{toctree}
 :caption: Development
 :hidden:
+
 license
 ```
 
