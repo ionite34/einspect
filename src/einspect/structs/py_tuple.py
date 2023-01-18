@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import ctypes
-from ctypes import POINTER, pointer, pythonapi
+from collections.abc import Sequence
+from ctypes import POINTER, pointer, pythonapi, sizeof
 from typing import Any, TypeVar, overload
 
-from einspect.api import Py_ssize_t
+from einspect.api import Py_ssize_t, seq_to_array
 from einspect.protocols.delayed_bind import bind_api
 from einspect.structs.deco import struct
 from einspect.structs.py_object import Fields, PyObject, PyVarObject
@@ -13,7 +14,6 @@ from einspect.types import Array, ptr
 _VT = TypeVar("_VT")
 
 
-# noinspection PyPep8Naming
 @struct
 class PyTupleObject(PyVarObject[tuple, None, _VT]):
     """
@@ -53,14 +53,17 @@ class PyTupleObject(PyVarObject[tuple, None, _VT]):
 
     @property
     def ob_item(self) -> Array[ptr[PyObject]]:
+        """Return the ob_item field."""
         items_addr = ctypes.addressof(self._ob_item_0)
         arr = POINTER(PyObject) * self.ob_size
         return arr.from_address(items_addr)
 
     @ob_item.setter
-    def ob_item(self, value: Array[ptr[PyObject]]) -> None:
+    def ob_item(self, value: Array[ptr[PyObject]] | Sequence[ptr[PyObject]]) -> None:
+        """Set the ob_item field."""
+        arr = seq_to_array(value, ptr[PyObject])
         items_addr = ctypes.addressof(self._ob_item_0)
-        ctypes.memmove(items_addr, value, ctypes.sizeof(value))
+        ctypes.memmove(items_addr, arr, sizeof(arr))
 
     @bind_api(pythonapi["PyTuple_GetItem"])
     def GetItem(self, index: int) -> pointer[PyObject[_VT, None, None]]:
