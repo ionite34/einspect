@@ -1,9 +1,14 @@
 """CPython API Methods and intrinsic constants."""
+from __future__ import annotations
+
 import ctypes
-from ctypes import POINTER, c_void_p, py_object, pythonapi, sizeof
-from typing import Callable, Union
+import typing
+from collections.abc import Sequence
+from ctypes import POINTER, Array, c_void_p, py_object, pythonapi, sizeof
+from typing import Callable, Type, TypeVar, Union
 
 import _ctypes
+from _ctypes import _SimpleCData
 
 from einspect.compat import Version, python_req
 from einspect.protocols.delayed_bind import bind_api
@@ -18,6 +23,8 @@ __all__ = (
     "ALIGNMENT_SHIFT",
     "align_size",
 )
+
+_T = TypeVar("_T")
 
 Py_ssize_t = ctypes.c_ssize_t
 """Constant for type Py_ssize_t."""
@@ -136,3 +143,11 @@ PyObj_FromPtr: Callable[[IntSize], object] = _ctypes.PyObj_FromPtr
 def align_size(size: int, alignment: int = ALIGNMENT) -> int:
     """Align size to alignment."""
     return (size + alignment - 1) & ~(alignment - 1)
+
+
+def seq_to_array(seq: Sequence[_T] | Array[_T], dtype: _SimpleCData) -> Array:
+    """Cast a Sequence to a ctypes.Array of a given type."""
+    if isinstance(seq, Array):
+        return seq
+    arr_type = typing.cast(Type[Array[_T]], dtype * len(seq))
+    return arr_type(*seq)
