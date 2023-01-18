@@ -1,13 +1,15 @@
 from __future__ import annotations
 
 import ctypes
-from ctypes import POINTER, Array, c_int64, c_uint
+from ctypes import POINTER, c_int64, c_uint, c_uint8, c_uint16, c_uint32, c_wchar
 from enum import IntEnum
+from typing import Type
 
 from typing_extensions import Annotated
 
 from einspect.structs.deco import struct
 from einspect.structs.py_object import PyObject
+from einspect.types import Array
 
 
 class State(IntEnum):
@@ -27,14 +29,14 @@ class Kind(IntEnum):
     PyUnicode_2BYTE = 2
     PyUnicode_4BYTE = 4
 
-    def type(self):
+    def type(self) -> Type[c_wchar | c_uint8 | c_uint16 | c_uint32]:
         types_map = {
-            self.PyUnicode_WCHAR: ctypes.c_wchar,
-            self.PyUnicode_1BYTE: ctypes.c_uint8,
-            self.PyUnicode_2BYTE: ctypes.c_uint16,
-            self.PyUnicode_4BYTE: ctypes.c_uint32,
+            0: c_wchar,
+            1: c_uint8,
+            2: c_uint16,
+            4: c_uint32,
         }
-        return types_map[self]
+        return types_map[int(self)]
 
 
 @struct
