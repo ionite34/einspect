@@ -1,5 +1,7 @@
 # einspect
 
+<!-- start badges -->
+
 [![Build](https://github.com/ionite34/einspect/actions/workflows/build.yml/badge.svg)](https://github.com/ionite34/einspect/actions/workflows/build.yml)
 [![codecov](https://codecov.io/gh/ionite34/einspect/branch/main/graph/badge.svg?token=v71SdG5Bo6)](https://codecov.io/gh/ionite34/einspect)
 [![security](https://snyk-widget.herokuapp.com/badge/pip/einspect/badge.svg)](https://security.snyk.io/package/pip/einspect)
@@ -9,16 +11,20 @@
 
 [pypi]: https://pypi.org/project/einspect/
 
+<!-- end badges -->
+
 > Extended Inspections for CPython
 
-### [Documentation](https://docs.ionite.io/einspect)
+## [Documentation](https://docs.ionite.io/einspect)
 
 - [View and modify memory structures of live objects.](#check-detailed-states-of-built-in-objects)
 - [Able to mutate immutable objects like tuples and ints.](#mutate-tuples-strings-ints-or-other-immutable-types)
 - [Modify slot functions or attributes of built-in types.](#modify-attributes-of-built-in-types-get-original-attributes-with-orig)
 - [Fully typed, extensible framework in pure Python.](#move-objects-in-memory)
 
-### Check detailed states of built-in objects
+<!-- start intro -->
+
+## Check detailed states of built-in objects
 ```python
 from einspect import view
 
@@ -36,7 +42,7 @@ PyListObject(at 0x2833738):
 
 [doc_tuple_view]: https://docs.ionite.io/einspect/api/views/view_tuple.html#einspect.views.view_tuple
 [py_doc_mutable_seq]: https://docs.python.org/3/library/stdtypes.html#mutable-sequence-types
-### Mutate tuples, strings, ints, or other immutable types
+## Mutate tuples, strings, ints, or other immutable types
 > [TupleView][doc_tuple_view] supports all [MutableSequence][py_doc_mutable_seq] methods (append, extend, insert, pop, remove, reverse, clear).
 ```python
 from einspect import view
@@ -73,7 +79,7 @@ print(text)  # world
 print(num)   # 5
 ```
 
-### Modify attributes of built-in types, get original attributes with `orig`
+## Modify attributes of built-in types, get original attributes with `orig`
 ```python
 from einspect import view, orig
 
@@ -86,14 +92,14 @@ print(int)
 for i in 3:
     print(i)
 ```
-```python
+```
 <class 'custom_int'>
 custom: 0
 custom: 1
 custom: 2
 ```
 
-### Implement methods on built-in types with `@impl`
+## Implement methods on built-in types with `@impl`
 ```python
 from einspect import impl, orig
 
@@ -105,7 +111,7 @@ def __add__(self, other):
 print(50 + "25")  # 75
 ```
 
-### Move objects in memory
+## Move objects in memory
 ```python
 from einspect import view
 
@@ -119,7 +125,9 @@ print("meaning of life")        # 42
 print("meaning of life" == 42)  # True
 ```
 
-### Fully typed interface
+<!-- end intro -->
+
+## Fully typed interface
 <img width="551" alt="image" src="https://user-images.githubusercontent.com/13956642/211129165-38a1c405-9d54-413c-962e-6917f1f3c2a1.png">
 
 ## Table of Contents

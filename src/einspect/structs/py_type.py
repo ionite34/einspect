@@ -38,7 +38,6 @@ class PyTypeObject(PyVarObject[_T, None, None]):
     https://github.com/python/cpython/blob/3.11/Doc/includes/typestruct.h
     """
 
-    # const char *tp_name; /* For printing, in format "<module>.<name>" */
     tp_name: Annotated[bytes, c_char_p]
     # For allocation
     tp_basicsize: int

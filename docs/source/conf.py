@@ -15,7 +15,7 @@ sys.path.insert(0, str(Path(__file__).parents[2] / "src"))
 project = "einspect"
 copyright = "2023, Ionite"
 author = "Ionite"
-release = "v0.4.6"
+release = "v0.4.7"
 
 
 # -- General configuration ---------------------------------------------------
@@ -27,10 +27,14 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.coverage",
     "sphinx.ext.napoleon",
+    "sphinx.ext.intersphinx",
     "sphinx.ext.autosectionlabel",
     "myst_parser",
     "sphinx_copybutton",
+    "sphinx_autodoc_typehints",
 ]
+
+intersphinx_mapping = {"python": ("https://docs.python.org/3.11", None)}
 
 # Autodoc style
 autodoc_member_order = "groupwise"

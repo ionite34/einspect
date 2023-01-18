@@ -9,6 +9,8 @@ from typing_extensions import Self
 
 __all__ = ("ptr", "Array", "_SelfPtr")
 
+from einspect.compat import Version, python_above
+
 _T = TypeVar("_T")
 
 ptr = ctypes.pointer
@@ -28,9 +30,11 @@ class _Ptr(_Pointer):
     """
 
     def __new__(cls, *args, **kwargs):
+        """Alias to `ctypes.pointer(*args, **kwargs)`"""
         return ctypes.pointer(*args, **kwargs)
 
     def __class_getitem__(cls, item):
+        """Return a `ctypes.POINTER` of the given type."""
         # For ptr[Self], return a special object
         if item is Self:
             return _SelfPtr
@@ -46,9 +50,8 @@ class _Ptr(_Pointer):
             raise TypeError(f"{e} (During POINTER({item}))") from e
 
 
-if TYPE_CHECKING:  # pragma: no cover
-    # This cannot be defined at runtime since 3.8 does not support
-    # ctypes.Array subscripting
+if python_above(Version.PY_3_9):  # pragma: no cover
+    # This cannot be defined in 3.8 as ctypes.Array doesn't support subscripting
     class Array(ctypes.Array[_T]):
         """
         A typing alias for ctypes.Array for non-simple types.

@@ -22,7 +22,7 @@ __all__ = (
 Py_ssize_t = ctypes.c_ssize_t
 """Constant for type Py_ssize_t."""
 
-Py_hash_t = ctypes.c_uint64
+Py_hash_t = ctypes.c_ssize_t
 """Constant for type Py_hash_t."""
 
 uintptr_t = ctypes.c_uint64

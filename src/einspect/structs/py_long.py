@@ -1,10 +1,14 @@
 from __future__ import annotations
 
 import ctypes
-from ctypes import Array, c_uint32
+from collections.abc import Sequence
+from ctypes import c_uint32
+
+from typing_extensions import Annotated
 
 from einspect.structs.deco import struct
 from einspect.structs.py_object import Fields, PyVarObject
+from einspect.types import Array
 
 
 @struct
@@ -30,18 +34,22 @@ class PyLongObject(PyVarObject[int, None, None]):
         return base + ctypes.sizeof(c_uint32) * size
 
     @property
-    def ob_digit(self) -> Array[c_uint32]:
+    def ob_digit(self) -> Array[Annotated[int, c_uint32]]:
         # Note PyLongObject uses the sign bit of ob_size to indicate its own sign
         # ob_size < 0 means the number is negative
         # ob_size > 0 means the number is positive
         # ob_size == 0 means the number is zero
         # The true size of the ob_digit array is abs(ob_size)
         items_addr = ctypes.addressof(self._ob_digit_0)
-        size = max(abs(int(self.ob_size)), 1)  # type: ignore
-        return (c_uint32 * size).from_address(items_addr)
+        size = max(abs(int(self.ob_size)), 1)
+        return (c_uint32 * size).from_address(items_addr)  # type: ignore
 
     @ob_digit.setter
-    def ob_digit(self, value: Array[c_uint32]) -> None:
+    def ob_digit(self, value: Array[int | c_uint32] | Sequence[int]) -> None:
+        if not isinstance(value, Array):
+            arr = (c_uint32 * len(value))()
+            arr[:] = value
+            value = arr
         ctypes.memmove(
             ctypes.addressof(self._ob_digit_0),
             ctypes.addressof(value),

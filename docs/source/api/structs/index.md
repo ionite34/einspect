@@ -15,4 +15,5 @@ py_set
 py_unicode
 py_tuple
 py_type
+traits
 ```

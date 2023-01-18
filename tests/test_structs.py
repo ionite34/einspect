@@ -169,6 +169,24 @@ class TestPyTypeObject:
         assert repr_fn(True) == "1"
 
 
+class TestPyLongObject:
+    def test_digit(self):
+        obj = st.PyLongObject(
+            ob_refcnt=1,
+            ob_type=st.PyTypeObject.from_object(int).as_ref(),
+            ob_size=-1,
+            ob_digit=[750],
+        )
+        assert obj.ob_digit[:] == [750]
+        assert obj.into_object() == -750
+        # Setting should work with any Sequence
+        obj.ob_digit = [5]
+        assert obj.into_object() == -5
+        # But not Generators, Iterators, etc.
+        with pytest.raises(TypeError):
+            obj.ob_digit = (i for i in range(5))
+
+
 @pytest.mark.parametrize(
     ["obj", "struct", "size"],
     [
