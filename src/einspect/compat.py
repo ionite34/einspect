@@ -30,11 +30,19 @@ class Version(Enum):
             return sys.version_info >= self.value
         return sys.version_info > self.value
 
-    def below(self, or_eq: bool = True) -> bool:
+    def below(self, or_eq: bool = False) -> bool:
         """Return whether the current version is below this version."""
         if or_eq:
             return sys.version_info <= self.value
         return sys.version_info < self.value
+
+    def req_above(self, or_eq: bool = True) -> RequiresPythonVersion | None:
+        """Return None if above a python version, else a RequiresPythonVersion instance."""
+        return None if self.above(or_eq) else RequiresPythonVersion(self)
+
+    def req_below(self, or_eq: bool = False) -> RequiresPythonVersion | None:
+        """Return None if below a python version, else a RequiresPythonVersion instance."""
+        return None if self.below(or_eq) else RequiresPythonVersion(self)
 
 
 _V = TypeVar("_V", bound=Version)
@@ -42,12 +50,14 @@ _V = TypeVar("_V", bound=Version)
 
 @dataclass
 class RequiresPythonVersion(Generic[_V]):
+    __slots__ = ("version",)
     version: _V
 
+    def __msg__(self) -> str:
+        return f"Requires Python {self.version.value[0]}.{self.version.value[1]}"
+
     def __call__(self, *args, **kwargs) -> NoReturn:
-        raise RuntimeError(
-            f"Requires Python {self.version.value[0]}.{self.version.value[1]}"
-        )
+        raise RuntimeError(self.__msg__())
 
     def __getitem__(self, _item) -> RequiresPythonVersion[_V]:
         return self
