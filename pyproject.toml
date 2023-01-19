@@ -70,7 +70,8 @@ sphinx-autodoc-typehints = "^1.23.4"
 [tool.coverage.report]
 exclude_lines = [
     "pragma: no cover",
-    "@overload"
+    "@overload",
+    "@abstractmethod",
 ]
 
 [tool.isort]
