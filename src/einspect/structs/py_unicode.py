@@ -29,7 +29,7 @@ class Kind(IntEnum):
     PyUnicode_2BYTE = 2
     PyUnicode_4BYTE = 4
 
-    def type(self) -> Type[c_wchar | c_uint8 | c_uint16 | c_uint32]:
+    def type_info(self) -> Type[c_wchar | c_uint8 | c_uint16 | c_uint32]:
         types_map = {
             0: c_wchar,
             1: c_uint8,
@@ -55,8 +55,8 @@ class PyUnicodeObject(PyObject):
 
     length: int
     hash: Annotated[int, c_int64]
-    _interned: Annotated[int, c_uint, 2]
-    _kind: Annotated[int, c_uint, 3]
+    interned: Annotated[int, c_uint, 2]
+    kind: Annotated[int, c_uint, 3]
     compact: Annotated[int, c_uint, 1]
     ascii: Annotated[int, c_uint, 1]
     ready: Annotated[int, c_uint, 1]
@@ -70,22 +70,6 @@ class PyUnicodeObject(PyObject):
     data: LegacyUnion
 
     @property
-    def interned(self) -> State:
-        return State(self._interned)
-
-    @interned.setter
-    def interned(self, value: State):
-        self._interned = value.value  # type: ignore
-
-    @property
-    def kind(self) -> Kind:
-        return Kind(self._kind)
-
-    @kind.setter
-    def kind(self, value: Kind):
-        self._kind = value.value  # type: ignore
-
-    @property
     def buffer(self) -> Array:
         cls = type(self)
         addr = ctypes.addressof(self)
@@ -96,7 +80,7 @@ class PyUnicodeObject(PyObject):
 
         if self.compact:
             # Get the str subtype type mapping
-            subtype = self.kind.type()
+            subtype = Kind(self.kind).type_info()
             if self.ascii:
                 # ASCII buffer comes right after wstr
                 subtype = ctypes.c_char
