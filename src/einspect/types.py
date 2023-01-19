@@ -9,7 +9,7 @@ from typing_extensions import Self
 
 __all__ = ("ptr", "Array", "_SelfPtr")
 
-from einspect.compat import Version, python_above
+from einspect.compat import Version
 
 _T = TypeVar("_T")
 
@@ -50,7 +50,7 @@ class _Ptr(_Pointer):
             raise TypeError(f"{e} (During POINTER({item}))") from e
 
 
-if python_above(Version.PY_3_9):  # pragma: no cover
+if Version.PY_3_9.above():  # pragma: no cover
     # This cannot be defined in 3.8 as ctypes.Array doesn't support subscripting
     class Array(ctypes.Array[_T]):
         """

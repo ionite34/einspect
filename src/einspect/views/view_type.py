@@ -6,7 +6,7 @@ from typing import Any, Callable, Type, TypeVar
 
 from typing_extensions import Self
 
-from einspect.compat import Version, python_above
+from einspect.compat import Version
 from einspect.errors import UnsafeError
 from einspect.structs.include.object_h import TpFlags
 from einspect.structs.py_type import PyTypeObject
@@ -51,14 +51,14 @@ class TypeView(VarView[_T, None, None]):
     @property
     def immutable(self) -> bool:
         """Return True if the type is immutable."""
-        if python_above(Version.PY_3_10):
+        if Version.PY_3_10.above():
             return bool(self._pyobject.tp_flags & TpFlags.IMMUTABLETYPE)
         return not bool(self._pyobject.tp_flags & TpFlags.HEAPTYPE)
 
     @immutable.setter
     def immutable(self, value: bool):
         """Set whether the type is immutable."""
-        if python_above(Version.PY_3_10):
+        if Version.PY_3_10.above():
             if value:
                 self._pyobject.tp_flags |= TpFlags.IMMUTABLETYPE
             else:
@@ -110,6 +110,10 @@ class TypeView(VarView[_T, None, None]):
 
         with self.as_mutable():
             self._pyobject.setattr_safe(key, value)
+
+    # <-- Begin Managed::Properties (structs::py_type.PyTypeObject) -->
+
+    # <-- End Managed::Properties -->
 
     def __getattr__(self, item: str):
         # Forward `tp_` attributes from PyTypeObject
