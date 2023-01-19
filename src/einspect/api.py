@@ -4,11 +4,12 @@ from __future__ import annotations
 import ctypes
 import typing
 from collections.abc import Sequence
-from ctypes import POINTER, Array, c_void_p, py_object, pythonapi, sizeof
+from ctypes import POINTER, Array, c_size_t, c_void_p, py_object, pythonapi, sizeof
 from typing import Callable, Type, TypeVar, Union
 
 import _ctypes
 from _ctypes import _SimpleCData
+from typing_extensions import Annotated
 
 from einspect.compat import Version, python_req
 from einspect.protocols.delayed_bind import bind_api
@@ -49,7 +50,6 @@ else:  # pragma: no cover
     ALIGNMENT_SHIFT = 3
 
 
-# noinspection PyPep8Naming
 class Py:
     """Typed methods from pythonapi."""
 
@@ -123,7 +123,6 @@ class Py:
         Resize.argtypes = (POINTER(py_object), Py_ssize_t)  # type: ignore
         Resize.restype = None  # type: ignore
 
-    # noinspection PyPep8Naming
     class Type:
         @bind_api(pythonapi["PyType_Modified"])
         @staticmethod
@@ -133,6 +132,57 @@ class Py:
 
             - This function must be called after any manual modification of the attributes
               or base classes of the type.
+            """
+
+    class Mem:
+        @bind_api(pythonapi["PyMem_Malloc"])
+        @staticmethod
+        def Malloc(n: Annotated[int, c_size_t]) -> c_void_p:
+            """
+            Allocates n bytes and returns a pointer of type void* to the allocated memory,
+            or NULL if the request fails.
+
+            Requesting zero bytes returns a distinct non-NULL pointer if possible,
+            as if PyMem_Malloc(1) had been called instead. The memory will not
+            have been initialized in any way.
+
+            https://docs.python.org/3/c-api/memory.htm
+            """
+
+        @bind_api(pythonapi["PyMem_Calloc"])
+        @staticmethod
+        def Calloc(
+            nelem: Annotated[int, c_size_t], elsize: Annotated[int, c_size_t]
+        ) -> c_void_p:
+            """
+            Allocates nelem elements each whose size in bytes is elsize and
+            returns  The memory is initialized to zeros.
+
+            Requesting zero elements or elements of size zero bytes
+            returns a distinct non-NULL pointer if possible,
+            as if PyMem_Calloc(1, 1) had been called instead.
+
+            Args:
+                nelem: Number of elements.
+                elsize: Size of each element in bytes.
+
+            Returns:
+                A pointer to the allocated memory, or NULL if the request fails.
+            """
+
+        @bind_api(pythonapi["PyMem_Realloc"])
+        @staticmethod
+        def Realloc(p: c_void_p, n: Annotated[int, c_size_t]) -> c_void_p:
+            """
+            Resizes the memory block pointed to by p to n bytes.
+            The contents will be unchanged to the minimum of the old and the new sizes.
+
+            Args:
+                p: Pointer to the memory block to be resized.
+                n: New size in bytes.
+
+            Returns:
+                Pointer p, or NULL if request fails (p remains a valid pointer).
             """
 
 
