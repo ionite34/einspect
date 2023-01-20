@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import ctypes
-import typing
 from collections.abc import Sequence
 from ctypes import POINTER, Array, c_size_t, c_void_p, py_object, pythonapi, sizeof
 from typing import Callable, Type, TypeVar, Union
@@ -195,9 +194,11 @@ def align_size(size: int, alignment: int = ALIGNMENT) -> int:
     return (size + alignment - 1) & ~(alignment - 1)
 
 
-def seq_to_array(seq: Sequence[_T] | Array[_T], dtype: _SimpleCData) -> Array:
+def seq_to_array(
+    seq: Sequence[_T] | Array[_T], dtype: Type[c_void_p | _SimpleCData]
+) -> Array[_T]:
     """Cast a Sequence to a ctypes.Array of a given type."""
     if isinstance(seq, Array):
         return seq
-    arr_type = typing.cast(Type[Array[_T]], dtype * len(seq))
+    arr_type = dtype * len(seq)
     return arr_type(*seq)
