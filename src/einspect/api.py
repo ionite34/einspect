@@ -4,10 +4,9 @@ from __future__ import annotations
 import ctypes
 from collections.abc import Sequence
 from ctypes import POINTER, Array, c_size_t, c_void_p, py_object, pythonapi, sizeof
-from typing import Callable, Type, TypeVar, Union
+from typing import Callable, TypeVar, Union
 
 import _ctypes
-from _ctypes import _SimpleCData
 from typing_extensions import Annotated
 
 from einspect.compat import Version, python_req
@@ -25,6 +24,7 @@ __all__ = (
 )
 
 _T = TypeVar("_T")
+_CT = TypeVar("_CT")
 
 Py_ssize_t = ctypes.c_ssize_t
 """Constant for type Py_ssize_t."""
@@ -194,9 +194,7 @@ def align_size(size: int, alignment: int = ALIGNMENT) -> int:
     return (size + alignment - 1) & ~(alignment - 1)
 
 
-def seq_to_array(
-    seq: Sequence[_T] | Array[_T], dtype: Type[c_void_p | _SimpleCData]
-) -> Array[_T]:
+def seq_to_array(seq: Sequence[_T] | Array[_T], dtype: type[_CT]) -> Array[_CT]:
     """Cast a Sequence to a ctypes.Array of a given type."""
     if isinstance(seq, Array):
         return seq
