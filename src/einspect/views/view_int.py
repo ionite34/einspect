@@ -3,6 +3,8 @@ from __future__ import annotations
 from ctypes import Array, c_uint32
 from typing import Iterable, TypeVar
 
+from typing_extensions import Annotated
+
 from einspect.structs import PyLongObject
 from einspect.views.view_base import VarView
 
@@ -15,7 +17,7 @@ class IntView(VarView[int, None, None]):
     _pyobject: PyLongObject
 
     @property
-    def digits(self) -> Array[c_uint32]:
+    def digits(self) -> Array[Annotated[int, c_uint32]]:
         return self._pyobject.ob_digit
 
     @digits.setter
