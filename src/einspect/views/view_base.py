@@ -18,7 +18,7 @@ from einspect.errors import (
     UnsafeAttributeError,
     UnsafeError,
 )
-from einspect.structs import PyObject, PyVarObject
+from einspect.structs import PyObject, PyTypeObject, PyVarObject
 from einspect.views._display import Formatter
 from einspect.views.unsafe import UnsafeContext, unsafe
 
@@ -112,10 +112,9 @@ class View(BaseView[_T, _KT, _VT]):
         return self._pyobject.ob_type.contents.into_object()
 
     @type.setter
-    def type(self, value: type) -> None:
-        if not self._unsafe:
-            raise UnsafeAttributeError.from_attr("type")
-        self._pyobject.ob_type = value
+    @unsafe
+    def type(self, value: Type) -> None:
+        self._pyobject.ob_type = PyTypeObject.from_object(value).as_ref()
 
     @property
     def base(self) -> _T:
