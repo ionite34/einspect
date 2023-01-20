@@ -187,6 +187,17 @@ class TestPyLongObject:
             obj.ob_digit = (i for i in range(5))
 
 
+class TestPyTupleObject:
+    def test_item(self):
+        obj = st.PyTupleObject(
+            ob_refcnt=1,
+            ob_type=st.PyTypeObject.from_object(tuple).as_ref(),
+            ob_size=1,
+        )
+        obj.ob_item = [st.PyObject.from_object(17).as_ref()]
+        assert obj.into_object() == (17,)
+
+
 @pytest.mark.parametrize(
     ["obj", "struct", "size"],
     [

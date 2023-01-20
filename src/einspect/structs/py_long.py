@@ -2,10 +2,11 @@ from __future__ import annotations
 
 import ctypes
 from collections.abc import Sequence
-from ctypes import c_uint32
+from ctypes import addressof, c_uint32, sizeof
 
 from typing_extensions import Annotated
 
+from einspect.api import seq_to_array
 from einspect.structs.deco import struct
 from einspect.structs.py_object import Fields, PyVarObject
 from einspect.types import Array
@@ -46,14 +47,11 @@ class PyLongObject(PyVarObject[int, None, None]):
 
     @ob_digit.setter
     def ob_digit(self, value: Array[int | c_uint32] | Sequence[int]) -> None:
-        if not isinstance(value, Array):
-            arr = (c_uint32 * len(value))()
-            arr[:] = value
-            value = arr
+        arr = seq_to_array(value, c_uint32)
         ctypes.memmove(
-            ctypes.addressof(self._ob_digit_0),
-            ctypes.addressof(value),
-            ctypes.sizeof(value),
+            addressof(self._ob_digit_0),
+            addressof(arr),
+            sizeof(arr),
         )
 
     @property

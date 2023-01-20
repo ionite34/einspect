@@ -1,13 +1,26 @@
 from __future__ import annotations
 
-import ctypes
-from ctypes import POINTER, Array, c_int64, c_uint
+from ctypes import (
+    Union,
+    addressof,
+    c_char,
+    c_char_p,
+    c_int64,
+    c_uint,
+    c_uint8,
+    c_uint16,
+    c_uint32,
+    c_void_p,
+    c_wchar,
+)
 from enum import IntEnum
+from typing import Type
 
 from typing_extensions import Annotated
 
 from einspect.structs.deco import struct
 from einspect.structs.py_object import PyObject
+from einspect.types import Array, ptr
 
 
 class State(IntEnum):
@@ -27,22 +40,22 @@ class Kind(IntEnum):
     PyUnicode_2BYTE = 2
     PyUnicode_4BYTE = 4
 
-    def type(self):
+    def type_info(self) -> Type[c_wchar | c_uint8 | c_uint16 | c_uint32]:
         types_map = {
-            self.PyUnicode_WCHAR: ctypes.c_wchar,
-            self.PyUnicode_1BYTE: ctypes.c_uint8,
-            self.PyUnicode_2BYTE: ctypes.c_uint16,
-            self.PyUnicode_4BYTE: ctypes.c_uint32,
+            0: c_wchar,
+            1: c_uint8,
+            2: c_uint16,
+            4: c_uint32,
         }
-        return types_map[self]
+        return types_map[int(self)]
 
 
 @struct
-class LegacyUnion(ctypes.Union):
-    any: ctypes.c_void_p
-    latin1: ctypes.POINTER(ctypes.c_uint8)  # Py_UCS1
-    ucs2: ctypes.POINTER(ctypes.c_uint16)  # Py_UCS2
-    ucs4: ctypes.POINTER(ctypes.c_uint32)  # Py_UCS4
+class LegacyUnion(Union):
+    any: c_void_p
+    latin1: ptr[c_uint8]  # Py_UCS1
+    ucs2: ptr[c_uint16]  # Py_UCS2
+    ucs4: ptr[c_uint32]  # Py_UCS4
 
 
 @struct
@@ -53,40 +66,24 @@ class PyUnicodeObject(PyObject):
 
     length: int
     hash: Annotated[int, c_int64]
-    _interned: Annotated[int, c_uint, 2]
-    _kind: Annotated[int, c_uint, 3]
+    interned: Annotated[int, c_uint, 2]
+    kind: Annotated[int, c_uint, 3]
     compact: Annotated[int, c_uint, 1]
     ascii: Annotated[int, c_uint, 1]
     ready: Annotated[int, c_uint, 1]
     padding: Annotated[int, c_uint, 24]
-    wstr: POINTER(ctypes.c_wchar)
+    wstr: ptr[c_wchar]
     # Fields after this do not exist if ascii
     utf8_length: int
-    utf8: ctypes.c_char_p
+    utf8: c_char_p
     wstr_length: int
     # Fields after this do not exist if compact
     data: LegacyUnion
 
     @property
-    def interned(self) -> State:
-        return State(self._interned)
-
-    @interned.setter
-    def interned(self, value: State):
-        self._interned = value.value  # type: ignore
-
-    @property
-    def kind(self) -> Kind:
-        return Kind(self._kind)
-
-    @kind.setter
-    def kind(self, value: Kind):
-        self._kind = value.value  # type: ignore
-
-    @property
     def buffer(self) -> Array:
         cls = type(self)
-        addr = ctypes.addressof(self)
+        addr = addressof(self)
 
         # Annotate some types transformed by ctypes.Structure
         data_offset: int = cls.data.offset  # type: ignore
@@ -94,10 +91,10 @@ class PyUnicodeObject(PyObject):
 
         if self.compact:
             # Get the str subtype type mapping
-            subtype = self.kind.type()
+            subtype = Kind(self.kind).type_info()
             if self.ascii:
                 # ASCII buffer comes right after wstr
-                subtype = ctypes.c_char
+                subtype = c_char
                 addr += utf8_length_offset
             else:
                 # UCS1/2/4 buffer comes right after wstr

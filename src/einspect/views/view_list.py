@@ -1,12 +1,14 @@
 from __future__ import annotations
 
-from ctypes import Array
+from collections.abc import Sequence
+from ctypes import POINTER, addressof, memmove, sizeof
 from typing import TypeVar, overload
 
-from einspect.api import Py_ssize_t
+from einspect.api import seq_to_array
 from einspect.compat import abc
-from einspect.errors import UnsafeAttributeError
-from einspect.structs import PyListObject
+from einspect.structs import PyListObject, PyObject
+from einspect.types import Array, ptr
+from einspect.views.unsafe import unsafe
 from einspect.views.view_base import REF_DEFAULT, VarView
 
 __all__ = ("ListView",)
@@ -66,18 +68,24 @@ class ListView(VarView[list, None, _VT], abc.Sequence[_VT]):
         return self._pyobject.allocated  # type: ignore
 
     @allocated.setter
+    @unsafe
     def allocated(self, value: int) -> None:
-        if not self._unsafe:
-            raise UnsafeAttributeError.from_attr("allocated")
-        self._pyobject.allocated = value  # type: ignore
+        """Set the allocated size of the list."""
+        self._pyobject.allocated = value
 
     @property
-    def item(self) -> Array[Py_ssize_t]:
+    def item(self) -> Array[ptr[PyObject[_VT]]]:
         """Array of item pointers in the list."""
-        return self._pyobject.ob_item  # type: ignore
+        arr_type = POINTER(PyObject) * self.size
+        arr = arr_type.from_address(addressof(self._pyobject.ob_item.contents))
+        return arr
 
     @item.setter
-    def item(self, value: list) -> None:
-        if not self._unsafe:
-            raise UnsafeAttributeError.from_attr("item")
-        self._pyobject.ob_item = value
+    @unsafe
+    def item(
+        self, value: Array[ptr[PyObject]] | Sequence[ptr[PyObject]] | Sequence[object]
+    ) -> None:
+        if not isinstance(value, Array):
+            value = [PyObject.try_from(v).with_ref().as_ref() for v in value]
+            value = seq_to_array(value, POINTER(PyObject))
+        memmove(self._pyobject.ob_item, value, sizeof(value))

@@ -9,6 +9,7 @@ from typing_extensions import Annotated, Self
 
 from einspect.compat import Version, python_req
 from einspect.protocols.delayed_bind import bind_api
+from einspect.protocols.type_parse import is_ctypes_type
 from einspect.structs.deco import struct
 from einspect.structs.py_gc import PyGC_Head
 from einspect.structs.traits import AsRef
@@ -96,10 +97,32 @@ class PyObject(Structure, AsRef, Generic[_T, _KT, _VT]):
         addr = ctypes.addressof(gc) + ctypes.sizeof(PyGC_Head)
         return cls.from_address(addr)
 
+    @classmethod
+    def try_from(cls, obj_or_ptr: PyObject | ptr[PyObject] | object) -> Self:
+        """Create a PyObject from a PyObject, pointer to a PyObject, or object."""
+        # noinspection PyUnresolvedReferences
+        if isinstance(obj_or_ptr, ctypes._Pointer):
+            obj = obj_or_ptr.contents
+        else:
+            obj = obj_or_ptr
+        # For ctypes types
+        if is_ctypes_type(type(obj)):
+            if isinstance(obj, PyObject):
+                return cls.from_object(obj.into_object())
+            # raise if not a PyObject
+            raise TypeError(f"Cannot create PyObject from {obj_or_ptr!r}")
+        # For Python objects
+        return cls.from_object(obj)
+
     def into_object(self) -> _T:
         """Cast the PyObject into a Python object."""
         py_obj = ctypes.cast(self.as_ref(), ctypes.py_object)
         return py_obj.value
+
+    def with_ref(self, n: int = 1) -> Self:
+        """Increment the reference count of the PyObject by n. Return self."""
+        self.ob_refcnt += n
+        return self
 
     def is_gc(self) -> bool:
         """

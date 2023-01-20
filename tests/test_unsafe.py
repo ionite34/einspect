@@ -13,3 +13,16 @@ def test_unsafe_error():
         v.ref_count = 0
     # setter should not have run
     assert v.ref_count == current
+
+
+@pytest.mark.run_in_subprocess
+def test_change_type():
+    x = 2**28 + 5
+    v = view(x)
+    assert v.type is int
+    with v.unsafe() as v:
+        v.type = bool
+        assert isinstance(x, bool)
+        assert x - 5 == 2**28
+        v.type = int
+        assert isinstance(x, int)
