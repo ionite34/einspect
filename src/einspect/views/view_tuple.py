@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections.abc import MutableSequence
+from collections.abc import MutableSequence, Sequence
 from ctypes import Array, addressof, c_void_p, memmove, sizeof
 from typing import SupportsIndex, TypeVar, overload
 
@@ -153,12 +153,16 @@ class TupleView(VarView[tuple, None, _T], MutableSequence):
         self._pyobject.ob_item[norm_index] = PyObject.from_object(value).as_ref()
 
     @property
-    def item(self) -> Array[ptr[PyObject]]:
-        """The array of PyObject pointers."""
+    def item(self) -> Array[ptr[PyObject[_T]]]:
+        """The `ob_item` array of PyObject pointers."""
         return self._pyobject.ob_item
 
     @item.setter
     @unsafe
-    def item(self, value: Array[ptr[PyObject]]) -> None:
-        """Set the array of PyObject pointers."""
+    def item(
+        self, value: Array[ptr[PyObject]] | Sequence[ptr[PyObject]] | Sequence[object]
+    ) -> None:
+        """Set the `ob_item` array of PyObject pointers."""
+        if not isinstance(value, Array):
+            value = [PyObject.try_from(v).with_ref().as_ref() for v in value]
         self._pyobject.ob_item = value
