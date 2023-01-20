@@ -23,6 +23,7 @@ class PyTupleObject(PyVarObject[tuple, None, _VT]):
     """
 
     # Size of this array is only known after creation
+    # this field just serves to get the address of the array
     _ob_item_0: ptr[PyObject] * 0
 
     def _format_fields_(self) -> Fields:
