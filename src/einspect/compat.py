@@ -50,7 +50,6 @@ _V = TypeVar("_V", bound=Version)
 
 @dataclass
 class RequiresPythonVersion(Generic[_V]):
-    __slots__ = ("version",)
     version: _V
 
     def __msg__(self) -> str:
