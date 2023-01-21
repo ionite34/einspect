@@ -9,7 +9,8 @@ from contextlib import ExitStack
 from copy import deepcopy
 from ctypes import py_object
 from functools import cached_property
-from typing import Final, Generic, Type, TypeVar, get_type_hints
+from types import UnionType
+from typing import Final, Generic, Type, TypeVar, get_args, get_type_hints
 
 from einspect.api import Py, PyObj_FromPtr, align_size
 from einspect.errors import (
@@ -73,6 +74,9 @@ class View(BaseView[_T, _KT, _VT]):
     def __init__(self, obj: _T, ref: bool = REF_DEFAULT) -> None:
         super().__init__(obj, ref)
         struct_type = get_type_hints(self.__class__)["_pyobject"]
+        # For unions, use first type
+        if isinstance(struct_type, UnionType):
+            struct_type = get_args(struct_type)[0]
         self._pyobject = struct_type.from_object(obj)
         self.__dropped = False
         _ = self.mem_allocated  # cache allocated property
@@ -311,7 +315,7 @@ class AnyView(View[_T, None, None]):
             If (ref=False), and the object does not support weakrefs,
             accessing this attribute will require an unsafe context.
         """
-        return object.__sizeof__(self.base.value)
+        return object.__sizeof__(self.base)
 
     def __repr__(self) -> str:
         addr = self._pyobject.address
