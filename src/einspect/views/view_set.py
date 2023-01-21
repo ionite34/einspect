@@ -25,11 +25,13 @@ class SetView(View[set, None, _T]):
 
     @property
     def fill(self) -> int:
+        """Number active and dummy entries."""
         return self._pyobject.fill
 
     @fill.setter
     @unsafe
     def fill(self, value: int) -> None:
+        """Number active and dummy entries."""
         self._pyobject.fill = value
 
     @property
@@ -56,13 +58,20 @@ class SetView(View[set, None, _T]):
         arr = cast(self._pyobject.table, POINTER(SetEntry * size))
         return arr.contents
 
+    @table.setter
+    @unsafe
+    def table(self, value: Array[SetEntry[_T]]) -> None:
+        self._pyobject.table = ptr(value[0])
+
     @property
     def finger(self) -> int:
+        """Search finger for pop()"""
         return self._pyobject.finger
 
     @finger.setter
     @unsafe
     def finger(self, value: int) -> None:
+        """Set search finger for pop()"""
         self._pyobject.finger = value
 
     @property
