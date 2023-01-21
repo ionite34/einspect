@@ -72,6 +72,7 @@ class Formatter:
         try:
             return DISP_TRANSFORMS[type(obj)](obj)
         except KeyError:
+            # Fallback to repr
             return repr(obj)
 
     def format_attr(
