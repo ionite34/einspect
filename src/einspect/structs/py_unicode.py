@@ -209,6 +209,10 @@ class PyASCIIObject(PyObject[str, None, None]):
         Negative indices are not supported.
         """
 
+    @bind_api(pythonapi["PyUnicode_GetLength"])
+    def GetLength(self) -> int:
+        """Return the length of the string in code points."""
+
 
 @struct
 class PyCompactUnicodeObject(PyASCIIObject):
