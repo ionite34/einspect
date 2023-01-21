@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from ctypes import Structure, pointer
+from ctypes import Structure
 from typing import Generic, TypeVar
 
 from typing_extensions import Annotated
@@ -19,7 +19,7 @@ PySet_MINSIZE = 8
 
 @struct
 class SetEntry(Structure, AsRef, Generic[_T]):
-    key: pointer[PyObject[_T, None, None]]
+    key: ptr[PyObject[_T, None, None]]
     hash: Annotated[int, Py_hash_t]  # noqa: A003
 
 
