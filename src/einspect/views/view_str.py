@@ -151,12 +151,12 @@ class StrView(View[str, None, None], MutableSequence):
 
     @property
     def hash(self) -> int:
-        return self._pyobject.hash  # type: ignore
+        return self._pyobject.hash
 
     @hash.setter
     @unsafe
     def hash(self, value: int) -> None:
-        self._pyobject.hash = value  # type: ignore
+        self._pyobject.hash = value
 
     @property
     def interned(self) -> State:
