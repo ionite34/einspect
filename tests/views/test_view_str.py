@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 import pytest
 
 from einspect import view
@@ -34,3 +36,31 @@ class TestStrView(TestView):
         text = self.get_obj()
         str_view = view(text)
         assert str_view.buffer[:] == text.encode("ascii")
+
+
+def test_str_setitem():
+    s = uuid4().hex
+    orig_len = len(s)
+    v = StrView(s)
+    v[0] = "1"
+    v[-1] = "Z"
+    assert s[0] == "1"
+    assert s[-1] == "Z"
+
+    # Setting > 1 character should raise an error
+    with pytest.raises(ValueError):
+        v[0] = "123"
+    # But 0 characters should be fine (same as del)
+    v[0] = ""
+    assert len(s) == orig_len - 1
+
+
+def test_str_mutable_sequence():
+    s = uuid4().hex
+    orig_len = len(s)
+    last = s[-1]
+    v = StrView(s)
+    assert v.pop() == last
+    v.append("@")
+    assert s[-1] == "@"
+    assert len(s) == orig_len
