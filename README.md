@@ -41,9 +41,10 @@ PyListObject(at 0x2833738):
 ```
 
 [doc_tuple_view]: https://docs.ionite.io/einspect/api/views/view_tuple.html#einspect.views.view_tuple
+[doc_str_view]: https://docs.ionite.io/einspect/api/views/view_str.html#einspect.views.view_str
 [py_doc_mutable_seq]: https://docs.python.org/3/library/stdtypes.html#mutable-sequence-types
 ## Mutate tuples, strings, ints, or other immutable types
-> [TupleView][doc_tuple_view] supports all [MutableSequence][py_doc_mutable_seq] methods (append, extend, insert, pop, remove, reverse, clear).
+> [TupleView][doc_tuple_view] and [StrView][doc_str_view] supports all [MutableSequence][py_doc_mutable_seq] methods (append, extend, insert, pop, remove, reverse, clear).
 ```python
 from einspect import view
 
@@ -65,18 +66,28 @@ print(tup)      # (1, 2)
 v.clear()
 print(tup)      # ()
 ```
-
 ```python
 from einspect import view
 
 text = "hello"
-num = 100
 
-view(text).buffer[:] = b"world"
-view(num).value = 5
+v = view(text)
+v[1] = "3"
+v[4:] = "o~"
+v.append("!")
 
-print(text)  # world
-print(num)   # 5
+print(text)  # h3llo~!
+v.reverse()
+print(text)  # !~oll3h
+```
+```python
+from einspect import view
+
+n = 500
+view(n).value = 10
+
+print(500)        # 10
+print(500 == 10)  # True
 ```
 
 ## Modify attributes of built-in types, get original attributes with `orig`
