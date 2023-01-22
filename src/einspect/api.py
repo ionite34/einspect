@@ -4,7 +4,7 @@ from __future__ import annotations
 import ctypes
 from collections.abc import Sequence
 from ctypes import POINTER, Array, c_size_t, c_void_p, py_object, pythonapi, sizeof
-from typing import Callable, TypeVar, Union
+from typing import Any, Callable, TypeVar, Union
 
 import _ctypes
 from typing_extensions import Annotated
@@ -187,6 +187,15 @@ class Py:
 
 PyObj_FromPtr: Callable[[IntSize], object] = _ctypes.PyObj_FromPtr
 """(Py_ssize_t ptr) -> Py_ssize_t"""
+
+
+def address(obj: Any) -> int:
+    """Return the address of a python object. Same as id()."""
+    source = ctypes.py_object(obj)
+    addr = ctypes.c_void_p.from_buffer(source).value
+    if addr is None:
+        raise ValueError("address: NULL object")  # pragma: no cover
+    return addr
 
 
 def align_size(size: int, alignment: int = ALIGNMENT) -> int:
