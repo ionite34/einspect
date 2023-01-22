@@ -9,8 +9,7 @@ from contextlib import ExitStack
 from copy import deepcopy
 from ctypes import py_object
 from functools import cached_property
-from types import UnionType
-from typing import Final, Generic, Type, TypeVar, get_args, get_type_hints
+from typing import Final, Generic, Type, TypeVar, Union, get_args, get_type_hints
 
 from einspect.api import Py, PyObj_FromPtr, align_size
 from einspect.errors import (
@@ -75,7 +74,7 @@ class View(BaseView[_T, _KT, _VT]):
         super().__init__(obj, ref)
         struct_type = get_type_hints(self.__class__)["_pyobject"]
         # For unions, use first type
-        if isinstance(struct_type, UnionType):
+        if isinstance(struct_type, type(Union)):
             struct_type = get_args(struct_type)[0]
         self._pyobject = struct_type.from_object(obj)
         self.__dropped = False
