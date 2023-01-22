@@ -3,7 +3,7 @@ import gc
 import pytest
 
 from einspect import errors, structs, view
-from einspect.views.view_base import VarView, View
+from einspect.views.view_base import AnyView, VarView, View
 
 
 class TestView:
@@ -61,18 +61,6 @@ class TestView:
         v = self.view_type(obj, ref=True)
         assert v.base is obj
 
-    def test_base_weakref(self):
-        """Access base after weakref is deleted."""
-
-        class A:
-            pass
-
-        obj = A()
-        v = self.view_type(obj, ref=False)
-        del obj
-        with pytest.raises(errors.MovedError):
-            _ = v.base
-
     def test_base_no_ref(self):
         """Access base with no ref should require unsafe."""
         obj = self.get_obj()
@@ -117,3 +105,16 @@ class TestView:
         if not v.is_gc():
             assert not v.gc_is_tracked()
             assert not v.gc_may_be_tracked()
+
+
+def test_base_weakref():
+    """Access base after weakref is deleted."""
+
+    class A:
+        pass
+
+    obj = A()
+    v = AnyView(obj, ref=False)
+    del obj
+    with pytest.raises(errors.MovedError):
+        _ = v.base

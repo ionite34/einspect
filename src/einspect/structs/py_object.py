@@ -23,6 +23,7 @@ Fields = Dict[str, Union[str, Tuple[str, Type]]]
 _T = TypeVar("_T")
 _KT = TypeVar("_KT")
 _VT = TypeVar("_VT")
+_ST = TypeVar("_ST", bound=Structure)
 
 
 @struct
@@ -118,6 +119,10 @@ class PyObject(Structure, AsRef, Generic[_T, _KT, _VT]):
         """Cast the PyObject into a Python object."""
         py_obj = ctypes.cast(self.as_ref(), ctypes.py_object)
         return py_obj.value
+
+    def astype(self, dtype: Type[_ST]) -> _ST:
+        """Cast the PyObject into another PyObject type."""
+        return dtype.from_address(self.address)
 
     def with_ref(self, n: int = 1) -> Self:
         """Increment the reference count of the PyObject by n. Return self."""

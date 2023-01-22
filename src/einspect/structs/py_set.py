@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from ctypes import Array, Structure, pointer
+from ctypes import Structure
 from typing import Generic, TypeVar
 
 from typing_extensions import Annotated
@@ -8,6 +8,7 @@ from typing_extensions import Annotated
 from einspect.api import Py_hash_t
 from einspect.structs.deco import struct
 from einspect.structs.py_object import PyObject
+from einspect.structs.traits import AsRef
 from einspect.types import ptr
 
 _T = TypeVar("_T")
@@ -17,17 +18,13 @@ PySet_MINSIZE = 8
 
 
 @struct
-class SetEntry(Structure, Generic[_T]):
-    key: pointer[PyObject[_T, None, None]]
+class SetEntry(Structure, AsRef, Generic[_T]):
+    key: ptr[PyObject[_T, None, None]]
     hash: Annotated[int, Py_hash_t]  # noqa: A003
 
 
-@struct(
-    fields=[
-        ("smalltable", SetEntry * PySet_MINSIZE),
-    ]
-)
-class PySetObject(PyObject[set, None, _T]):
+@struct
+class PySetObject(PyObject[set, None, _T], AsRef):
     """
     Defines a PySetObject Structure.
 
@@ -40,7 +37,7 @@ class PySetObject(PyObject[set, None, _T]):
     table: ptr[SetEntry[_T]]
     hash: Annotated[int, Py_hash_t]  # noqa: A003
     finger: int
-    smalltable: Array[SetEntry[_T]]
+    smalltable: SetEntry * PySet_MINSIZE
     weakreflist: ptr[PyObject]
 
     @classmethod

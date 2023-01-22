@@ -12,18 +12,87 @@ from ctypes import (
     c_uint32,
     c_void_p,
     c_wchar,
+    c_wchar_p,
+    cast,
+    pythonapi,
+    sizeof,
 )
 from enum import IntEnum
 from typing import Type
 
 from typing_extensions import Annotated
 
+from einspect.protocols import bind_api
 from einspect.structs.deco import struct
 from einspect.structs.py_object import PyObject
 from einspect.types import Array, ptr
 
 
+def _PyUnicode_UTF8(obj: PyASCIIObject) -> c_char_p:
+    return obj.astype(PyCompactUnicodeObject).utf8
+
+
+def _PyUnicode_COMPACT_DATA(obj: PyASCIIObject) -> c_void_p:
+    """Return a void pointer to the raw unicode buffer."""
+    if obj.ascii:
+        end = obj.address + sizeof(PyASCIIObject)
+        return cast(end, c_void_p)
+    return cast(obj.astype(PyCompactUnicodeObject).address + 1, c_void_p)
+
+
+def _PyUnicode_NONCOMPACT_DATA(obj: PyASCIIObject) -> c_void_p:
+    assert not obj.compact
+    data = obj.astype(PyUnicodeObject).data.any
+    assert data
+    return data
+
+
+def PyUnicode_DATA(obj: PyASCIIObject) -> c_void_p:
+    if obj.compact:
+        return _PyUnicode_COMPACT_DATA(obj)
+    return _PyUnicode_NONCOMPACT_DATA(obj)
+
+
+def PyUnicode_IS_COMPACT_ASCII(obj: PyASCIIObject) -> bool:
+    return bool(obj.compact & obj.ascii)
+
+
+def _PyUnicode_HAS_UTF8_MEMORY(obj: PyASCIIObject) -> bool:
+    return (
+        not PyUnicode_IS_COMPACT_ASCII(obj)
+        and _PyUnicode_UTF8(obj)
+        and cast(_PyUnicode_UTF8(obj), c_void_p) != PyUnicode_DATA(obj)
+    )
+
+
+def _PyUnicode_UTF8_LENGTH(obj):
+    return obj.astype(PyCompactUnicodeObject).utf8_length
+
+
+def PyUnicode_UTF8_LENGTH(obj: PyASCIIObject) -> int:
+    assert obj.ready
+    if PyUnicode_IS_COMPACT_ASCII(obj):
+        return obj.length
+    return _PyUnicode_UTF8_LENGTH(obj)
+
+
+def _PyUnicode_HAS_WSTR_MEMORY(obj: PyASCIIObject) -> bool:
+    """Return True if the unicode object has an allocated wstr memory block."""
+    return obj.wstr and (
+        not obj.ready
+        or addressof(cast(obj.wstr, c_void_p)) != addressof(PyUnicode_DATA(obj))
+    )
+
+
+def PyUnicode_WSTR_LENGTH(obj: PyASCIIObject) -> int:
+    if PyUnicode_IS_COMPACT_ASCII(obj):
+        return obj.length
+    return obj.astype(PyCompactUnicodeObject).wstr_length
+
+
 class State(IntEnum):
+    """State of the string object (SSTATE constants)."""
+
     NOT_INTERNED = 0
     INTERNED_MORTAL = 1
     INTERNED_IMMORTAL = 2
@@ -59,7 +128,7 @@ class LegacyUnion(Union):
 
 
 @struct
-class PyUnicodeObject(PyObject):
+class PyASCIIObject(PyObject[str, None, None]):
     """
     Defines a PyUnicodeObject Structure
     """
@@ -72,22 +141,41 @@ class PyUnicodeObject(PyObject):
     ascii: Annotated[int, c_uint, 1]
     ready: Annotated[int, c_uint, 1]
     padding: Annotated[int, c_uint, 24]
-    wstr: ptr[c_wchar]
-    # Fields after this do not exist if ascii
-    utf8_length: int
-    utf8: c_char_p
-    wstr_length: int
-    # Fields after this do not exist if compact
-    data: LegacyUnion
+    wstr: c_wchar_p
+
+    @property
+    def mem_size(self) -> int:
+        """
+        Return the size of the memory allocated for the string.
+
+        Should match `unicode_sizeof_impl`
+        https://github.com/python/cpython/blob/3.11/Objects/unicodeobject.c#L14120-L14149
+        """
+        if self.compact and self.ascii:
+            size = sizeof(PyASCIIObject) + self.length + 1
+        elif self.compact:
+            size = sizeof(PyCompactUnicodeObject) + (self.length + 1) * Kind(self.kind)
+        else:
+            # If it is a two-block object, account for base object, and
+            # for character block if present.
+            size = sizeof(PyUnicodeObject)
+            if self.astype(PyUnicodeObject).data.any:
+                size += self.length * Kind(self.kind)
+
+        # If the wstr pointer is present, account for it unless it is shared
+        # with the data pointer. Check if the data is not shared.
+        if _PyUnicode_HAS_WSTR_MEMORY(self):
+            size += (PyUnicode_WSTR_LENGTH(self) + 1) * sizeof(c_wchar)
+        if _PyUnicode_HAS_UTF8_MEMORY(self):
+            size += PyUnicode_UTF8_LENGTH(self) + 1
+
+        return size
 
     @property
     def buffer(self) -> Array:
-        cls = type(self)
+        utf8_length_offset: int = PyUnicodeObject.utf8_length.offset  # type: ignore
+        data_offset: int = PyUnicodeObject.data.offset  # type: ignore
         addr = addressof(self)
-
-        # Annotate some types transformed by ctypes.Structure
-        data_offset: int = cls.data.offset  # type: ignore
-        utf8_length_offset: int = cls.utf8_length.offset  # type: ignore
 
         if self.compact:
             # Get the str subtype type mapping
@@ -112,3 +200,37 @@ class PyUnicodeObject(PyObject):
             return self.data.ucs4  # type: ignore
 
         raise ValueError(f"Unknown kind: {self.kind}")
+
+    @bind_api(pythonapi["PyUnicode_Substring"])
+    def Substring(self, start: int, end: int) -> PyUnicodeObject:
+        """
+        Return a substring from index start to character index end (excluded).
+
+        Negative indices are not supported.
+        """
+
+    @bind_api(pythonapi["PyUnicode_GetLength"])
+    def GetLength(self) -> int:
+        """Return the length of the string in code points."""
+
+
+@struct
+class PyCompactUnicodeObject(PyASCIIObject):
+    """
+    Defines a PyCompactUnicodeObject Structure
+
+    Non-ASCII strings allocated through PyUnicode_New use the
+    PyCompactUnicodeObject structure. state.compact is set, and the data
+    immediately follow the structure.
+    """
+
+    utf8_length: int  # Number of bytes in utf8, excluding the \0
+    utf8: c_char_p  # UTF-8 representation (null-terminated)
+    wstr_length: int  # Number of characters in wstr, surrogates count as two code points
+
+
+@struct
+class PyUnicodeObject(PyCompactUnicodeObject):
+    """Defines a PyUnicodeObject Structure."""
+
+    data: LegacyUnion
