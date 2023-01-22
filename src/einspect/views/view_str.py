@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import MutableSequence
 from ctypes import Array
-from typing import Iterable, SupportsIndex, TypeVar, overload
+from typing import Iterable, SupportsIndex, TypeVar, Union, overload
 
 from einspect.api import Py_ssize_t
 from einspect.errors import UnsafeError
@@ -22,7 +22,7 @@ _T = TypeVar("_T")
 
 
 class StrView(View[str, None, None], MutableSequence):
-    _pyobject: PyASCIIObject | PyCompactUnicodeObject | PyUnicodeObject
+    _pyobject: Union[PyASCIIObject, PyCompactUnicodeObject, PyUnicodeObject]
 
     def __init__(self, obj: str, ref: bool = REF_DEFAULT) -> None:
         """View a Python string object."""
