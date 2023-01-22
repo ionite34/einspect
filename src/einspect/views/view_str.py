@@ -32,13 +32,13 @@ class StrView(View[str, None, None], MutableSequence):
 
     def _narrow_type(self) -> None:
         # Narrow to a more specific unicode type if possible
-        if self._pyobject.ascii:
-            self._pyobject = self._pyobject.astype(PyASCIIObject)
-        else:
-            if self._pyobject.compact:
-                self._pyobject = self._pyobject.astype(PyCompactUnicodeObject)
+        if self._pyobject.compact:
+            if self._pyobject.ascii:
+                self._pyobject = self._pyobject.astype(PyASCIIObject)
             else:
-                self._pyobject = self._pyobject.astype(PyUnicodeObject)
+                self._pyobject = self._pyobject.astype(PyCompactUnicodeObject)
+        else:
+            self._pyobject = self._pyobject.astype(PyUnicodeObject)
 
     def __len__(self) -> int:
         return self._pyobject.GetLength()
