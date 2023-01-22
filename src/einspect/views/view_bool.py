@@ -1,7 +1,7 @@
 from __future__ import annotations
 
+from einspect.api import address
 from einspect.structs import PyBoolObject
-from einspect.utils import address
 from einspect.views.view_int import IntView
 
 __all__ = ("BoolView",)
