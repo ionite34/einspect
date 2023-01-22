@@ -98,7 +98,7 @@ class PyTypeObject(PyVarObject[_T, None, None]):
     tp_dict: ptr[PyObject]
     tp_descr_get: descrgetfunc
     tp_descr_set: descrsetfunc
-    tp_dict_offset: int
+    tp_dictoffset: int
     tp_init: initproc
     tp_alloc: allocfunc
     tp_new: newfunc

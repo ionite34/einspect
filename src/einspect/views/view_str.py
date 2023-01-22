@@ -51,7 +51,7 @@ class StrView(View[str, None, None], MutableSequence):
     _pyobject: Union[PyASCIIObject, PyCompactUnicodeObject, PyUnicodeObject]
 
     def __init__(self, obj: str, ref: bool = REF_DEFAULT) -> None:
-        """View a Python string object."""
+        """View a string object."""
         super().__init__(obj, ref)
         # Start with PyASCIIObject, check if we can use a more specific type
         self._narrow_type()

@@ -5,7 +5,6 @@ from ctypes import (
     addressof,
     c_char,
     c_char_p,
-    c_int64,
     c_uint,
     c_uint8,
     c_uint16,
@@ -22,9 +21,10 @@ from typing import Type
 
 from typing_extensions import Annotated
 
+from einspect.api import Py_hash_t
 from einspect.protocols import bind_api
 from einspect.structs.deco import struct
-from einspect.structs.py_object import PyObject
+from einspect.structs.py_object import Fields, PyObject
 from einspect.types import Array, ptr
 
 
@@ -134,7 +134,7 @@ class PyASCIIObject(PyObject[str, None, None]):
     """
 
     length: int
-    hash: Annotated[int, c_int64]
+    hash: Annotated[int, Py_hash_t]
     interned: Annotated[int, c_uint, 2]
     kind: Annotated[int, c_uint, 3]
     compact: Annotated[int, c_uint, 1]
@@ -142,6 +142,20 @@ class PyASCIIObject(PyObject[str, None, None]):
     ready: Annotated[int, c_uint, 1]
     padding: Annotated[int, c_uint, 24]
     wstr: c_wchar_p
+
+    def _format_fields_(self) -> Fields:
+        return {
+            **super()._format_fields_(),
+            "length": "Py_ssize_t",
+            "hash": "Py_hash_t",
+            "interned": "c_uint:2",
+            "kind": "c_uint:3",
+            "compact": "c_uint:1",
+            "ascii": "c_uint:1",
+            "ready": "c_uint:1",
+            "padding": "c_uint:24",
+            "wstr": "c_wchar_p",
+        }
 
     @property
     def mem_size(self) -> int:
@@ -228,9 +242,25 @@ class PyCompactUnicodeObject(PyASCIIObject):
     utf8: c_char_p  # UTF-8 representation (null-terminated)
     wstr_length: int  # Number of characters in wstr, surrogates count as two code points
 
+    def _format_fields_(self) -> Fields:
+        return {
+            **super()._format_fields_(),
+            "utf8_length": "Py_ssize_t",
+            "utf8": "c_char_p",
+            "wstr_length": "Py_ssize_t",
+        }
+
 
 @struct
 class PyUnicodeObject(PyCompactUnicodeObject):
     """Defines a PyUnicodeObject Structure."""
 
     data: LegacyUnion
+
+    def _format_fields_(self) -> Fields:
+        return {
+            **super()._format_fields_(),
+            "utf8_length": "Py_ssize_t",
+            "utf8": "c_char_p",
+            "wstr_length": "Py_ssize_t",
+        }
