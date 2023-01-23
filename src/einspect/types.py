@@ -74,6 +74,19 @@ if Version.PY_3_9.above():  # pragma: no cover
             raise NotImplementedError
 
 
+# subclasses of ctypes types to avoid Structure auto casting
+class void_p(ctypes.c_void_p):
+    pass
+
+
+class wchar_p(ctypes.c_wchar_p):
+    pass
+
+
+class char_p(ctypes.c_char_p):
+    pass
+
+
 if not TYPE_CHECKING:
     # Runtime overrides
     globals().update(
