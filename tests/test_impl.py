@@ -25,6 +25,14 @@ def test_impl_new_property():
     assert (10)._custom_as_str == "10"
 
 
+def test_impl_error():
+    with pytest.raises(TypeError, match="cls must be a type"):
+        # noinspection PyTypeChecker
+        @impl(1)
+        def _foo_fn(self):
+            pass
+
+
 @pytest.mark.run_in_subprocess
 def test_impl_func():
     # Implement an override for list __add__
