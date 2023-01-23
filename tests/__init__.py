@@ -1,5 +1,10 @@
 import ctypes
+from textwrap import dedent
 from typing import Any
+
+
+def dedent_text(s: str):
+    return dedent(s).strip()
 
 
 def get_addr(cfunc):

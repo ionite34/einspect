@@ -1,16 +1,13 @@
 from textwrap import dedent
 
 from einspect import view
-
-
-def inline(s: str):
-    return dedent(s).strip()
+from tests import dedent_text
 
 
 def test_info_int():
     x = 2**32
     info = view(x).info()
-    assert info == inline(
+    assert info == dedent_text(
         f"""
         PyLongObject (at {hex(id(x))}):
            ob_refcnt: Py_ssize_t = 3
@@ -24,7 +21,7 @@ def test_info_int():
 def test_info_list():
     x = [1, "A"]
     info = view(x).info()
-    assert info == inline(
+    assert info == dedent_text(
         f"""
         PyListObject (at {hex(id(x))}):
            ob_refcnt: Py_ssize_t = 2

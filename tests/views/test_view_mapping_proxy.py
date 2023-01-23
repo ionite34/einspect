@@ -5,6 +5,7 @@ from types import MappingProxyType
 import pytest
 
 from einspect.views.view_mapping_proxy import MappingProxyView
+from tests import dedent_text
 from tests.views.test_view_base import TestView
 
 
@@ -58,3 +59,16 @@ class TestMappingProxyView(TestView):
         del v["a"]
         assert "a" not in v
         assert "a" not in d
+
+    def test_info(self):
+        d = {"a": 1, "b": 2}
+        obj = MappingProxyType(d)
+        v = self.view_type(obj)
+        assert v.info() == dedent_text(
+            f"""
+            MappingProxyObject (at {hex(id(obj))}):
+               ob_refcnt: Py_ssize_t = 2
+               ob_type: *PyTypeObject = &[mappingproxy]
+               mapping: *PyDictObject = &[{{'a': 1, 'b': 2}}]
+            """
+        )
