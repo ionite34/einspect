@@ -64,11 +64,10 @@ class orig:
             return _type
 
         # Check if the attribute is cached
-        if in_cache(_type, name):
-            try:
-                return get_cache(_type, name)
-            except KeyError:
-                pass
+        try:
+            return get_cache(_type, name)
+        except KeyError:
+            pass
         # Get the attribute from the original type and cache it
         attr = getattr(_type, name)
         add_cache(_type, name, attr)

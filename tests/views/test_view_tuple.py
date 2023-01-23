@@ -31,6 +31,14 @@ class TestTupleView(TestView):
         assert v[:2] == obj[:2]
         assert v[:] == obj[:]
 
+    def test_set_item(self):
+        obj = self.get_obj()
+        v = self.view_type(obj)
+        with v.unsafe():
+            v.item = ["A", "B", "C"]
+        assert v[0] == "A"
+        assert obj == ("A", "B", "C")
+
     def test_get_item_error(self):
         obj = self.get_obj()
         v = self.view_type(obj)
@@ -38,9 +46,8 @@ class TestTupleView(TestView):
             _ = v[len(obj)]
 
 
-@pytest.mark.run_in_subprocess
 def test_tuple_setitem():
-    tup = ("test", 1, 2.0)
+    tup = literal_eval('("test", 1, 2.0)')
     v = view(tup)
     v[0] = "hm"
     v[1] = 4
@@ -50,13 +57,14 @@ def test_tuple_setitem():
     assert tup == (123, 456)
 
 
-@pytest.mark.run_in_subprocess
 def test_tuple_mutable_sequence():
-    tup = (1, 2)
+    tup = literal_eval("(1, 2, 0)")
     v = view(tup)
+    assert v.pop() == 0
     v.append(3)
     assert tup == (1, 2, 3)
 
+    # Extending too much
     with pytest.raises(UnsafeError):
         v.extend([1, 2, 3, 4, 5])
 

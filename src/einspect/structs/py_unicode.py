@@ -5,14 +5,12 @@ from ctypes import (
     addressof,
     c_char,
     c_char_p,
-    c_int64,
     c_uint,
     c_uint8,
     c_uint16,
     c_uint32,
     c_void_p,
     c_wchar,
-    c_wchar_p,
     cast,
     pythonapi,
     sizeof,
@@ -22,10 +20,11 @@ from typing import Type
 
 from typing_extensions import Annotated
 
+from einspect.api import Py_hash_t
 from einspect.protocols import bind_api
 from einspect.structs.deco import struct
-from einspect.structs.py_object import PyObject
-from einspect.types import Array, ptr
+from einspect.structs.py_object import Fields, PyObject
+from einspect.types import Array, char_p, ptr, void_p, wchar_p
 
 
 def _PyUnicode_UTF8(obj: PyASCIIObject) -> c_char_p:
@@ -61,11 +60,11 @@ def _PyUnicode_HAS_UTF8_MEMORY(obj: PyASCIIObject) -> bool:
     return (
         not PyUnicode_IS_COMPACT_ASCII(obj)
         and _PyUnicode_UTF8(obj)
-        and cast(_PyUnicode_UTF8(obj), c_void_p) != PyUnicode_DATA(obj)
+        and cast(_PyUnicode_UTF8(obj), c_void_p).value != PyUnicode_DATA(obj).value
     )
 
 
-def _PyUnicode_UTF8_LENGTH(obj):
+def _PyUnicode_UTF8_LENGTH(obj) -> int:
     return obj.astype(PyCompactUnicodeObject).utf8_length
 
 
@@ -78,10 +77,7 @@ def PyUnicode_UTF8_LENGTH(obj: PyASCIIObject) -> int:
 
 def _PyUnicode_HAS_WSTR_MEMORY(obj: PyASCIIObject) -> bool:
     """Return True if the unicode object has an allocated wstr memory block."""
-    return obj.wstr and (
-        not obj.ready
-        or addressof(cast(obj.wstr, c_void_p)) != addressof(PyUnicode_DATA(obj))
-    )
+    return obj.wstr and (not obj.ready or obj.wstr != PyUnicode_DATA(obj))
 
 
 def PyUnicode_WSTR_LENGTH(obj: PyASCIIObject) -> int:
@@ -121,7 +117,7 @@ class Kind(IntEnum):
 
 @struct
 class LegacyUnion(Union):
-    any: c_void_p
+    any: void_p
     latin1: ptr[c_uint8]  # Py_UCS1
     ucs2: ptr[c_uint16]  # Py_UCS2
     ucs4: ptr[c_uint32]  # Py_UCS4
@@ -134,14 +130,28 @@ class PyASCIIObject(PyObject[str, None, None]):
     """
 
     length: int
-    hash: Annotated[int, c_int64]
+    hash: Annotated[int, Py_hash_t]
     interned: Annotated[int, c_uint, 2]
     kind: Annotated[int, c_uint, 3]
     compact: Annotated[int, c_uint, 1]
     ascii: Annotated[int, c_uint, 1]
     ready: Annotated[int, c_uint, 1]
     padding: Annotated[int, c_uint, 24]
-    wstr: c_wchar_p
+    wstr: wchar_p
+
+    def _format_fields_(self) -> Fields:
+        return {
+            **super()._format_fields_(),
+            "length": "Py_ssize_t",
+            "hash": "Py_hash_t",
+            "interned": "c_uint:2",
+            "kind": "c_uint:3",
+            "compact": "c_uint:1",
+            "ascii": "c_uint:1",
+            "ready": "c_uint:1",
+            "padding": "c_uint:24",
+            "wstr": "c_wchar_p",
+        }
 
     @property
     def mem_size(self) -> int:
@@ -160,7 +170,7 @@ class PyASCIIObject(PyObject[str, None, None]):
             # for character block if present.
             size = sizeof(PyUnicodeObject)
             if self.astype(PyUnicodeObject).data.any:
-                size += self.length * Kind(self.kind)
+                size += (self.length + 1) * Kind(self.kind)
 
         # If the wstr pointer is present, account for it unless it is shared
         # with the data pointer. Check if the data is not shared.
@@ -225,8 +235,16 @@ class PyCompactUnicodeObject(PyASCIIObject):
     """
 
     utf8_length: int  # Number of bytes in utf8, excluding the \0
-    utf8: c_char_p  # UTF-8 representation (null-terminated)
+    utf8: char_p  # UTF-8 representation (null-terminated)
     wstr_length: int  # Number of characters in wstr, surrogates count as two code points
+
+    def _format_fields_(self) -> Fields:
+        return {
+            **super()._format_fields_(),
+            "utf8_length": "Py_ssize_t",
+            "utf8": "c_char_p",
+            "wstr_length": "Py_ssize_t",
+        }
 
 
 @struct
@@ -234,3 +252,11 @@ class PyUnicodeObject(PyCompactUnicodeObject):
     """Defines a PyUnicodeObject Structure."""
 
     data: LegacyUnion
+
+    def _format_fields_(self) -> Fields:
+        return {
+            **super()._format_fields_(),
+            "utf8_length": "Py_ssize_t",
+            "utf8": "c_char_p",
+            "wstr_length": "Py_ssize_t",
+        }

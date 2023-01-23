@@ -32,14 +32,14 @@ class ListView(VarView[list, None, _VT], abc.Sequence[_VT]):
 
     def __getitem__(self, index: int | slice) -> _VT | list[_VT]:
         if isinstance(index, int):
-            ptr = self._pyobject.GetItem(index)
-            return ptr.contents.into_object()
+            obj_ptr = self._pyobject.GetItem(index)
+            return obj_ptr.contents.into_object()
         elif isinstance(index, slice):
             # Normalize slice start and stop
             start = index.start if index.start is not None else 0
             stop = index.stop if index.stop is not None else self.size
-            ptr = self._pyobject.GetSlice(start, stop)
-            ls = ptr.contents.into_object()
+            obj_ptr = self._pyobject.GetSlice(start, stop)
+            ls = obj_ptr.contents.into_object()
             # Get step if provided
             if index.step is not None:
                 ls = ls[:: index.step]
