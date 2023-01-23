@@ -9,7 +9,7 @@ from contextlib import ExitStack
 from copy import deepcopy
 from ctypes import py_object
 from functools import cached_property
-from typing import Final, Generic, Type, TypeVar, get_args, get_type_hints
+from typing import Any, Final, Generic, Type, TypeVar, get_args, get_type_hints
 
 from einspect.api import Py, PyObj_FromPtr, align_size
 from einspect.errors import (
@@ -87,7 +87,10 @@ class View(BaseView[_T, _KT, _VT]):
     def __repr__(self) -> str:
         addr = self._pyobject.address
         py_obj_cls = self._pyobject.__class__.__name__
-        return f"{self.__class__.__name__}(<{py_obj_cls} at 0x{addr:x}>)"
+        # If we have an instance dict (subclass), include base type in repr
+        has_dict = self._pyobject.ob_type.contents.tp_dictoffset != 0
+        base = f"[{self._base_type.__name__}]" if has_dict else ""
+        return f"{self.__class__.__name__}{base}(<{py_obj_cls} at {addr:#04x}>)"
 
     def info(self, types: bool = True, arr_max: int | None = 64) -> str:
         """
@@ -193,6 +196,27 @@ class View(BaseView[_T, _KT, _VT]):
     def mem_allocated(self) -> int:
         """Memory allocated for the object in bytes."""
         return align_size(self.mem_size)
+
+    @property
+    def instance_dict(self) -> dict[str, Any] | None:
+        """Instance Dictionary of the object."""
+        if self._pyobject.ob_type.contents.tp_dictoffset == 0:
+            cls = self._base_type.__name__
+            raise TypeError(
+                f"Object type {cls!r} does not support an instance dictionary."
+            )
+        ref = self._pyobject.instance_dict()
+        return ref.contents.into_object() if ref else None
+
+    @instance_dict.setter
+    def instance_dict(self, value: dict[str, Any]) -> None:
+        """Set the instance dictionary of the object."""
+        if self._pyobject.ob_type.contents.tp_dictoffset == 0:
+            cls = self._base_type.__name__
+            raise TypeError(
+                f"Object type {cls!r} does not support an instance dictionary."
+            )
+        self._pyobject.instance_dict().contents = PyObject.from_object(value).with_ref()
 
     def is_gc(self) -> bool:
         """
@@ -323,7 +347,8 @@ class AnyView(View[_T, None, None]):
     def __repr__(self) -> str:
         addr = self._pyobject.address
         py_obj_cls = self._pyobject.__class__.__name__
-        return f"{self.__class__.__name__}[{self._base_type.__name__}](<{py_obj_cls} at 0x{addr:x}>)"
+        base = f"[{self._base_type.__name__}]"
+        return f"{self.__class__.__name__}{base}(<{py_obj_cls} at {addr:#04x}>)"
 
 
 class SupportsSubtype:
