@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from ctypes import pointer
 from types import MappingProxyType
 from typing import TypeVar
 
@@ -47,4 +46,4 @@ class MappingProxyView(View[MappingProxyType, _KT, _VT], abc.MutableMapping[_KT,
     @mapping.setter
     @unsafe
     def mapping(self, value: dict[_KT, _VT]) -> None:
-        self._pyobject.mapping = pointer(PyDictObject.from_object(value))
+        self._pyobject.mapping = PyDictObject.from_object(value).with_ref().as_ref()
