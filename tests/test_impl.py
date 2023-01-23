@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import pytest
 
-from einspect import impl, orig
+from einspect import impl, orig, view
 
 
 def test_impl_new_func():
@@ -23,6 +23,19 @@ def test_impl_new_property():
 
     # noinspection PyUnresolvedReferences
     assert (10)._custom_as_str == "10"
+
+
+# noinspection PyUnresolvedReferences
+def test_impl_new_slot():
+    UserType = type("UserType", (object,), {})
+    obj = UserType()
+
+    @impl(UserType)
+    def __getitem__(self, item) -> str:
+        return item
+
+    assert obj[0] == 0
+    assert obj[1] == 1
 
 
 def test_impl_error():
