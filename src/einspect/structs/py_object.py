@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Any, Dict, Generic, List, Tuple, Type, TypeVar
 
 from typing_extensions import Annotated, Self
 
-from einspect.api import align_size
+from einspect.api import PTR_SIZE, align_size
 from einspect.compat import Version, python_req
 from einspect.protocols.delayed_bind import bind_api
 from einspect.protocols.type_parse import is_ctypes_type
@@ -168,6 +168,9 @@ class PyObject(Structure, AsRef, Generic[_T, _KT, _VT]):
         """
         Return the instance dict of the PyObject.
 
+        An offset override can be set by `__st_dictoffset__`. It should be
+        relative to the address of the PyObject.
+
         https://docs.python.org/3/c-api/typeobj.html#c.PyTypeObject.tp_dictoffset
         """
         # Get the tp_dictoffset of the type
@@ -180,13 +183,14 @@ class PyObject(Structure, AsRef, Generic[_T, _KT, _VT]):
             addr = self.address + offset
         # For < 0, start after the struct
         else:
-            # add pointer size to mem_size since we have an instance dict
-            # mem_size = self.mem_size + ctypes.sizeof(c_void_p)
-            # align size to pointer size
-            size = align_size(self.mem_size, ctypes.sizeof(c_void_p))
-            # Increase size by pointer size since mem_size at this point
-            # excludes the instance dict (unlike __sizeof__)
-            size += ctypes.sizeof(c_void_p)
+            # If not a PyVarObject, use __basic_size__ instead
+            if getattr(self, "ob_size", None) is None:
+                size = self.ob_type.contents.tp_basicsize
+            else:
+                size = align_size(self.mem_size, PTR_SIZE)
+                # Increase size by pointer size since mem_size at this point
+                # excludes the instance dict (unlike __sizeof__)
+                size += PTR_SIZE
             addr = self.address + size + offset
         # Return the pointer
         return POINTER(PyObject).from_address(addr)
