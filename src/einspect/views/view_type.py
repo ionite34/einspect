@@ -53,7 +53,7 @@ class TypeView(VarView[_T, None, None]):
         """Return True if the type is immutable."""
         if Version.PY_3_10.above():
             return bool(self._pyobject.tp_flags & TpFlags.IMMUTABLETYPE)
-        return not bool(self._pyobject.tp_flags & TpFlags.HEAPTYPE)
+        return not bool(self._pyobject.tp_flags & TpFlags.HEAPTYPE)  # pragma: no cover
 
     @immutable.setter
     def immutable(self, value: bool):
@@ -63,7 +63,7 @@ class TypeView(VarView[_T, None, None]):
                 self._pyobject.tp_flags |= TpFlags.IMMUTABLETYPE
             else:
                 self._pyobject.tp_flags &= ~TpFlags.IMMUTABLETYPE
-        else:
+        else:  # pragma: no cover
             if value:
                 self._pyobject.tp_flags &= ~TpFlags.HEAPTYPE
             else:

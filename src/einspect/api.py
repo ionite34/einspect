@@ -35,6 +35,9 @@ Py_hash_t = ctypes.c_ssize_t
 uintptr_t = ctypes.c_uint64
 """Constant for type uintptr_t."""
 
+PTR_SIZE = sizeof(c_void_p)
+"""Size of a pointer in bytes."""
+
 ObjectOrRef = Union[py_object, object]
 IntSize = Union[int, Py_ssize_t]
 PyObjectPtr = POINTER(py_object)

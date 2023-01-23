@@ -90,6 +90,7 @@ class Formatter:
         # If cast_to provided
         if type_cast is not None:
             value = cast(value, type_cast)
+            value = getattr(value, "value", value)
 
         res = f"{attr}{type_str} = {self.format_value(value)}"
         return res

@@ -28,6 +28,13 @@ class TestTypeView(TestView):
         v_user = self.view_type(self.get_user_cls())
         assert v_user.immutable is False
 
+    def test_as_mutable_bypass(self):
+        # Already mutable types should not be affected
+        v = self.view_type(self.get_user_cls())
+        assert v.immutable is False
+        with v.as_mutable():
+            assert v.immutable is False
+
     def test_getitem(self):
         # Test getitem for getting type attributes
         v = self.view_type(int)

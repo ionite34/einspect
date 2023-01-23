@@ -2,11 +2,12 @@
 from __future__ import annotations
 
 import ctypes
-from ctypes import Structure, c_void_p, pythonapi
-from typing import TYPE_CHECKING, Dict, Generic, List, Tuple, Type, TypeVar, Union
+from ctypes import POINTER, Structure, c_void_p, pythonapi
+from typing import TYPE_CHECKING, Any, Dict, Generic, List, Tuple, Type, TypeVar, Union
 
 from typing_extensions import Annotated, Self
 
+from einspect.api import PTR_SIZE, align_size
 from einspect.compat import Version, python_req
 from einspect.protocols.delayed_bind import bind_api
 from einspect.protocols.type_parse import is_ctypes_type
@@ -162,6 +163,37 @@ class PyObject(Structure, AsRef, Generic[_T, _KT, _VT]):
         if self.ob_type.contents.into_object() is tuple:
             return self.gc_is_tracked()
         return True
+
+    def instance_dict(self) -> ptr[PyObject[dict, Any, Any]] | None:
+        """
+        Return the instance dict of the PyObject.
+
+        An offset override can be set by `__st_dictoffset__`. It should be
+        relative to the address of the PyObject.
+
+        https://docs.python.org/3/c-api/typeobj.html#c.PyTypeObject.tp_dictoffset
+        """
+        # Get the tp_dictoffset of the type
+        offset = self.ob_type.contents.tp_dictoffset
+        # If 0, the type does not have a dict
+        if offset == 0:
+            return None
+        # For > 0, start from the address of the PyObject
+        if offset > 0:
+            addr = self.address + offset
+        # For < 0, start after the struct
+        else:
+            # If not a PyVarObject, use __basic_size__ instead
+            if getattr(self, "ob_size", None) is None:
+                size = self.ob_type.contents.tp_basicsize
+            else:
+                size = align_size(self.mem_size, PTR_SIZE)
+                # Increase size by pointer size since mem_size at this point
+                # excludes the instance dict (unlike __sizeof__)
+                size += PTR_SIZE
+            addr = self.address + size + offset
+        # Return the pointer
+        return POINTER(PyObject).from_address(addr)
 
     @bind_api(python_req(Version.PY_3_10) or pythonapi["Py_NewRef"])
     def NewRef(self) -> object:
