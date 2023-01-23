@@ -5,7 +5,11 @@ from einspect.structs.py_object import PyObject, PyVarObject  # Req import first
 from einspect.structs.py_type import PyTypeObject
 from einspect.structs.py_long import PyLongObject  # Req before PyBoolObject
 from einspect.structs.py_bool import PyBoolObject
-from einspect.structs.py_unicode import PyUnicodeObject
+from einspect.structs.py_unicode import (
+    PyUnicodeObject,
+    PyCompactUnicodeObject,
+    PyASCIIObject,
+)
 from einspect.structs.py_list import PyListObject
 from einspect.structs.py_tuple import PyTupleObject
 from einspect.structs.py_set import PySetObject
@@ -22,6 +26,8 @@ __all__ = (
     "PyLongObject",
     "PyBoolObject",
     "PyUnicodeObject",
+    "PyCompactUnicodeObject",
+    "PyASCIIObject",
     "PyDictObject",
     "MappingProxyObject",
     "PySetObject",
