@@ -11,6 +11,7 @@ from ctypes import (
     c_uint32,
     c_void_p,
     c_wchar,
+    c_wchar_p,
     cast,
     pythonapi,
     sizeof,
@@ -150,7 +151,7 @@ class PyASCIIObject(PyObject[str, None, None]):
             "ascii": "c_uint:1",
             "ready": "c_uint:1",
             "padding": "c_uint:24",
-            "wstr": "c_wchar_p",
+            "wstr": ("c_wchar_p", c_wchar_p),
         }
 
     @property
@@ -242,7 +243,7 @@ class PyCompactUnicodeObject(PyASCIIObject):
         return {
             **super()._format_fields_(),
             "utf8_length": "Py_ssize_t",
-            "utf8": "c_char_p",
+            "utf8": ("c_char_p", c_char_p),
             "wstr_length": "Py_ssize_t",
         }
 
