@@ -1,4 +1,5 @@
 import gc
+from functools import cached_property
 
 import pytest
 
@@ -10,8 +11,15 @@ class TestView:
     view_type = View
     obj_type = object
 
+    @cached_property
+    def obj_subtype(self) -> type[obj_type]:
+        return type("SubType", (self.obj_type,), {})  # type: ignore
+
     def get_obj(self):
         return self.obj_type()
+
+    def get_subtype_obj(self) -> obj_type:
+        return self.obj_subtype()
 
     def check_ref(self, a, b):
         # Skip builtin types
@@ -28,6 +36,18 @@ class TestView:
         assert isinstance(v, View)
         assert isinstance(v._pyobject, structs.PyObject)
         assert v.type == type(obj)
+
+    def test_subclass(self):
+        try:
+            obj = self.get_subtype_obj()
+        except TypeError:
+            # Skip for types not supporting subtype creation
+            return
+        v = self.view_type(obj)
+        assert v.type == self.obj_subtype
+        # Check factory resolves correctly
+        v = view(obj)  # type: ignore
+        assert isinstance(v, self.view_type)
 
     def test_factory(self):
         """Test factory."""
