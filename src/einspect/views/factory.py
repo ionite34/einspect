@@ -1,7 +1,6 @@
 """Function factory to create views for objects."""
 from __future__ import annotations
 
-import warnings
 from types import MappingProxyType
 from typing import Any, Final, TypeVar, overload
 
@@ -114,15 +113,13 @@ def view(obj, ref: bool = REF_DEFAULT):
         A view onto the object.
     """
     obj_type = type(obj)
-
     if obj_type in VIEW_TYPES:
         return VIEW_TYPES[obj_type](obj, ref=ref)
-    else:
-        res = View(obj, ref=ref)
-        msg = (
-            "Using `einspect.view` on objects without"
-            " a concrete View subclass will be deprecated."
-            " Use `einspect.views.AnyView` instead."
-        )
-        warnings.warn(msg, DeprecationWarning, stacklevel=2)
-        return res
+
+    # Fallback to subclasses
+    for obj_type, view_type in reversed([*VIEW_TYPES.items()]):
+        if isinstance(obj, obj_type):
+            return view_type(obj, ref=ref)
+
+    # Shouldn't reach here since we will at least match isinstance object
+    raise TypeError(f"Cannot create view for {obj_type}")  # pragma: no cover
