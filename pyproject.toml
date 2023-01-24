@@ -85,6 +85,7 @@ skip = ["einspect/structs/__init__.py"]
 markers = [
     "run_in_subprocess: Run marked test in a subprocess",
 ]
+filterwarnings = ["error"]
 
 [tool.mypy]
 python_version = 3.11
