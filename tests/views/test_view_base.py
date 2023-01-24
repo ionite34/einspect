@@ -106,6 +106,18 @@ class TestView:
             assert not v.gc_is_tracked()
             assert not v.gc_may_be_tracked()
 
+    def test_instance_dict(self):
+        obj = self.get_obj()
+        v = self.view_type(obj, ref=True)
+        d = v._pyobject.instance_dict()
+        if d is not None:
+            assert d.contents.into_object() == obj.__dict__
+            assert v.instance_dict == obj.__dict__
+        else:
+            # Accessing property should raise TypeError
+            with pytest.raises(TypeError):
+                _ = v.instance_dict
+
 
 def test_base_weakref():
     """Access base after weakref is deleted."""
