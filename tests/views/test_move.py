@@ -4,10 +4,22 @@ from ast import literal_eval
 import pytest
 
 from einspect import view
+from einspect.structs import PyLongObject, PyTypeObject
+
+
+def get_int() -> int:
+    """Return a new allocated int."""
+    obj_st = PyLongObject(
+        ob_refcnt=1,
+        ob_type=PyTypeObject.from_object(int).as_ref(),
+        ob_size=1,
+        ob_digit=[100],
+    )
+    return obj_st.with_ref().into_object()
 
 
 def test_move_op():
-    x = literal_eval("1593020931")
+    x = get_int()
     v = view(x)
     with v.unsafe():
         v <<= 5
@@ -16,7 +28,7 @@ def test_move_op():
 
 
 def test_move_from():
-    x = literal_eval("2905504286")
+    x = get_int()
     v = view(x)
     with v.unsafe():
         v.move_from(view(5))
