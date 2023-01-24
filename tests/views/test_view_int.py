@@ -3,7 +3,7 @@ import ctypes
 import pytest
 
 from einspect.api import ALIGNMENT
-from einspect.structs import PyLongObject, PyTypeObject
+from einspect.structs import PyBoolObject, PyLongObject, PyTypeObject
 from einspect.views import BoolView
 from einspect.views.view_int import IntView
 from tests.views.test_view_base import TestView
@@ -59,6 +59,20 @@ class TestBoolView(TestIntView):
 
     def get_obj(self):
         return False
+
+    def test_set_value(self):
+        obj_st = PyBoolObject(
+            ob_refcnt=1,
+            ob_type=PyTypeObject.from_object(bool).as_ref(),
+            ob_size=1,
+            ob_digit=[1],
+        )
+        obj = obj_st.into_object()
+        assert obj == 1
+        # Change the value
+        v = self.view_type(obj)
+        v.value = 1000
+        assert obj == 1000
 
     def test_memsize(self):
         v = self.view_type(True)
