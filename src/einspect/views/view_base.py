@@ -85,11 +85,15 @@ class View(BaseView[_T, _KT, _VT]):
         _ = self.mem_allocated  # cache allocated property
 
     def __repr__(self) -> str:
+        """Return a string representation of the view."""
         addr = self._pyobject.address
         py_obj_cls = self._pyobject.__class__.__name__
         # If we have an instance dict (subclass), include base type in repr
         has_dict = self._pyobject.ob_type.contents.tp_dictoffset != 0
-        base = f"[{self._base_type.__name__}]" if has_dict else ""
+        # Or if we are the `View` class
+        base = ""
+        if has_dict or self.__class__ is View:
+            base = f"[{self._base_type.__name__}]"
         return f"{self.__class__.__name__}{base}(<{py_obj_cls} at {addr:#04x}>)"
 
     def info(self, types: bool = True, arr_max: int | None = 64) -> str:
