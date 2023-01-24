@@ -45,7 +45,7 @@ class TestIntView(TestView):
             ob_size=1,
             ob_digit=[900],
         )
-        obj = obj_st.into_object()
+        obj = obj_st.with_ref().into_object()
         assert obj == 900
         # Change the value
         v = self.view_type(obj)
@@ -67,7 +67,7 @@ class TestBoolView(TestIntView):
             ob_size=1,
             ob_digit=[1],
         )
-        obj = obj_st.into_object()
+        obj = obj_st.with_ref().into_object()
         assert obj == 1
         # Change the value
         v = self.view_type(obj)
