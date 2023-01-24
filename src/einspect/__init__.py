@@ -9,6 +9,6 @@ from einspect.views.view_type import impl
 
 __all__ = ("view", "unsafe", "impl", "orig")
 
-__version__ = "0.4.10"
+__version__ = "0.5.0a1"
 
 unsafe: ContextManager[None] = global_unsafe

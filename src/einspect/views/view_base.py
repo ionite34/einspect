@@ -5,13 +5,21 @@ import logging
 import warnings
 import weakref
 from abc import ABC
-from contextlib import ExitStack
-from copy import deepcopy
+from contextlib import suppress
 from ctypes import py_object
 from functools import cached_property
-from typing import Any, Final, Generic, Type, TypeVar, get_args, get_type_hints
+from typing import (
+    Any,
+    Final,
+    Generic,
+    Type,
+    TypeVar,
+    get_args,
+    get_type_hints,
+    overload,
+)
 
-from einspect.api import Py, PyObj_FromPtr, align_size
+from einspect.api import PTR_SIZE, Py, PyObj_FromPtr, align_size
 from einspect.errors import (
     DroppedReference,
     MovedError,
@@ -20,6 +28,7 @@ from einspect.errors import (
 )
 from einspect.structs import PyObject, PyTypeObject, PyVarObject
 from einspect.views._display import Formatter
+from einspect.views.moves import _check_move
 from einspect.views.unsafe import UnsafeContext, unsafe
 
 __all__ = ("View", "VarView", "AnyView", "REF_DEFAULT")
@@ -31,7 +40,10 @@ REF_DEFAULT: Final[bool] = True
 _T = TypeVar("_T")
 _KT = TypeVar("_KT")
 _VT = TypeVar("_VT")
-_V = TypeVar("_V", bound="View")
+
+# For moves
+_View = TypeVar("_View", bound="View")
+_Obj = TypeVar("_Obj", bound=object)
 
 
 def _wrap_py_object(obj: _T | py_object[_T]) -> py_object[_T]:
@@ -85,11 +97,15 @@ class View(BaseView[_T, _KT, _VT]):
         _ = self.mem_allocated  # cache allocated property
 
     def __repr__(self) -> str:
+        """Return a string representation of the view."""
         addr = self._pyobject.address
         py_obj_cls = self._pyobject.__class__.__name__
         # If we have an instance dict (subclass), include base type in repr
         has_dict = self._pyobject.ob_type.contents.tp_dictoffset != 0
-        base = f"[{self._base_type.__name__}]" if has_dict else ""
+        # Or if we are the `View` class
+        base = ""
+        if has_dict or self.__class__ is View:
+            base = f"[{self._base_type.__name__}]"
         return f"{self.__class__.__name__}{base}(<{py_obj_cls} at {addr:#04x}>)"
 
     def info(self, types: bool = True, arr_max: int | None = 64) -> str:
@@ -263,47 +279,70 @@ class View(BaseView[_T, _KT, _VT]):
         """
         if not isinstance(dst, View):
             raise TypeError(f"Expected View, got {type(dst).__name__!r}")
+        # Materialize instance dicts in case we need to copy
+        with suppress(AttributeError):
+            self._pyobject.GetAttr("__dict__")
+        with suppress(AttributeError):
+            dst._pyobject.GetAttr("__dict__")
+        # If we have an instance dict, copy it first
+        dict_ptr = self._pyobject.instance_dict()
+        if dict_ptr is not None:
+            dict_addr = ctypes.addressof(dict_ptr)
+            dict_offset = dict_addr - self._pyobject.address
+            ctypes.memmove(
+                dst._pyobject.address + dict_offset,
+                ctypes.c_void_p(dict_addr),
+                PTR_SIZE,
+            )
         ctypes.memmove(
             dst._pyobject.address + start,
             self._pyobject.address + start,
             self.mem_size - start,
         )
 
-    @unsafe
-    def move_from(self, other: _V) -> _V:
+    @overload
+    def move_from(self, other: _View) -> _View:
+        ...
+
+    @overload
+    def move_from(self, other: _Obj) -> View[_Obj]:
+        ...
+
+    def move_from(self, other):
         """Moves data at other View to this View."""
         from einspect.views import factory
 
-        # Store our repr
-        self_repr = repr(self)
-        # Store our current address
-        addr = self._pyobject.address
         if not isinstance(other, View):
-            with ExitStack() as stack:
-                # Add a temp ref to prevent GC before we're done moving
-                Py.IncRef(other)
-                stack.callback(Py.DecRef, other)
-                # Take a deepcopy to prevent issues with members being GC'd
-                other = deepcopy(other)
-                # Prevent new deepcopy being dropped by adding a reference
-                Py.IncRef(other)
-                other = factory.view(other)
+            other = factory.view(other)  # type: ignore
 
+        # Check move safety if not in unsafe context
+        if not self._unsafe:
+            _check_move(self, other)
+
+        # Store our address
+        addr = self._pyobject.address
         # Move other to our pyobject address
         with other.unsafe():
             other.move_to(self)
+        # Increment other refcount
+        other._pyobject.IncRef()
         # Return a new view of ourselves
         obj = PyObj_FromPtr(addr)
-        # Increment ref count before returning
         Py.IncRef(obj)
         v = factory.view(obj)
-        log.debug(f"Moved {other} to {self_repr} -> {v}")
-        log.debug(f"New ref count: {v.ref_count}")
-        # Drop the current view
+        # Drop old view
         self.drop()
         return v
 
-    def __lshift__(self, other: _V) -> _V:
+    @overload
+    def __lshift__(self, other: _View) -> _View:
+        ...
+
+    @overload
+    def __lshift__(self, other: _Obj) -> View[_Obj]:
+        ...
+
+    def __lshift__(self, other):
         """Moves data at other View to this View."""
         return self.move_from(other)
 
@@ -311,8 +350,8 @@ class View(BaseView[_T, _KT, _VT]):
         """Returns the base of this view as object."""
         # Prioritize strong ref if it exists
         if self._base is not None:
-            return self._base.value
-        return self.base.value
+            return self._base
+        return self.base
 
 
 class VarView(View[_T, _KT, _VT]):

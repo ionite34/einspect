@@ -1,10 +1,18 @@
 import sys
+from ast import literal_eval
 from multiprocessing import Process
 from pathlib import Path
+from random import randint
 
 import pytest
 
 TESTS_DIR = Path(__file__).parent
+
+
+@pytest.fixture(scope="function")
+def new_int() -> int:
+    """Return a new allocated int."""
+    return literal_eval(str(randint(500, 10_000)))
 
 
 class Unbuffered:

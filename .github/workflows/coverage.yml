@@ -46,6 +46,9 @@ jobs:
         poetry install --only ci-cov
 
     - name: Run Tests
+      env:
+        PYTHONDEVMODE: 1
+        PYTHONMALLOC: "debug"
       run: |
         poetry run pytest --cov=./src --cov-report=term --cov-report=xml
 
