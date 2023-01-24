@@ -144,10 +144,6 @@ class PyTypeObject(PyVarObject[_T, None, None]):
                 return
         self.SetAttr(name, value)
 
-    @bind_api(pythonapi["PyType_Modified"])
-    def Modified(self) -> None:
-        """Mark the type as modified."""
-
     def is_gc(self) -> bool:
         """
         Return True if the type has GC support.
@@ -156,6 +152,22 @@ class PyTypeObject(PyVarObject[_T, None, None]):
         https://github.com/python/cpython/blob/3.11/Include/objimpl.h#L160-L161
         """
         return bool(self.tp_flags & TpFlags.HAVE_GC)
+
+    @bind_api(pythonapi["PyType_Modified"])
+    def Modified(self) -> None:
+        """Mark the type as modified."""
+
+    @bind_api(pythonapi["_PyObject_NewVar"])
+    def NewVar(self, nitems: int) -> ptr[PyVarObject]:
+        """Create a new variable object of the type."""
+
+    @bind_api(pythonapi["_PyObject_New"])
+    def New(self) -> ptr[PyObject]:
+        """Create a new object of the type."""
+
+    @bind_api(pythonapi["_PyObject_GC_NewVar"])
+    def GC_NewVar(self, nitems: int) -> ptr[PyVarObject]:
+        """Create a new variable object of the type with GC support."""
 
 
 # Mapping of CField name to type
