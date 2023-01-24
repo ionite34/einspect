@@ -75,6 +75,7 @@ exclude_lines = [
     "pragma: no cover",
     "@overload",
     "@abstractmethod",
+    "log.debug",
 ]
 
 [tool.isort]
