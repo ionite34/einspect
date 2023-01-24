@@ -1,4 +1,5 @@
 import ctypes
+from ast import literal_eval
 
 import pytest
 
@@ -170,18 +171,14 @@ class TestPyTypeObject:
 
 
 class TestPyLongObject:
-    def test_digit(self):
-        obj = st.PyLongObject(
-            ob_refcnt=1,
-            ob_type=st.PyTypeObject.from_object(int).as_ref(),
-            ob_size=-1,
-            ob_digit=[750],
-        )
-        assert obj.ob_digit[:] == [750]
-        assert obj.into_object() == -750
+    def test_digit(self, new_int):
+        obj = st.PyLongObject.from_object(new_int)
+        assert len(obj.ob_digit[:]) == obj.ob_size
+        py_obj = obj.into_object()
+        assert py_obj == obj.value
         # Setting should work with any Sequence
         obj.ob_digit = [5]
-        assert obj.into_object() == -5
+        assert py_obj == 5
         # But not Generators, Iterators, etc.
         with pytest.raises(TypeError):
             obj.ob_digit = (i for i in range(5))
@@ -189,13 +186,10 @@ class TestPyLongObject:
 
 class TestPyTupleObject:
     def test_item(self):
-        obj = st.PyTupleObject(
-            ob_refcnt=1,
-            ob_type=st.PyTypeObject.from_object(tuple).as_ref(),
-            ob_size=1,
-        )
+        tup = literal_eval("(1, 2, 3)")
+        obj = st.PyTupleObject.from_object(tup)
         obj.ob_item = [st.PyObject.from_object(17).as_ref()]
-        assert obj.into_object() == (17,)
+        assert obj.into_object() == (17, 2, 3)
 
 
 @pytest.mark.parametrize(
