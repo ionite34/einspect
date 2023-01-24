@@ -51,10 +51,10 @@ class delayed_bind(property):
     def __repr__(self):
         return f"<{self.__class__.__name__} property {self.attrname!r}>"
 
-    def __set_name__(self, owner, name):
+    def __set_name__(self, owner: type, name: str) -> None:
         if self.attrname is None:
             self.attrname = name
-        elif name != self.attrname:
+        elif name != self.attrname:  # pragma: no cover
             raise TypeError(
                 "Cannot assign the same bind to two different names "
                 f"({self.attrname!r} and {name!r})."
@@ -91,7 +91,6 @@ class delayed_bind(property):
             def_cls = _get_defining_class_of_bound_method(self.func, owner_cls)
             log.debug("Found defining class: %s of %s", def_cls, self.func)
             arg_t.insert(0, def_cls)
-            # arg_t.insert(0, owner_cls)
 
         arg_t = [convert_type_hints(t, owner_cls) for t in arg_t]
 
