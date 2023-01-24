@@ -5,13 +5,13 @@ import logging
 import warnings
 import weakref
 from abc import ABC
-from contextlib import ExitStack
+from contextlib import ExitStack, suppress
 from copy import deepcopy
 from ctypes import py_object
 from functools import cached_property
 from typing import Any, Final, Generic, Type, TypeVar, get_args, get_type_hints
 
-from einspect.api import Py, PyObj_FromPtr, align_size
+from einspect.api import PTR_SIZE, Py, PyObj_FromPtr, align_size
 from einspect.errors import (
     DroppedReference,
     MovedError,
@@ -263,6 +263,21 @@ class View(BaseView[_T, _KT, _VT]):
         """
         if not isinstance(dst, View):
             raise TypeError(f"Expected View, got {type(dst).__name__!r}")
+        # Materialize instance dicts in case we need to copy
+        with suppress(AttributeError):
+            self._pyobject.GetAttr("__dict__")
+        with suppress(AttributeError):
+            dst._pyobject.GetAttr("__dict__")
+        # If we have an instance dict, copy it first
+        dict_ptr = self._pyobject.instance_dict()
+        if dict_ptr is not None:
+            dict_addr = ctypes.addressof(dict_ptr)
+            dict_offset = dict_addr - self._pyobject.address
+            ctypes.memmove(
+                dst._pyobject.address + dict_offset,
+                ctypes.c_void_p(dict_addr),
+                PTR_SIZE,
+            )
         ctypes.memmove(
             dst._pyobject.address + start,
             self._pyobject.address + start,
