@@ -38,19 +38,12 @@ class TestIntView(TestView):
         v = self.view_type(obj)
         assert v.value == obj
 
-    def test_set_value(self):
-        obj_st = PyLongObject(
-            ob_refcnt=1,
-            ob_type=PyTypeObject.from_object(int).as_ref(),
-            ob_size=1,
-            ob_digit=[900],
-        )
-        obj = obj_st.with_ref().into_object()
-        assert obj == 900
+    def test_set_value(self, new_int):
+        prev = float(new_int)
         # Change the value
-        v = self.view_type(obj)
-        v.value = 1000
-        assert obj == 1000
+        v = self.view_type(new_int)
+        v.value = int(prev + 15)
+        assert new_int == int(prev + 15)
 
 
 class TestBoolView(TestIntView):
@@ -59,20 +52,6 @@ class TestBoolView(TestIntView):
 
     def get_obj(self):
         return False
-
-    def test_set_value(self):
-        obj_st = PyBoolObject(
-            ob_refcnt=1,
-            ob_type=PyTypeObject.from_object(bool).as_ref(),
-            ob_size=1,
-            ob_digit=[1],
-        )
-        obj = obj_st.with_ref().into_object()
-        assert obj == 1
-        # Change the value
-        v = self.view_type(obj)
-        v.value = 1000
-        assert obj == 1000
 
     def test_memsize(self):
         v = self.view_type(True)
