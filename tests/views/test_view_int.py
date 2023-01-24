@@ -3,6 +3,7 @@ import ctypes
 import pytest
 
 from einspect.api import ALIGNMENT
+from einspect.structs import PyLongObject, PyTypeObject
 from einspect.views import BoolView
 from einspect.views.view_int import IntView
 from tests.views.test_view_base import TestView
@@ -36,6 +37,20 @@ class TestIntView(TestView):
         obj = self.get_obj()
         v = self.view_type(obj)
         assert v.value == obj
+
+    def test_set_value(self):
+        obj_st = PyLongObject(
+            ob_refcnt=1,
+            ob_type=PyTypeObject.from_object(int).as_ref(),
+            ob_size=1,
+            ob_digit=[900],
+        )
+        obj = obj_st.into_object()
+        assert obj == 900
+        # Change the value
+        v = self.view_type(obj)
+        v.value = 1000
+        assert obj == 1000
 
 
 class TestBoolView(TestIntView):
