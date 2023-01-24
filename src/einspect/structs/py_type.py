@@ -120,6 +120,12 @@ class PyTypeObject(PyVarObject[_T, None, None]):
     # bitset of which type-watchers care about this type
     tp_watched: c_char
 
+    def __repr__(self) -> str:
+        """Return a string representation of the PyTypeObject."""
+        cls_name = f"{self.__class__.__name__}"
+        type_name = self.tp_name.decode()
+        return f"<{cls_name}[{type_name}] at {self.address:#04x}>"
+
     @classmethod
     def from_object(cls, obj: Type[_T]) -> PyTypeObject[Type[_T]]:
         return super().from_object(obj)  # type: ignore
