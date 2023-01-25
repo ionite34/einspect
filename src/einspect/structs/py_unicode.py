@@ -25,6 +25,7 @@ from einspect.api import Py_hash_t
 from einspect.protocols import bind_api
 from einspect.structs.deco import struct
 from einspect.structs.py_object import Fields, PyObject
+from einspect.structs.traits import IsGC
 from einspect.types import Array, char_p, ptr, void_p, wchar_p
 
 
@@ -125,7 +126,7 @@ class LegacyUnion(Union):
 
 
 @struct
-class PyASCIIObject(PyObject[str, None, None]):
+class PyASCIIObject(PyObject[str, None, None], IsGC):
     """
     Defines a PyUnicodeObject Structure
     """

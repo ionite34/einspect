@@ -29,9 +29,10 @@ def _check_resize(v: StrView, target: int, method: str) -> None:
         UnsafeError: If the string cannot be resized, and not in an unsafe context.
     """
     # See if resizing is safe
-    if target.__sizeof__() > v.mem_allocated and not v._unsafe:
+    if target > v.mem_allocated and not v._unsafe:
         raise UnsafeError(
-            f"{method} required str to be resized beyond current memory allocation."
+            f"string {method} required {target} bytes, beyond current"
+            f" allocated memory of {v.mem_allocated} bytes."
             " Enter an unsafe context to allow this."
         )
 
@@ -57,7 +58,7 @@ class StrView(View[str, None, None], MutableSequence):
         self._narrow_type()
 
     def _narrow_type(self) -> None:
-        # Narrow to a more specific unicode type if possible
+        """Narrow to a more specific unicode type if possible."""
         if self._pyobject.compact:
             if self._pyobject.ascii:
                 self._pyobject = self._pyobject.astype(PyASCIIObject)

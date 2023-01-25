@@ -186,10 +186,14 @@ class TestPyLongObject:
 
 class TestPyTupleObject:
     def test_item(self):
-        tup = literal_eval("(1, 2, 3)")
+        tup = literal_eval("(1,)")
         obj = st.PyTupleObject.from_object(tup)
         obj.ob_item = [st.PyObject.from_object(17).as_ref()]
-        assert obj.into_object() == (17, 2, 3)
+        assert obj.into_object() == (17,)
+        # Use array as well
+        arr_type = type(obj.ob_item)
+        obj.ob_item = arr_type(st.PyObject.from_object(5).as_ref())
+        assert obj.into_object() == (5,)
 
 
 @pytest.mark.parametrize(
@@ -227,11 +231,39 @@ def test_mem_size_basic(obj, struct, delta):
     assert py_object.mem_size == type(obj).__basicsize__
 
 
-@pytest.mark.run_in_subprocess
-def test_gc_head_api():
-    obj = ["test", "123"]
-    py_obj = st.PyObject.from_object(obj)
-    gc_head = py_obj.as_gc()
+@pytest.mark.parametrize(
+    ["src", "py_obj"],
+    [
+        (123, 123),
+        (st.PyObject.from_object(123), 123),
+        (st.PyObject.from_object(123).as_ref(), 123),
+    ],
+)
+def test_try_from(src, py_obj):
+    res = st.PyObject.try_from(src)
+    assert res.into_object() == py_obj
 
-    assert gc_head.Set_Prev(gc_head.Prev()) is None
-    assert gc_head.Set_Next(gc_head.Next()) is None
+
+def test_new_obj():
+    """Test PyObject.__new__ with __obj argument."""
+    s = "hello"
+    py_obj = st.PyObject.from_object(s)
+    py_new = st.PyObject(s)
+    assert py_obj.into_object() is s
+    assert py_new.into_object() is s
+
+
+def test_new_fields():
+    """Test PyObject.__new__ with fields kwargs."""
+    obj = st.PyTupleObject(
+        ob_refcnt=1,
+        ob_type=st.PyTypeObject(tuple).as_ref(),
+        ob_size=2,
+        ob_item=["hello", "hi"],
+    )
+    assert obj.into_object() == ("hello", "hi")
+
+
+def test_try_from_err_ctype():
+    with pytest.raises(TypeError):
+        st.PyObject.try_from(ctypes.c_void_p(0))

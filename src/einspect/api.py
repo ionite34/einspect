@@ -3,8 +3,8 @@ from __future__ import annotations
 
 import ctypes
 from collections.abc import Sequence
-from ctypes import POINTER, Array, c_size_t, c_void_p, py_object, pythonapi, sizeof
-from typing import Any, Callable, TypeVar, Union
+from ctypes import Array, c_size_t, c_void_p, pythonapi, sizeof
+from typing import Any, Callable, TypeVar
 
 import _ctypes
 from typing_extensions import Annotated
@@ -21,7 +21,11 @@ __all__ = (
     "ALIGNMENT",
     "ALIGNMENT_SHIFT",
     "align_size",
+    "address",
+    "seq_to_array",
 )
+
+from einspect.types import NULL, Pointer
 
 _T = TypeVar("_T")
 _CT = TypeVar("_CT")
@@ -37,10 +41,6 @@ uintptr_t = ctypes.c_uint64
 
 PTR_SIZE = sizeof(c_void_p)
 """Size of a pointer in bytes."""
-
-ObjectOrRef = Union[py_object, object]
-IntSize = Union[int, Py_ssize_t]
-PyObjectPtr = POINTER(py_object)
 
 # Alignments (must be powers of 2)
 # https://github.com/python/cpython/blob/3.11/Objects/obmalloc.c#L878-L884
@@ -83,47 +83,45 @@ class Py:
         """
 
     class Tuple:
-        Size: Callable[[ObjectOrRef], int] = pythonapi["PyTuple_Size"]
-        """
-        Return the size of a tuple object.
-        https://docs.python.org/3/c-api/tuple.html#c.PyTuple_Size
-        """
-        Size.argtypes = (py_object,)  # type: ignore
-        Size.restype = Py_ssize_t  # type: ignore
+        @bind_api(pythonapi["PyTuple_Size"])
+        @staticmethod
+        def Size(obj: tuple) -> int:
+            """
+            Return the size of a tuple object.
+            https://docs.python.org/3/c-api/tuple.html#c.PyTuple_Size
+            """
 
-        GetItem: Callable[[ObjectOrRef, IntSize], object] = pythonapi["PyTuple_GetItem"]
-        """
-        Return the item at position index in the tuple o.
-        https://docs.python.org/3/c-api/tuple.html#c.PyTuple_GetItem
-        """
-        GetItem.argtypes = (py_object, Py_ssize_t)  # type: ignore
-        GetItem.restype = py_object  # type: ignore
+        @bind_api(pythonapi["PyTuple_GetItem"])
+        @staticmethod
+        def GetItem(obj: tuple, index: int) -> object:
+            """
+            Return the item at position index in the tuple o.
+            https://docs.python.org/3/c-api/tuple.html#c.PyTuple_GetItem
+            """
 
-        SetItem: Callable[[ObjectOrRef, IntSize, ObjectOrRef], None] = pythonapi[
-            "PyTuple_SetItem"
-        ]
-        """
-        Set the item at position index in the tuple o to v.
-        https://docs.python.org/3/c-api/tuple.html#c.PyTuple_SetItem
+        @bind_api(pythonapi["PyTuple_SetItem"])
+        @staticmethod
+        def SetItem(obj: tuple, index: int, value: object) -> None:
+            """
+            Set the item at position index in the tuple o to v.
+            https://docs.python.org/3/c-api/tuple.html#c.PyTuple_SetItem
 
-        Notes:
-            - This function steals a reference to v.
-            - Requires tuple o to have a reference count == 1.
-        """
-        SetItem.argtypes = (py_object, Py_ssize_t, py_object)  # type: ignore
-        SetItem.restype = None  # type: ignore
+            Notes:
+                - This function steals a reference to v.
+                - Requires tuple o to have a reference count == 1.
+            """
 
-        Resize: Callable[[PyObjectPtr, IntSize], None] = pythonapi["_PyTuple_Resize"]
-        """
-        Resize the tuple to the specified size.
-        https://docs.python.org/3/c-api/tuple.html#c._PyTuple_Resize
+        @bind_api(pythonapi["_PyTuple_Resize"])
+        @staticmethod
+        def Resize(obj: tuple, size: int) -> None:
+            """
+            Resize the tuple to the specified size.
+            https://docs.python.org/3/c-api/tuple.html#c._PyTuple_Resize
 
-        Notes:
-            - Not part of the documented limited C API.
-            - Requires tuple o to have ref-count = 1 or size = 0
-        """
-        Resize.argtypes = (POINTER(py_object), Py_ssize_t)  # type: ignore
-        Resize.restype = None  # type: ignore
+            Notes:
+                - Not part of the documented limited C API.
+                - Requires tuple o to have ref-count = 1 or size = 0.
+            """
 
     class Type:
         @bind_api(pythonapi["PyType_Modified"])
@@ -188,7 +186,7 @@ class Py:
             """
 
 
-PyObj_FromPtr: Callable[[IntSize], object] = _ctypes.PyObj_FromPtr
+PyObj_FromPtr: Callable[[int], object] = _ctypes.PyObj_FromPtr
 """(Py_ssize_t ptr) -> Py_ssize_t"""
 
 
@@ -206,9 +204,23 @@ def align_size(size: int, alignment: int = ALIGNMENT) -> int:
     return (size + alignment - 1) & ~(alignment - 1)
 
 
-def seq_to_array(seq: Sequence[_T] | Array[_T], dtype: type[_CT]) -> Array[_CT]:
+def seq_to_array(
+    seq: Sequence[_T] | Array[_T], dtype: type[_CT], py_obj_try_cast: bool = True
+) -> Array[_CT]:
     """Cast a Sequence to a ctypes.Array of a given type."""
     if isinstance(seq, Array):
         return seq
+
     arr_type = dtype * len(seq)
+
+    if py_obj_try_cast and issubclass(dtype, Pointer):
+        dtype_r = dtype._type_
+        if hasattr(dtype_r, "try_from"):
+            # If we find a NULL singleton, don't set it.
+            arr = arr_type()
+            for i, v in enumerate(seq):
+                if v is not NULL:
+                    arr[i] = dtype_r.try_from(v).with_ref().as_ref()
+            return arr
+
     return arr_type(*seq)

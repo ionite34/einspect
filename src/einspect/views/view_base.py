@@ -20,12 +20,7 @@ from typing import (
 )
 
 from einspect.api import PTR_SIZE, Py, PyObj_FromPtr, align_size
-from einspect.errors import (
-    DroppedReference,
-    MovedError,
-    UnsafeAttributeError,
-    UnsafeError,
-)
+from einspect.errors import DroppedReference, MovedError, UnsafeError
 from einspect.structs import PyObject, PyTypeObject, PyVarObject
 from einspect.views._display import Formatter
 from einspect.views.moves import _check_move
@@ -127,9 +122,8 @@ class View(BaseView[_T, _KT, _VT]):
         return int(self._pyobject.ob_refcnt)  # type: ignore
 
     @ref_count.setter
+    @unsafe
     def ref_count(self, value: int) -> None:
-        if not self._unsafe:
-            raise UnsafeAttributeError.from_attr("ref_count")
         self._pyobject.ob_refcnt = value
 
     @property

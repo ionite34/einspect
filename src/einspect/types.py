@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import ctypes
 import typing
 
@@ -7,9 +9,12 @@ from typing import TYPE_CHECKING, List, TypeVar, get_origin, overload
 
 from typing_extensions import Self
 
-__all__ = ("ptr", "Array", "_SelfPtr")
-
 from einspect.compat import Version
+
+if TYPE_CHECKING:
+    from einspect.structs import PyObject
+
+__all__ = ("ptr", "Array", "NULL", "_SelfPtr")
 
 _T = TypeVar("_T")
 
@@ -20,8 +25,23 @@ Dynamic typing alias for ctypes.pointer.
 Resolves to the `_Ptr` class at runtime to allow for generic subscripting.
 """
 
+# noinspection PyUnresolvedReferences, PyProtectedMember
+Pointer = ctypes._Pointer
+"""Alias to `ctypes._Pointer`."""
+
 _SelfPtr = object()
 """Singleton object returned on ptr[Self]."""
+
+_Null_Type = type(
+    "NullType",
+    (ctypes.POINTER(ctypes.c_void_p),),
+    {
+        "_type_": ctypes.c_void_p,
+    },
+)
+
+NULL: ptr[PyObject] = _Null_Type()
+"""Singleton NULL pointer of type ptr[PyObject]."""
 
 
 class _Ptr(_Pointer):

@@ -23,3 +23,9 @@ class Display:
         The address shown is the address of the Structure, not the object.
         """
         return f"<{self.__class__.__name__} at {addressof(self):#04x}>"
+
+
+class IsGC:
+    """Mixin for Structures that have a GC_Head."""
+
+    _is_gc_ = True
