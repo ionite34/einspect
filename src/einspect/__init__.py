@@ -14,6 +14,6 @@ einspect._patch.run()
 
 __all__ = ("view", "unsafe", "impl", "orig", "ptr", "NULL")
 
-__version__ = "0.5.0a1"
+__version__ = "0.5.0"
 
 unsafe: ContextManager[None] = global_unsafe
