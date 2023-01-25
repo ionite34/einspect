@@ -112,7 +112,6 @@ def test_str_mutable_sequence() -> None:
 
 def test_str_remove() -> None:
     s = literal_eval("'4ff4-e1219224-5462'")
-    assert s is not "4ff4-e1219224-5462"
     v = StrView(s)
     assert v.interned == State.NOT_INTERNED
     v.remove("1219224")
