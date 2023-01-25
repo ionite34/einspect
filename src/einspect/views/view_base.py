@@ -21,7 +21,7 @@ from typing import (
 
 from einspect.api import PTR_SIZE, Py, PyObj_FromPtr, align_size
 from einspect.errors import DroppedReference, MovedError, UnsafeError
-from einspect.structs import PyObject, PyTypeObject, PyVarObject
+from einspect.structs import PyObject, PyTypeObject, PyVarObject, TpFlags
 from einspect.views._display import Formatter
 from einspect.views.moves import _check_move
 from einspect.views.unsafe import UnsafeContext, unsafe
@@ -278,21 +278,33 @@ class View(BaseView[_T, _KT, _VT]):
             self._pyobject.GetAttr("__dict__")
         with suppress(AttributeError):
             dst._pyobject.GetAttr("__dict__")
-        # If we have an instance dict, copy it first
+
+        # If we have an instance dict, copy it now
         dict_ptr = self._pyobject.instance_dict()
         if dict_ptr is not None:
             dict_addr = ctypes.addressof(dict_ptr)
-            dict_offset = dict_addr - self._pyobject.address
-            ctypes.memmove(
-                dst._pyobject.address + dict_offset,
-                ctypes.c_void_p(dict_addr),
-                PTR_SIZE,
-            )
+            # Normally we copy by offset, unless managed dict
+            if not self._pyobject.ob_type.contents.tp_flags & TpFlags.MANAGED_DICT:
+                dict_offset = dict_addr - self._pyobject.address
+                ctypes.memmove(
+                    dst._pyobject.address + dict_offset,
+                    ctypes.c_void_p(dict_addr),
+                    PTR_SIZE,
+                )
+
+        # Move main object
         ctypes.memmove(
             dst._pyobject.address + start,
             self._pyobject.address + start,
             self.mem_size - start,
         )
+
+        # For managed dicts, we materialize the dict after move to copy it
+        if (
+            dict_ptr is not None
+            and self._pyobject.ob_type.contents.tp_flags & TpFlags.MANAGED_DICT
+        ):
+            dst._pyobject.SetAttr("__dict__", dict_ptr.contents.into_object())
 
     @overload
     def move_from(self, other: _View) -> _View:
