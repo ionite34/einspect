@@ -6,7 +6,7 @@ from typing import Iterable, SupportsIndex, TypeVar, Union, overload
 
 from einspect.api import Py_ssize_t
 from einspect.errors import UnsafeError
-from einspect.structs.py_unicode import (
+from einspect.structs import (
     Kind,
     PyASCIIObject,
     PyCompactUnicodeObject,

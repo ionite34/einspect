@@ -6,7 +6,7 @@ import pytest
 
 from einspect import view
 from einspect.errors import UnsafeError
-from einspect.structs.py_unicode import Kind, PyCompactUnicodeObject, State
+from einspect.structs import Kind, PyCompactUnicodeObject, State
 from einspect.views.view_str import StrView
 from tests.views.test_view_base import TestView
 
