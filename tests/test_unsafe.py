@@ -1,6 +1,4 @@
 """Test unsafe context and operations."""
-from ctypes import POINTER, c_int, pointer
-
 import pytest
 
 from einspect import errors, unsafe, view
