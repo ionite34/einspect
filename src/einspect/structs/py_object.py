@@ -82,9 +82,8 @@ class PyObject(Structure, AsRef, Generic[_T, _KT, _VT]):
             # Use from_object
             return cls.from_object(__obj)
         # Check kwargs
-        req = ["ob_type"]
-        if any(field := item not in kwargs for item in req):
-            raise TypeError(f"Missing required keyword-argument field of {field!r}")
+        if "ob_type" not in kwargs:
+            raise TypeError("Missing required keyword-argument field 'ob_type'")
 
         ob_size: int = kwargs.get("ob_size", 0).__index__()
         ob_type = PyTypeObject.try_from(kwargs["ob_type"])
