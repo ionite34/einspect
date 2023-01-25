@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "einspect"
-version = "0.5.2"
+version = "0.5.2.post1"
 packages = [{ include = "einspect", from = "src" }]
 description = "Extended Inspect - view and modify memory structs of runtime objects."
 authors = ["ionite34 <dev@ionite.io>"]
