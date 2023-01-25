@@ -231,11 +231,19 @@ def test_mem_size_basic(obj, struct, delta):
     assert py_object.mem_size == type(obj).__basicsize__
 
 
-@pytest.mark.run_in_subprocess
-def test_gc_head_api():
-    obj = ["test", "123"]
-    py_obj = st.PyObject.from_object(obj)
-    gc_head = py_obj.as_gc()
+@pytest.mark.parametrize(
+    ["src", "py_obj"],
+    [
+        (123, 123),
+        (st.PyObject.from_object(123), 123),
+        (st.PyObject.from_object(123).as_ref(), 123),
+    ],
+)
+def test_try_from(src, py_obj):
+    res = st.PyObject.try_from(src)
+    assert res.into_object() == py_obj
 
-    assert gc_head.Set_Prev(gc_head.Prev()) is None
-    assert gc_head.Set_Next(gc_head.Next()) is None
+
+def test_try_from_err_ctype():
+    with pytest.raises(TypeError):
+        st.PyObject.try_from(ctypes.c_void_p(0))
