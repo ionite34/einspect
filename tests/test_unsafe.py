@@ -3,13 +3,24 @@ from ctypes import POINTER, c_int, pointer
 
 import pytest
 
-from einspect import errors, view
+from einspect import errors, unsafe, view
 
 
-def test_unsafe_error():
+def test_unsafe_error() -> None:
     v = view(1)
     with pytest.raises(errors.UnsafeError):
-        v.ref_count = 0
+        v.ref_count += 1
+
+
+def test_global_unsafe() -> None:
+    v = view(1)
+    assert not v._unsafe
+    assert not v._local_unsafe
+    with unsafe():
+        assert v._unsafe
+        assert not v._local_unsafe
+    assert not v._unsafe
+    assert not v._local_unsafe
 
 
 @pytest.mark.run_in_subprocess
