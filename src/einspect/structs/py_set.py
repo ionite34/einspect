@@ -7,7 +7,7 @@ from typing_extensions import Annotated
 
 from einspect.api import Py_hash_t
 from einspect.structs.deco import struct
-from einspect.structs.py_object import PyObject
+from einspect.structs.py_object import Fields, PyObject
 from einspect.structs.traits import AsRef, IsGC
 from einspect.types import ptr
 
@@ -21,6 +21,13 @@ PySet_MINSIZE = 8
 class SetEntry(Structure, AsRef, Generic[_T]):
     key: ptr[PyObject[_T, None, None]]
     hash: Annotated[int, Py_hash_t]  # noqa: A003
+
+    @staticmethod
+    def _format_fields_() -> Fields:
+        return {
+            "key": "*PyObject",
+            "hash": "Py_hash_t",
+        }
 
 
 @struct
@@ -39,6 +46,19 @@ class PySetObject(PyObject[set, None, _T], AsRef, IsGC):
     finger: int
     smalltable: SetEntry * PySet_MINSIZE
     weakreflist: ptr[PyObject]
+
+    def _format_fields_(self) -> Fields:
+        return {
+            **super()._format_fields_(),
+            "fill": "Py_ssize_t",
+            "used": "Py_ssize_t",
+            "mask": "Py_ssize_t",
+            "table": "*SetEntry",
+            "hash": "Py_hash_t",
+            "finger": "Py_ssize_t",
+            "smalltable": "Array[SetEntry]",
+            "weakreflist": "*PyObject",
+        }
 
     @classmethod
     def from_object(cls, obj: set[_T]) -> PySetObject[_T]:
