@@ -244,6 +244,26 @@ def test_try_from(src, py_obj):
     assert res.into_object() == py_obj
 
 
+def test_new_obj():
+    """Test PyObject.__new__ with __obj argument."""
+    s = "hello"
+    py_obj = st.PyObject.from_object(s)
+    py_new = st.PyObject(s)
+    assert py_obj.into_object() is s
+    assert py_new.into_object() is s
+
+
+def test_new_fields():
+    """Test PyObject.__new__ with fields kwargs."""
+    obj = st.PyTupleObject(
+        ob_refcnt=1,
+        ob_type=st.PyTypeObject(tuple).as_ref(),
+        ob_size=2,
+        ob_item=["hello", "hi"],
+    )
+    assert obj.into_object() == ("hello", "hi")
+
+
 def test_try_from_err_ctype():
     with pytest.raises(TypeError):
         st.PyObject.try_from(ctypes.c_void_p(0))
