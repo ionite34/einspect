@@ -10,40 +10,21 @@ jobs:
       fail-fast: false
       matrix:
         python-version: ["3.8", "3.9", "3.10", "3.11", "3.12.0-alpha.4"]
-        poetry-version: ["1.3.0"]
         os: [ubuntu-latest, macos-latest, windows-latest]
-        include:
-          - os: ubuntu-latest
-            poetry-cache: ~/.cache/pypoetry
-          - os: macos-latest
-            poetry-cache: ~/Library/Caches/pypoetry
-          - os: windows-latest
-            poetry-cache: $HOME/AppData/Local/pypoetry/Cache
 
     steps:
     - name: Checkout
       uses: actions/checkout@v3
-
-    - name: Cache Poetry
-      uses: actions/cache@v3
-      with:
-        path: ~/.cache/pypoetry
-        key: poetry-cache-${{ matrix.os }}-${{ matrix.poetry-cache }}-${{ matrix.python-version }}-${{ matrix.poetry-version }}
 
     - name: Setup Python
       uses: actions/setup-python@v3
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: Run Poetry image
-      uses: abatilo/actions-poetry@v2.0.0
-      with:
-        poetry-version: ${{ matrix.poetry-version }}
-
     - name: Install requirements
       run: |
-        poetry install --only ci
+        pip install typing-extensions pytest .
 
     - name: Run Tests
       run: |
-        poetry run pytest -v
+        pytest tests
