@@ -2,9 +2,21 @@
 from __future__ import annotations
 
 import ctypes
+import warnings
 from contextlib import suppress
 from ctypes import POINTER, Structure, c_void_p, pythonapi
-from typing import TYPE_CHECKING, Any, Dict, Generic, List, Tuple, Type, TypeVar, Union
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Dict,
+    Generic,
+    List,
+    Tuple,
+    Type,
+    TypeVar,
+    Union,
+    overload,
+)
 
 from typing_extensions import Annotated, Self
 
@@ -14,7 +26,7 @@ from einspect.protocols.delayed_bind import bind_api
 from einspect.protocols.type_parse import is_ctypes_type
 from einspect.structs.deco import struct
 from einspect.structs.py_gc import PyGC_Head
-from einspect.structs.traits import AsRef
+from einspect.structs.traits import AsRef, IsGC
 from einspect.types import ptr
 
 if TYPE_CHECKING:
@@ -27,6 +39,8 @@ _KT = TypeVar("_KT")
 _VT = TypeVar("_VT")
 _ST = TypeVar("_ST", bound=Structure)
 
+DEFAULT = object()
+
 
 @struct
 class PyObject(Structure, AsRef, Generic[_T, _KT, _VT]):
@@ -36,6 +50,58 @@ class PyObject(Structure, AsRef, Generic[_T, _KT, _VT]):
     ob_type: Annotated[ptr[PyTypeObject[Type[_T]]], c_void_p]
 
     _fields_: List[Union[Tuple[str, type], Tuple[str, type, int]]]
+
+    @overload
+    def __new__(cls, __obj: _T):
+        ...
+
+    @overload
+    def __new__(cls, *, ob_refcnt: int = 1, ob_type: ptr[PyTypeObject], **kwargs):
+        ...
+
+    def __new__(cls, __obj: _T = DEFAULT, **kwargs):
+        """
+        Create a new PyObject.
+
+        One positional argument can be passed to create a PyObject from an object.
+        Otherwise, keyword arguments of fields can be provided.
+
+        Args:
+            __obj: A Python object to create a PyObject from.
+            **kwargs: Fields to create a PyObject from.
+        """
+        from einspect.structs.py_type import PyTypeObject
+
+        # Base case
+        if __obj is DEFAULT and not kwargs:
+            return super().__new__(cls)
+        if __obj is not DEFAULT:
+            # If already a PyObject
+            if isinstance(__obj, PyObject):
+                return cls.from_address(__obj.address)
+            # Use from_object
+            return cls.from_object(__obj)
+        # Check kwargs
+        req = ["ob_type"]
+        if any(field := item not in kwargs for item in req):
+            raise TypeError(f"Missing required keyword-argument field of {field!r}")
+
+        ob_size: int = kwargs.get("ob_size", 0).__index__()
+        ob_type = PyTypeObject.try_from(kwargs["ob_type"])
+
+        if issubclass(cls, IsGC):
+            res = (
+                ob_type.GC_NewVar(ob_size)
+                if issubclass(cls, PyVarObject)
+                else ob_type.GC_New()
+            )
+        else:
+            res = (
+                ob_type.NewVar(ob_size)
+                if issubclass(cls, PyVarObject)
+                else ob_type.New()
+            )
+        return res.contents.astype(cls)
 
     @property
     def mem_size(self) -> int:
@@ -198,6 +264,23 @@ class PyObject(Structure, AsRef, Generic[_T, _KT, _VT]):
     @bind_api(pythonapi["PyObject_SetAttr"])
     def SetAttr(self, name: str, value: object) -> int:
         """Set the attribute of the PyObject."""
+
+
+# We don't want this visible to type-checking but `PyObject.__init__`
+# needs to ignore the `__obj` positional argument
+orig_init = PyObject.__init__  # type: ignore
+
+
+def _PyObject__init__(self, *args, **kwargs) -> None:
+    if len(args) > 1:
+        warnings.warn(
+            "Positional arguments to PyObject.__init__ are not supported, use keywords instead.",
+            UserWarning,
+        )
+    return orig_init(self, **kwargs)  # type: ignore
+
+
+PyObject.__init__ = _PyObject__init__
 
 
 @struct

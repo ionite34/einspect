@@ -9,13 +9,14 @@ from einspect.api import Py_ssize_t, seq_to_array
 from einspect.protocols.delayed_bind import bind_api
 from einspect.structs.deco import struct
 from einspect.structs.py_object import Fields, PyObject, PyVarObject
+from einspect.structs.traits import IsGC
 from einspect.types import Array, ptr
 
 _VT = TypeVar("_VT")
 
 
 @struct
-class PyTupleObject(PyVarObject[tuple, None, _VT]):
+class PyTupleObject(PyVarObject[tuple, None, _VT], IsGC):
     """
     Defines a PyTupleObject Structure.
 

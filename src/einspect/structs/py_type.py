@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from ctypes import (
     POINTER,
+    Structure,
     c_char,
     c_char_p,
     c_uint,
@@ -27,6 +28,8 @@ from einspect.types import ptr
 __all__ = ("PyTypeObject",)
 
 _T = TypeVar("_T")
+
+DEFAULT = object()
 
 
 # noinspection PyPep8Naming
@@ -120,6 +123,27 @@ class PyTypeObject(PyVarObject[_T, None, None]):
     # bitset of which type-watchers care about this type
     tp_watched: c_char
 
+    def __new__(cls, __obj: Type[_T] = DEFAULT, **kwargs):
+        """
+        Create a new PyTypeObject.
+
+        One positional argument can be passed to create a PyTypeObject from a type object.
+        Otherwise, keyword arguments of fields can be provided.
+
+        Args:
+            __obj: A Python object to create a PyTypeObject from.
+            **kwargs: Fields to create a PyObject from.
+        """
+        if __obj is not DEFAULT:
+            # If already a PyObject
+            if isinstance(__obj, PyObject):
+                return cls.from_address(__obj.address)
+            # Use from_object
+            return cls.from_object(__obj)
+
+        # Base case
+        return Structure.__new__(cls)
+
     def __repr__(self) -> str:
         """Return a string representation of the PyTypeObject."""
         cls_name = f"{self.__class__.__name__}"
@@ -157,13 +181,17 @@ class PyTypeObject(PyVarObject[_T, None, None]):
     def Modified(self) -> None:
         """Mark the type as modified."""
 
-    @bind_api(pythonapi["_PyObject_NewVar"])
-    def NewVar(self, nitems: int) -> ptr[PyVarObject]:
-        """Create a new variable object of the type."""
-
     @bind_api(pythonapi["_PyObject_New"])
     def New(self) -> ptr[PyObject]:
         """Create a new object of the type."""
+
+    @bind_api(pythonapi["_PyObject_GC_New"])
+    def GC_New(self) -> ptr[PyObject]:
+        """Create a new object of the type with GC support."""
+
+    @bind_api(pythonapi["_PyObject_NewVar"])
+    def NewVar(self, nitems: int) -> ptr[PyVarObject]:
+        """Create a new variable object of the type."""
 
     @bind_api(pythonapi["_PyObject_GC_NewVar"])
     def GC_NewVar(self, nitems: int) -> ptr[PyVarObject]:

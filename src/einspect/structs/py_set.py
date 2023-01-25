@@ -8,7 +8,7 @@ from typing_extensions import Annotated
 from einspect.api import Py_hash_t
 from einspect.structs.deco import struct
 from einspect.structs.py_object import PyObject
-from einspect.structs.traits import AsRef
+from einspect.structs.traits import AsRef, IsGC
 from einspect.types import ptr
 
 _T = TypeVar("_T")
@@ -24,7 +24,7 @@ class SetEntry(Structure, AsRef, Generic[_T]):
 
 
 @struct
-class PySetObject(PyObject[set, None, _T], AsRef):
+class PySetObject(PyObject[set, None, _T], AsRef, IsGC):
     """
     Defines a PySetObject Structure.
 
