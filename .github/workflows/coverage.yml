@@ -9,7 +9,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        python-version: ["3.11"]
+        python-version: ["3.11", "3.12.0-alpha.4"]
         poetry-version: ["1.3.0"]
         os: [ubuntu-latest]
         include:
@@ -53,4 +53,5 @@ jobs:
         token: ${{ secrets.CODECOV_TOKEN }}
         fail_ci_if_error: true
         flags: unittests
+        name: ${{ matrix.python-version }}
         verbose: true
