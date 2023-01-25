@@ -85,20 +85,20 @@ class PyObject(Structure, AsRef, Generic[_T, _KT, _VT]):
         if "ob_type" not in kwargs:
             raise TypeError("Missing required keyword-argument field 'ob_type'")
 
-        ob_size: int = kwargs.get("ob_size", 0).__index__()
-        ob_type = PyTypeObject.try_from(kwargs["ob_type"])
+        new_ob_size: int = kwargs.get("ob_size", 0).__index__()
+        new_ob_type = PyTypeObject.try_from(kwargs["ob_type"])
 
         if issubclass(cls, IsGC):
             res = (
-                ob_type.GC_NewVar(ob_size)
+                new_ob_type.GC_NewVar(new_ob_size)
                 if issubclass(cls, PyVarObject)
-                else ob_type.GC_New()
+                else new_ob_type.GC_New()
             )
         else:
             res = (
-                ob_type.NewVar(ob_size)
+                new_ob_type.NewVar(new_ob_size)
                 if issubclass(cls, PyVarObject)
-                else ob_type.New()
+                else new_ob_type.New()
             )
         return res.contents.astype(cls)
 
@@ -227,6 +227,18 @@ class PyObject(Structure, AsRef, Generic[_T, _KT, _VT]):
         # If 0, the type does not have a dict
         if offset == 0:
             return None
+        # For -1, the type uses the 3.12 Managed Dict feature
+        if offset == -1:
+            # Check that the flag is set
+            from einspect.structs import TpFlags
+
+            if not self.ob_type.contents.tp_flags & TpFlags.MANAGED_DICT:
+                raise RuntimeError(
+                    "type has a __dictoffset__ of -1, but tp_flags does not have TpFlags.MANAGED_DICT"
+                )
+            # Materialize the dict
+            inst_dict = self.GetAttr("__dict__")
+            return PyObject.from_object(inst_dict).as_ref()
         # For > 0, start from the address of the PyObject
         if offset > 0:
             addr = self.address + offset
