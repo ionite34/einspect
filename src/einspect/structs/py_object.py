@@ -2,12 +2,13 @@
 from __future__ import annotations
 
 import ctypes
+from contextlib import suppress
 from ctypes import POINTER, Structure, c_void_p, pythonapi
 from typing import TYPE_CHECKING, Any, Dict, Generic, List, Tuple, Type, TypeVar, Union
 
 from typing_extensions import Annotated, Self
 
-from einspect.api import PTR_SIZE, align_size
+from einspect.api import PTR_SIZE, address, align_size
 from einspect.compat import Version, python_req
 from einspect.protocols.delayed_bind import bind_api
 from einspect.protocols.type_parse import is_ctypes_type
@@ -33,8 +34,8 @@ class PyObject(Structure, AsRef, Generic[_T, _KT, _VT]):
 
     ob_refcnt: int
     ob_type: Annotated[ptr[PyTypeObject[Type[_T]]], c_void_p]
+
     _fields_: List[Union[Tuple[str, type], Tuple[str, type, int]]]
-    _from_type_name_: str
 
     @property
     def mem_size(self) -> int:
@@ -46,17 +47,6 @@ class PyObject(Structure, AsRef, Generic[_T, _KT, _VT]):
         """Return the address of the PyObject."""
         return ctypes.addressof(self)
 
-    @property
-    def _orig_type_name(self) -> str | None:
-        """
-        Return the type repr of the original object.
-
-        Only available if instance created with from_object.
-        """
-        if not hasattr(self, "_from_type_name_"):
-            return None
-        return self._from_type_name_
-
     def __eq__(self, other: Self) -> bool:
         """Return True if the PyObject is equal in address to the other."""
         if not isinstance(other, PyObject):
@@ -66,9 +56,11 @@ class PyObject(Structure, AsRef, Generic[_T, _KT, _VT]):
     def __repr__(self) -> str:
         """Return a string representation of the PyObject."""
         cls_name = f"{self.__class__.__name__}"
-        type_name = self._orig_type_name
-        if type_name:
-            cls_name += f"[{type_name}]"
+        # For generic PyObjects, add the type name
+        if self.__class__ in (PyObject, PyVarObject):
+            with suppress(ValueError):
+                obj_type = self.ob_type.contents
+                cls_name += f"[{obj_type.tp_name.decode()}]"
         return f"<{cls_name} at {self.address:#04x}>"
 
     def _format_fields_(self) -> Fields:
@@ -83,15 +75,7 @@ class PyObject(Structure, AsRef, Generic[_T, _KT, _VT]):
     @classmethod
     def from_object(cls, obj: _T) -> Self:
         """Create a PyObject from an object."""
-        # Record the type name for later repr use
-        type_repr = str(type(obj).__name__)
-        py_obj = ctypes.py_object(obj)
-        addr = ctypes.c_void_p.from_buffer(py_obj).value
-        if addr is None:
-            raise ValueError("Object is not a valid pointer")
-        inst = cls.from_address(addr)
-        inst._from_type_name_ = type_repr
-        return inst
+        return cls.from_address(address(obj))
 
     @classmethod
     def from_gc(cls, gc: PyGC_Head) -> Self:
