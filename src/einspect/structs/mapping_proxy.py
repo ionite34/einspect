@@ -6,6 +6,7 @@ from typing import TypeVar
 from einspect.structs.deco import struct
 from einspect.structs.py_dict import PyDictObject
 from einspect.structs.py_object import Fields, PyObject
+from einspect.structs.traits import IsGC
 from einspect.types import ptr
 
 __all__ = ("MappingProxyObject",)
@@ -16,7 +17,7 @@ _VT_co = TypeVar("_VT_co", covariant=True)
 
 
 @struct
-class MappingProxyObject(PyObject[MappingProxyType, _KT, _VT_co]):
+class MappingProxyObject(PyObject[MappingProxyType, _KT, _VT_co], IsGC):
     """
     Defines a mappingproxyobject Structure.
 
