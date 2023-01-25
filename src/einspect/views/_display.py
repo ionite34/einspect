@@ -52,22 +52,28 @@ class Formatter:
                 diff = len(obj) - self.arr_max
                 obj = obj[: self.arr_max]
             res = list(map(self.format_value, obj))
+
+            # For structures (first char is \n), add \n to last and indent
+            if res and res[0].startswith("{ ") and res[0].endswith(" }"):
+                sep = f",\n{INDENTS}"
+                text = f"{sep.join(res)}{', ...' if diff > 0 else ''}"
+                return f"[\n{INDENTS}{text}\n]"
+
             return f"[{', '.join(res)}{', ...' if diff > 0 else ''}]"
         # For pointers, get the value
         # noinspection PyUnresolvedReferences, PyProtectedMember
         if isinstance(obj, ctypes._Pointer):
             val = self.format_value(obj.contents) if obj else "NULL"
-            wrap = (
-                f"[{val}]" if not (val.startswith("[") and val.endswith("]")) else val
-            )
-            return f"&{wrap}"
+            if val.startswith("[") and val.endswith("]"):
+                return f"&{val}"
+            return f"&[{val}]"
         # For PyObject, get the object
         if isinstance(obj, PyObject):
             obj.IncRef()
             return self.format_value(obj.into_object())
         # For ctypes Structures, do multi-line formatting
         if isinstance(obj, Structure):
-            return self.format_structure(obj)
+            return self.format_structure(obj, short=True)
         # Other cases
         try:
             return DISP_TRANSFORMS[type(obj)](obj)
@@ -80,12 +86,15 @@ class Formatter:
         struct: PyObject,
         attr: str,
         hint: str | tuple[str, type],
+        type_hints: bool | None = None,
     ) -> str:
         value = getattr(struct, attr)
         type_cast = None
         if isinstance(hint, tuple):
             hint, type_cast = hint
-        type_str = f": {hint}" if self.types else ""
+
+        use_hints = self.types if type_hints is None else type_hints
+        type_str = f": {hint}" if use_hints else ""
 
         # If cast_to provided
         if type_cast is not None:
@@ -96,12 +105,27 @@ class Formatter:
         return res
 
     # noinspection PyProtectedMember
-    def format_structure(self, struct: Structure) -> str:
+    def format_structure(self, struct: Structure, short: bool | None = None) -> str:
+        # Short mode looks like
+        # { ob_refcnt = 1, ob_type = &[object] }
         lines = []
+        # Auto short if below 5
+        if short is None:
+            short = len(struct._format_fields_()) < 5
         # Get attributes
         for attr, type_hint in struct._format_fields_().items():
-            res = indent(self.format_attr(struct, attr, type_hint))
-            lines.append(res)
+            text = self.format_attr(
+                struct=struct,
+                attr=attr,
+                hint=type_hint,
+                # If short, don't show type hints
+                type_hints=(None if not short else False),
+            )
+            if not short:
+                text = indent(text)
+            lines.append(text)
+        if short:
+            return f"{{ {', '.join(lines)} }}"
         return "\n" + "\n".join(lines) + "\n"
 
     # noinspection PyProtectedMember
