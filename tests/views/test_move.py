@@ -1,4 +1,6 @@
 """Test moving of views."""
+from ast import literal_eval
+
 import pytest
 
 from einspect import view
@@ -30,6 +32,17 @@ def test_move_instance_dicts():
     view(x) << view(y)
     assert x == (4, 5, 6)
     assert x.__dict__ is y.__dict__
+
+
+def test_move_str():
+    """Move between strs."""
+    a = literal_eval("'abcdef'")
+    b = literal_eval("'xyz'")
+    assert a == "abcdef"
+    assert hash(a) == hash("abcdef")
+    view(a) << view(b)
+    assert a == "xyz"
+    assert hash(a) == hash("xyz")
 
 
 def test_move_unsafe_size():
