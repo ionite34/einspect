@@ -186,10 +186,14 @@ class TestPyLongObject:
 
 class TestPyTupleObject:
     def test_item(self):
-        tup = literal_eval("(1, 2, 3)")
+        tup = literal_eval("(1,)")
         obj = st.PyTupleObject.from_object(tup)
         obj.ob_item = [st.PyObject.from_object(17).as_ref()]
-        assert obj.into_object() == (17, 2, 3)
+        assert obj.into_object() == (17,)
+        # Use array as well
+        arr_type = type(obj.ob_item)
+        obj.ob_item = arr_type(st.PyObject.from_object(5).as_ref())
+        assert obj.into_object() == (5,)
 
 
 @pytest.mark.parametrize(
