@@ -24,11 +24,6 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
 
-    # Need to install libsndfile for linux
-    - name: System Dependencies
-      run: sudo apt-get install libsndfile1
-      if: matrix.os == 'ubuntu-latest'
-
     - name: Cache Poetry
       uses: actions/cache@v3
       with:
