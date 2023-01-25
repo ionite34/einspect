@@ -21,7 +21,11 @@ __all__ = (
     "ALIGNMENT",
     "ALIGNMENT_SHIFT",
     "align_size",
+    "address",
+    "seq_to_array",
 )
+
+from einspect.types import NULL, Pointer
 
 _T = TypeVar("_T")
 _CT = TypeVar("_CT")
@@ -200,9 +204,23 @@ def align_size(size: int, alignment: int = ALIGNMENT) -> int:
     return (size + alignment - 1) & ~(alignment - 1)
 
 
-def seq_to_array(seq: Sequence[_T] | Array[_T], dtype: type[_CT]) -> Array[_CT]:
+def seq_to_array(
+    seq: Sequence[_T] | Array[_T], dtype: type[_CT], py_obj_try_cast: bool = True
+) -> Array[_CT]:
     """Cast a Sequence to a ctypes.Array of a given type."""
     if isinstance(seq, Array):
         return seq
+
     arr_type = dtype * len(seq)
+
+    if py_obj_try_cast and issubclass(dtype, Pointer):
+        dtype_r = dtype._type_
+        if hasattr(dtype_r, "try_from"):
+            # If we find a NULL singleton, don't set it.
+            arr = arr_type()
+            for i, v in enumerate(seq):
+                if v is not NULL:
+                    arr[i] = dtype_r.try_from(v).with_ref().as_ref()
+            return arr
+
     return arr_type(*seq)
