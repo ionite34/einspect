@@ -83,47 +83,45 @@ class Py:
         """
 
     class Tuple:
-        Size: Callable[[ObjectOrRef], int] = pythonapi["PyTuple_Size"]
-        """
-        Return the size of a tuple object.
-        https://docs.python.org/3/c-api/tuple.html#c.PyTuple_Size
-        """
-        Size.argtypes = (py_object,)  # type: ignore
-        Size.restype = Py_ssize_t  # type: ignore
+        @bind_api(pythonapi["PyTuple_Size"])
+        @staticmethod
+        def Size(obj: tuple) -> int:
+            """
+            Return the size of a tuple object.
+            https://docs.python.org/3/c-api/tuple.html#c.PyTuple_Size
+            """
 
-        GetItem: Callable[[ObjectOrRef, IntSize], object] = pythonapi["PyTuple_GetItem"]
-        """
-        Return the item at position index in the tuple o.
-        https://docs.python.org/3/c-api/tuple.html#c.PyTuple_GetItem
-        """
-        GetItem.argtypes = (py_object, Py_ssize_t)  # type: ignore
-        GetItem.restype = py_object  # type: ignore
+        @bind_api(pythonapi["PyTuple_GetItem"])
+        @staticmethod
+        def GetItem(obj: tuple, index: int) -> object:
+            """
+            Return the item at position index in the tuple o.
+            https://docs.python.org/3/c-api/tuple.html#c.PyTuple_GetItem
+            """
 
-        SetItem: Callable[[ObjectOrRef, IntSize, ObjectOrRef], None] = pythonapi[
-            "PyTuple_SetItem"
-        ]
-        """
-        Set the item at position index in the tuple o to v.
-        https://docs.python.org/3/c-api/tuple.html#c.PyTuple_SetItem
+        @bind_api(pythonapi["PyTuple_SetItem"])
+        @staticmethod
+        def SetItem(obj: tuple, index: int, value: object) -> None:
+            """
+            Set the item at position index in the tuple o to v.
+            https://docs.python.org/3/c-api/tuple.html#c.PyTuple_SetItem
 
-        Notes:
-            - This function steals a reference to v.
-            - Requires tuple o to have a reference count == 1.
-        """
-        SetItem.argtypes = (py_object, Py_ssize_t, py_object)  # type: ignore
-        SetItem.restype = None  # type: ignore
+            Notes:
+                - This function steals a reference to v.
+                - Requires tuple o to have a reference count == 1.
+            """
 
-        Resize: Callable[[PyObjectPtr, IntSize], None] = pythonapi["_PyTuple_Resize"]
-        """
-        Resize the tuple to the specified size.
-        https://docs.python.org/3/c-api/tuple.html#c._PyTuple_Resize
+        @bind_api(pythonapi["_PyTuple_Resize"])
+        @staticmethod
+        def Resize(obj: tuple, size: int) -> None:
+            """
+            Resize the tuple to the specified size.
+            https://docs.python.org/3/c-api/tuple.html#c._PyTuple_Resize
 
-        Notes:
-            - Not part of the documented limited C API.
-            - Requires tuple o to have ref-count = 1 or size = 0
-        """
-        Resize.argtypes = (POINTER(py_object), Py_ssize_t)  # type: ignore
-        Resize.restype = None  # type: ignore
+            Notes:
+                - Not part of the documented limited C API.
+                - Requires tuple o to have ref-count = 1 or size = 0.
+            """
 
     class Type:
         @bind_api(pythonapi["PyType_Modified"])
