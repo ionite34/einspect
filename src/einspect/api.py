@@ -3,8 +3,8 @@ from __future__ import annotations
 
 import ctypes
 from collections.abc import Sequence
-from ctypes import POINTER, Array, c_size_t, c_void_p, py_object, pythonapi, sizeof
-from typing import Any, Callable, TypeVar, Union
+from ctypes import Array, c_size_t, c_void_p, pythonapi, sizeof
+from typing import Any, Callable, TypeVar
 
 import _ctypes
 from typing_extensions import Annotated
@@ -37,10 +37,6 @@ uintptr_t = ctypes.c_uint64
 
 PTR_SIZE = sizeof(c_void_p)
 """Size of a pointer in bytes."""
-
-ObjectOrRef = Union[py_object, object]
-IntSize = Union[int, Py_ssize_t]
-PyObjectPtr = POINTER(py_object)
 
 # Alignments (must be powers of 2)
 # https://github.com/python/cpython/blob/3.11/Objects/obmalloc.c#L878-L884
@@ -186,7 +182,7 @@ class Py:
             """
 
 
-PyObj_FromPtr: Callable[[IntSize], object] = _ctypes.PyObj_FromPtr
+PyObj_FromPtr: Callable[[int], object] = _ctypes.PyObj_FromPtr
 """(Py_ssize_t ptr) -> Py_ssize_t"""
 
 
