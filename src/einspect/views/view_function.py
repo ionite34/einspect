@@ -4,6 +4,7 @@ from collections.abc import Callable
 from types import CodeType, FunctionType
 from typing import Any, Dict
 
+from einspect.compat import Version
 from einspect.structs import PyFunctionObject
 from einspect.structs.include.object_h import vectorcallfunc
 from einspect.structs.py_object import py_get, py_set
@@ -138,9 +139,17 @@ class FunctionView(View[FunctionType, None, None]):
 
     @property
     def func_version(self) -> int:
+        if Version.PY_3_11.below():
+            raise AttributeError(
+                "PyFunctionObject does not have func_version below Python 3.11"
+            )
         return self._pyobject.func_version
 
     @func_version.setter
     @unsafe
     def func_version(self, value: int) -> None:
+        if Version.PY_3_11.below():
+            raise AttributeError(
+                "PyFunctionObject does not have func_version below Python 3.11"
+            )
         self._pyobject.func_version = value
