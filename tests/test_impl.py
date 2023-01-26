@@ -51,21 +51,24 @@ def test_impl_func():
     # Implement an override for list __add__
     @impl(list)
     def __add__(self, other):
-        return "test-123"
+        return ["test-123"]
 
     a = [1, 2]
     b = [3, 4]
-    assert a + b == "test-123"
+    assert a + b == ["test-123"]
 
-    # Implement a new method for set
-    @impl(set)
+
+@pytest.mark.run_in_subprocess
+def test_impl_func_2():
+    # Implement a new method for int
+    @impl(int)
     def __matmul__(self, other):
-        return self | other
+        return self // other
 
-    a = {1, 2}
-    b = {3, 4}
+    a = 100
+    b = 4
     # noinspection PyUnresolvedReferences
-    assert a @ b == {1, 2, 3, 4}
+    assert a @ b == 25
 
 
 @pytest.mark.run_in_subprocess

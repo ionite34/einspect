@@ -82,6 +82,7 @@ class TestView:
         obj = self.get_obj()
         v = self.view_type(obj, ref=True)
         assert v.base is obj
+        assert ~v is obj
 
     def test_base_no_ref(self):
         """Access base with no ref should require unsafe."""
@@ -128,11 +129,13 @@ class TestView:
             assert not v.gc_is_tracked()
             assert not v.gc_may_be_tracked()
 
-    def test_instance_dict(self):
+    def test_instance_dict(self) -> None:
         obj = self.get_obj()
         v = self.view_type(obj, ref=True)
         d = v._pyobject.instance_dict()
         if d is not None:
+            # Materialize dict
+            getattr(obj, "__dict__", None)
             assert d.contents.into_object() == obj.__dict__
             assert v.instance_dict == obj.__dict__
         else:
