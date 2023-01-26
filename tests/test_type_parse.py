@@ -24,9 +24,9 @@ def test_struct_pointer_error() -> None:
         assert not Foo
 
 
-def test_struct_union():
-    @struct
-    class Foo:
-        x: Union[POINTER(c_void_p), POINTER(c_uint32)]
+def test_struct_union() -> None:
+    with pytest.raises(TypeError):
 
-    assert Foo.x._type_ == c_void_p
+        @struct
+        class Foo:
+            x: Union[POINTER(c_void_p), POINTER(c_uint32)]
