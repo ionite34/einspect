@@ -84,9 +84,10 @@ def fix_ctypes_generics(
 def convert_type_hints(source: type, owner_cls: type) -> type | None:
     """Convert type hints to types usable for FuncPtr."""
     # Unpack optionals
-    if type(source) is typing.Optional:
-        source = typing.get_args(source)[0]
-        return convert_type_hints(source, owner_cls)
+    if hasattr(source, "__origin__"):
+        if get_origin(source) == typing.Union:
+            source = typing.get_args(source)[0]
+            return convert_type_hints(source, owner_cls)
 
     # Convert TypeVar and Type to py_object
     if (type(source) is TypeVar) or get_origin(source) is type:
