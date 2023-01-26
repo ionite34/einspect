@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import sys
 from types import FunctionType
 
 import pytest
@@ -25,7 +26,6 @@ class TestFunctionView(TestView):
         v = self.view_type(foo)
 
         assert v.globals == foo.__globals__
-        assert v.builtins == foo.__globals__["__builtins__"]
         assert v.name == foo.__name__
         assert v.qualname == foo.__qualname__
         assert v.code == foo.__code__
@@ -40,6 +40,12 @@ class TestFunctionView(TestView):
         getattr(foo, "__annotations__")
         assert v.dict == foo.__dict__
         assert v.annotations == foo.__annotations__
+
+    @pytest.mark.skipif(sys.version_info < (3, 10), reason="Python 3.10+ only")
+    def test_builtins(self):
+        obj = self.get_obj()
+        v = self.view_type(obj)
+        assert v.builtins == obj.__globals__["__builtins__"]
 
     def test_globals(self):
         # noinspection PyUnresolvedReferences
