@@ -16,13 +16,16 @@ from einspect.structs.py_set import PySetObject, SetEntry
 from einspect.structs.py_dict import PyDictObject, PyDictKeysObject, PyDictValues
 from einspect.structs.mapping_proxy import MappingProxyObject
 
-# Compatibility override for Python 3.11
+# Compatibility override for py_function
 if sys.version_info > (3, 11):
     import einspect.structs.py_function as py_function
     from einspect.structs.py_function import PyFunctionObject
-else:
+elif sys.version_info > (3, 10):
     import einspect._compat.py_function_3_10 as py_function
     from einspect._compat.py_function_3_10 import PyFunctionObject
+else:
+    import einspect._compat.py_function_3_9 as py_function
+    from einspect._compat.py_function_3_9 import PyFunctionObject
 
 # Compatibility override for Python 3.12
 if sys.version_info < (3, 12):

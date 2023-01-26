@@ -31,11 +31,19 @@ class FunctionView(View[FunctionType, None, None]):
 
     @property
     def builtins(self) -> Dict[str, Any]:
+        if Version.PY_3_10.below():
+            raise AttributeError(
+                "PyFunctionObject does not have builtins below Python 3.10"
+            )
         return self._pyobject.builtins.contents.into_object()
 
     @builtins.setter
     @unsafe
     def builtins(self, value: Dict[str, Any]) -> None:
+        if Version.PY_3_10.below():
+            raise AttributeError(
+                "PyFunctionObject does not have builtins below Python 3.10"
+            )
         py_set(self._pyobject.builtins, value)
 
     @property
