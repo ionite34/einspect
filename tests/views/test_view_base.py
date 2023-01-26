@@ -82,6 +82,7 @@ class TestView:
         obj = self.get_obj()
         v = self.view_type(obj, ref=True)
         assert v.base is obj
+        assert ~v is obj
 
     def test_base_no_ref(self):
         """Access base with no ref should require unsafe."""

@@ -356,7 +356,7 @@ class View(BaseView[_T, _KT, _VT]):
         """Returns the base of this view as object."""
         # Prioritize strong ref if it exists
         if self._base is not None:
-            return self._base
+            return self._base.value
         return self.base
 
 
