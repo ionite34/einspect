@@ -1,13 +1,15 @@
 """Function factory to create views for objects."""
 from __future__ import annotations
 
-from types import MappingProxyType
+from collections.abc import Callable
+from types import FunctionType, MappingProxyType
 from typing import Any, Final, TypeVar, overload
 
 from einspect.views.view_base import REF_DEFAULT, View
 from einspect.views.view_bool import BoolView
 from einspect.views.view_dict import DictView
 from einspect.views.view_float import FloatView
+from einspect.views.view_function import FunctionView
 from einspect.views.view_int import IntView
 from einspect.views.view_list import ListView
 from einspect.views.view_mapping_proxy import MappingProxyView
@@ -29,6 +31,7 @@ VIEW_TYPES: Final[dict[type, type[View]]] = {
     tuple: TupleView,
     dict: DictView,
     set: SetView,
+    FunctionType: FunctionView,
     MappingProxyType: MappingProxyView,
 }
 """Mapping of (type): (view class)."""
@@ -93,6 +96,11 @@ def view(obj: str, ref: bool = REF_DEFAULT) -> StrView:
 
 @overload
 def view(obj: float, ref: bool = REF_DEFAULT) -> FloatView:
+    ...
+
+
+@overload
+def view(obj: FunctionType | Callable, ref: bool = REF_DEFAULT) -> FunctionView:
     ...
 
 
