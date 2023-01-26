@@ -41,7 +41,7 @@ _View = TypeVar("_View", bound="View")
 _Obj = TypeVar("_Obj", bound=object)
 
 
-def _wrap_py_object(obj: _T | py_object[_T]) -> py_object[_T]:
+def wrap_py_object(obj: _T | py_object[_T]) -> py_object[_T]:
     """Wrap non-py_object objects in a py_object."""
     if isinstance(obj, py_object):
         return obj
@@ -58,7 +58,7 @@ class BaseView(ABC, Generic[_T, _KT, _VT], UnsafeContext):
         self._base_id = id(obj)
         # Get a reference if ref=True
         self._base: py_object[_T] | None
-        self._base = _wrap_py_object(obj) if ref else None
+        self._base = wrap_py_object(obj) if ref else None
         # Attempt to get a weakref
         try:
             self._base_weakref = weakref.ref(obj)
