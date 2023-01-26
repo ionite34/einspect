@@ -32,6 +32,8 @@ from einspect.types import ptr
 if TYPE_CHECKING:
     from einspect.structs import PyTypeObject
 
+__all__ = ("PyObject", "PyVarObject", "Fields", "py_get", "py_set")
+
 Fields = Dict[str, Union[str, Tuple[str, Type]]]
 
 _T = TypeVar("_T")
@@ -40,6 +42,29 @@ _VT = TypeVar("_VT")
 _ST = TypeVar("_ST", bound=Structure)
 
 DEFAULT = object()
+
+
+def py_get(obj_ptr: ptr[PyObject]) -> object | None:
+    """
+    Get a PyObject pointer value.
+
+    If the pointer is NULL, return None.
+    """
+    return obj_ptr.contents.into_object() if obj_ptr else None
+
+
+def py_set(obj_ptr: ptr[PyObject], value: object | PyObject | ptr[PyObject]) -> None:
+    """
+    Set a PyObject pointer value on a View.
+
+    If the attribute exists and points to a PyObject, it will be DecRef'd.
+    The value will be IncRef'd before being set.
+    """
+    # Get and DecRef current
+    if obj_ptr:
+        obj_ptr.contents.DecRef()
+    # Set new
+    obj_ptr.contents = PyObject.try_from(value).with_ref()
 
 
 @struct
