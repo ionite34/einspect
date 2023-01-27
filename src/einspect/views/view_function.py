@@ -147,18 +147,18 @@ class FunctionView(View[FunctionType, None, None], IsGC):
         self._pyobject.vectorcall = vectorcallfunc(value)
 
     @property
-    def func_version(self) -> int:
+    def version(self) -> int:
         if Version.PY_3_11.below():
             raise AttributeError(
-                "PyFunctionObject does not have func_version below Python 3.11"
+                "PyFunctionObject does not have version below Python 3.11"
             )
         return self._pyobject.func_version
 
-    @func_version.setter
+    @version.setter
     @unsafe
-    def func_version(self, value: int) -> None:
+    def version(self, value: int) -> None:
         if Version.PY_3_11.below():
             raise AttributeError(
-                "PyFunctionObject does not have func_version below Python 3.11"
+                "PyFunctionObject does not have version below Python 3.11"
             )
         self._pyobject.func_version = value
