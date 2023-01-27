@@ -13,5 +13,7 @@ view_mapping_proxy
 view_set
 view_str
 view_tuple
+view_function
+view_cfunction
 view_type
 ```

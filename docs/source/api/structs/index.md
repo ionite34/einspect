@@ -14,6 +14,8 @@ mapping_proxy
 py_set
 py_unicode
 py_tuple
+py_function
+py_cfunction
 py_type
 traits
 ```
