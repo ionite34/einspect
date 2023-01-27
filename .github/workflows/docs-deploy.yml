@@ -12,6 +12,7 @@ permissions:
 
 jobs:
   build:
+    name: Docs Deploy
     runs-on: ubuntu-latest
 
     steps:
