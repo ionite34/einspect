@@ -47,6 +47,14 @@ class TestFunctionView(TestView):
         v = self.view_type(obj)
         assert v.builtins == obj.__globals__["__builtins__"]
 
+    @pytest.mark.skipif(sys.version_info < (3, 11), reason="Python 3.11+ only")
+    def test_version(self):
+        obj = self.get_obj()
+        v = self.view_type(obj)
+        assert v.version == v._pyobject.func_version
+        with v.unsafe():
+            v.version = v._pyobject.func_version
+
     def test_globals(self):
         # noinspection PyUnresolvedReferences
         def foo():
