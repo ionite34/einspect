@@ -11,6 +11,7 @@ from einspect.structs.py_float import PyFloatObject
 from einspect.structs.py_list import PyListObject
 from einspect.structs.py_tuple import PyTupleObject
 from einspect.structs.py_set import PySetObject, SetEntry
+from einspect.structs.py_cfunction import PyCFunctionObject
 
 # Req before PyMappingProxyObject
 from einspect.structs.py_dict import PyDictObject, PyDictKeysObject, PyDictValues
@@ -60,6 +61,7 @@ __all__ = (
     "PyFloatObject",
     "PyUnicodeObject",
     "PyFunctionObject",
+    "PyCFunctionObject",
     "State",
     "Kind",
     "PyCompactUnicodeObject",
