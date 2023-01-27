@@ -28,7 +28,7 @@ class PyListObject(PyVarObject[list, None, _VT], IsGC):
 
     @classmethod
     def from_object(cls, obj: list[_VT]) -> PyListObject[_VT]:
-        return cls.from_address(id(obj))
+        return super().from_object(obj)  # type: ignore
 
     def _format_fields_(self) -> Fields:
         return {
