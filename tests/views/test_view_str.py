@@ -24,6 +24,15 @@ class TestStrView(TestView):
         assert v.buffer[0] == ord("🤔")
         assert isinstance(v._pyobject, PyCompactUnicodeObject)
 
+    def test_unicode_subclass(self) -> None:
+        class UserStr(str):
+            pass
+
+        s = UserStr("curious 🤔")
+        v = view(s)
+        assert v.buffer[:9] == [*map(ord, "curious 🤔")]
+        assert isinstance(v._pyobject, PyCompactUnicodeObject)
+
     def test_properties(self) -> None:
         text = self.get_obj()
         v = view(text)
