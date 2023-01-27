@@ -1,5 +1,6 @@
 from einspect.views.view_base import AnyView, VarView, View
 from einspect.views.view_bool import BoolView
+from einspect.views.view_cfunction import CFunctionView
 from einspect.views.view_dict import DictView
 from einspect.views.view_float import FloatView
 from einspect.views.view_function import FunctionView
@@ -19,6 +20,7 @@ __all__ = (
     "DictView",
     "FloatView",
     "FunctionView",
+    "CFunctionView",
     "IntView",
     "ListView",
     "MappingProxyView",
