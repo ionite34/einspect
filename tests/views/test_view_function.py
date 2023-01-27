@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import sys
 from types import FunctionType
+from unittest.mock import patch
 
 import pytest
 
@@ -54,6 +55,16 @@ class TestFunctionView(TestView):
         assert v.version == v._pyobject.func_version
         with v.unsafe():
             v.version = v._pyobject.func_version
+
+    @patch("einspect.compat.sys.version_info", (3, 10))
+    def test_version_error(self):
+        """FunctionView.version should raise AttributeError on Python < 3.11"""
+        obj = self.get_obj()
+        v = self.view_type(obj)
+        with pytest.raises(AttributeError):
+            _ = v.version
+        with pytest.raises(AttributeError), v.unsafe():
+            v.version = 0
 
     def test_globals(self):
         # noinspection PyUnresolvedReferences
