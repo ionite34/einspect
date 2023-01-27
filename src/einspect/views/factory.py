@@ -2,9 +2,10 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from types import FunctionType, MappingProxyType
+from types import BuiltinFunctionType, FunctionType, MappingProxyType
 from typing import Any, Final, TypeVar, overload
 
+from einspect.views import CFunctionView
 from einspect.views.view_base import REF_DEFAULT, View
 from einspect.views.view_bool import BoolView
 from einspect.views.view_dict import DictView
@@ -29,10 +30,11 @@ VIEW_TYPES: Final[dict[type, type[View]]] = {
     str: StrView,
     list: ListView,
     tuple: TupleView,
-    dict: DictView,
     set: SetView,
-    FunctionType: FunctionView,
+    dict: DictView,
     MappingProxyType: MappingProxyView,
+    FunctionType: FunctionView,
+    BuiltinFunctionType: CFunctionView,
 }
 """Mapping of (type): (view class)."""
 
@@ -99,8 +101,12 @@ def view(obj: float, ref: bool = REF_DEFAULT) -> FloatView:
     ...
 
 
+# Ideally we'd have separate overloads for builtin vs user-defined functions,
+# but typeshed only defines builtin functions as Callable.
 @overload
-def view(obj: FunctionType | Callable, ref: bool = REF_DEFAULT) -> FunctionView:
+def view(
+    obj: BuiltinFunctionType | FunctionType | Callable, ref: bool = REF_DEFAULT
+) -> FunctionView | CFunctionView:
     ...
 
 
