@@ -8,13 +8,14 @@ from einspect.compat import Version
 from einspect.structs import PyFunctionObject
 from einspect.structs.include.object_h import vectorcallfunc
 from einspect.structs.py_object import py_get, py_set
+from einspect.structs.traits import IsGC
 from einspect.views.unsafe import unsafe
 from einspect.views.view_base import View
 
 __all__ = ("FunctionView",)
 
 
-class FunctionView(View[FunctionType, None, None]):
+class FunctionView(View[FunctionType, None, None], IsGC):
     _pyobject: PyFunctionObject
 
     def __init__(self, obj: FunctionType | Callable, ref: bool = False) -> None:
