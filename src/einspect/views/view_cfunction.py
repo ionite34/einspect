@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from types import BuiltinFunctionType
-from typing import Any
+from typing import Any, TypeVar
 
 from einspect.structs import PyCFunctionObject
 from einspect.structs.include.methodobject_h import PyMethodDef
@@ -14,11 +14,13 @@ from einspect.views.view_base import View
 
 __all__ = ("CFunctionView",)
 
+_T = TypeVar("_T", BuiltinFunctionType, Callable)
 
-class CFunctionView(View[BuiltinFunctionType, None, None], IsGC):
-    _pyobject: PyCFunctionObject
 
-    def __init__(self, obj: BuiltinFunctionType | Callable, ref: bool = False) -> None:
+class CFunctionView(View[_T, None, None], IsGC):
+    _pyobject: PyCFunctionObject[_T]
+
+    def __init__(self, obj: _T, ref: bool = False) -> None:
         super().__init__(obj, ref)
 
     @property
