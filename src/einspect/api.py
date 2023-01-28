@@ -17,6 +17,7 @@ __all__ = (
     "Py_ssize_t",
     "Py_hash_t",
     "uintptr_t",
+    "PTR_SIZE",
     "PyObj_FromPtr",
     "ALIGNMENT",
     "ALIGNMENT_SHIFT",
