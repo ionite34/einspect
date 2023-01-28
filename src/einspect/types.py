@@ -14,7 +14,7 @@ from einspect.compat import Version
 if TYPE_CHECKING:
     from einspect.structs import PyObject
 
-__all__ = ("ptr", "Array", "NULL", "_SelfPtr")
+__all__ = ("ptr", "Pointer", "Array", "NULL", "_SelfPtr")
 
 _T = TypeVar("_T")
 
