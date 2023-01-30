@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Callable, MutableSequence, Sequence
 from ctypes import Array, addressof, c_void_p, memmove, sizeof
-from typing import SupportsIndex, TypeVar, overload
+from typing import Any, SupportsIndex, TypeVar, overload
 
 from einspect.api import PTR_SIZE
 from einspect.errors import UnsafeError
@@ -53,7 +53,7 @@ class TupleView(VarView[tuple, None, _T], MutableSequence):
             py_obj = self._pyobject.GetItem(pos_index).contents
             return py_obj.into_object()
 
-    def __setitem__(self, index: SupportsIndex | slice, value: _T) -> None:
+    def __setitem__(self, index: SupportsIndex | slice, value: Any) -> None:
         if isinstance(index, slice):
             # Use a temp list for the slice calculation
             temp = list(self)
