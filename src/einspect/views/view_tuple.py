@@ -29,6 +29,10 @@ def can_resize(view: TupleView, target: int) -> bool:
 class TupleView(VarView[tuple, None, _T], MutableSequence):
     _pyobject: PyTupleObject[_T]
 
+    def __init__(self, obj: tuple[_T, ...] | tuple, ref: bool = True) -> None:
+        """View a tuple object."""
+        super().__init__(obj, ref)
+
     def __len__(self) -> int:
         return self.size
 
