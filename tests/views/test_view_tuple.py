@@ -48,7 +48,7 @@ class TestTupleView(TestView):
 
 def test_tuple_setitem():
     tup = literal_eval('("test", 1, 2.0)')
-    v = view(tup)
+    v = TupleView(tup)
     v[0] = "hm"
     v[1] = 4
     v[2] = 5
@@ -59,7 +59,7 @@ def test_tuple_setitem():
 
 def test_tuple_mutable_sequence():
     tup = literal_eval("(1, 2, 0)")
-    v = view(tup)
+    v = TupleView(tup)
     assert v.pop() == 0
     v.append(3)
     assert tup == (1, 2, 3)
