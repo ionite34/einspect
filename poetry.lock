@@ -2493,15 +2493,15 @@ lint = ["docutils-stubs", "flake8 (>=3.5.0)", "flake8-bugbear", "flake8-comprehe
 test = ["cython", "html5lib", "pytest (>=4.6)", "typed_ast"]
 
 [[package]]
-name = "sphinx_autodoc_typehints"
-version = "1.23.4"
+name = "sphinx-autodoc-typehints"
+version = "1.21.8"
 description = "Type hints (PEP 484) support for the Sphinx autodoc extension"
 category = "dev"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "sphinx_autodoc_typehints-1.23.4-py3-none-any.whl", hash = "sha256:46a98ee116e42ccdfe683bfc17a5cdce319b8b77f32e2bffe9c0cdad91acae32"},
-    {file = "sphinx_autodoc_typehints-1.23.4.tar.gz", hash = "sha256:b47c3a690d101a259d9aa920cc57c7ea79fb705d796c0d57cb17e99bd1d80a34"},
+    {file = "sphinx_autodoc_typehints-1.21.8-py3-none-any.whl", hash = "sha256:b8d15c05ced5e9fbe46a6dfd2ff194b6e508a64c9229bc7eaa08ee7089b9e6d3"},
+    {file = "sphinx_autodoc_typehints-1.21.8.tar.gz", hash = "sha256:68e7136403ca67359d7beaab4d358cea518623abe749cc4e0639609aebf2f5c7"},
 ]
 
 [package.dependencies]
@@ -2902,4 +2902,4 @@ testing = ["flake8 (<5)", "func-timeout", "jaraco.functools", "jaraco.itertools"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8,<3.13"
-content-hash = "9e1b6cf27ae7fe92dac4aa0443c67746a816efcf4157a74c371c57bb16460f48"
+content-hash = "a60892cad8953fe62b131cbc630724629b44bc84e470eee3a0bf3787a3f037f3"
