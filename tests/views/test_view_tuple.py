@@ -90,3 +90,10 @@ def test_tuple_sort():
     v = TupleView(tup)
     v.sort()
     assert tup == (0, 1, 2)
+
+
+def test_tuple_sort_empty():
+    tup = ()
+    v = TupleView(tup)
+    v.sort()
+    assert tup == ()
