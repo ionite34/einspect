@@ -107,7 +107,7 @@ class char_p(ctypes.c_char_p):
     pass
 
 
-class SupportsLessThan(typing.Protocol):
+class SupportsLessThan(typing.Protocol):  # pragma: no cover
     def __lt__(self, other: Self) -> bool:
         ...
 
