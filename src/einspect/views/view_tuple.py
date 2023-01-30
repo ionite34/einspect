@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-from collections.abc import MutableSequence, Sequence
+from collections.abc import Callable, MutableSequence, Sequence
 from ctypes import Array, addressof, c_void_p, memmove, sizeof
 from typing import SupportsIndex, TypeVar, overload
 
+from einspect.api import PTR_SIZE
 from einspect.errors import UnsafeError
-from einspect.structs import PyObject, PyTupleObject
-from einspect.types import ptr
+from einspect.structs import PyListObject, PyObject, PyTupleObject
+from einspect.types import SupportsLessThan, ptr
 from einspect.views.unsafe import unsafe
 from einspect.views.view_base import VarView
 
@@ -151,6 +152,36 @@ class TupleView(VarView[tuple, None, _T], MutableSequence):
 
         # Set the item
         self._pyobject.ob_item[norm_index] = PyObject.from_object(value).as_ref()
+
+    def sort(
+        self,
+        *,
+        key: Callable[[str], SupportsLessThan] | None = None,
+        reverse: bool = False,
+    ) -> None:
+        """
+        Sort the tuple in ascending order and return None.
+
+        The sort is in-place (i.e. the tuple itself is modified) and stable
+        (i.e. the order of two equal elements is maintained).
+
+        If a key function is given, apply it once to each tuple item and sort them,
+        ascending or descending, according to their function values.
+
+        The reverse flag can be set to sort in descending order.
+        """
+        # Skip empty
+        if self._pyobject.ob_size == 0:
+            return None
+        temp = sorted(self._pyobject.into_object(), key=key, reverse=reverse)
+        temp_obj = PyListObject.from_object(temp)
+        assert temp_obj.ob_size == self._pyobject.ob_size
+        # Move the references
+        memmove(
+            addressof(self._pyobject.ob_item),
+            addressof(temp_obj.ob_item.contents),
+            self._pyobject.ob_size * PTR_SIZE,
+        )
 
     @property
     def item(self) -> Array[ptr[PyObject[_T]]]:
