@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections.abc import MutableSequence
+from collections.abc import Callable, MutableSequence
 from ctypes import Array
 from typing import Iterable, SupportsIndex, TypeVar, Union, overload
 
@@ -13,6 +13,7 @@ from einspect.structs import (
     PyUnicodeObject,
     State,
 )
+from einspect.types import SupportsLessThan
 from einspect.views.unsafe import unsafe
 from einspect.views.view_base import REF_DEFAULT, View
 
@@ -146,6 +147,31 @@ class StrView(View[str, None, None], MutableSequence):
         target = str.replace(self._pyobject.into_object(), value, "", 1)
         # See if resizing is safe (should always be safe but check anyway)
         _check_resize(self, target.__sizeof__(), "remove")
+        _str_move(self, target)
+
+    def sort(
+        self,
+        *,
+        key: Callable[[str], SupportsLessThan] | None = None,
+        reverse: bool = False,
+    ) -> None:
+        """
+        Sort the string in ascending order and return None.
+
+        The sort is in-place (i.e. the string itself is modified) and stable
+        (i.e. the order of two equal elements is maintained).
+
+        If a key function is given, apply it once to each character and sort them,
+        ascending or descending, according to their function values.
+
+        The reverse flag can be set to sort in descending order.
+        """
+        temp = list(self._pyobject.into_object())
+        temp.sort(key=key, reverse=reverse)
+        # Combine to str
+        target = "".join(temp)
+        # See if resizing is safe, then move the string
+        _check_resize(self, target.__sizeof__(), "sort")
         _str_move(self, target)
 
     @property
