@@ -101,17 +101,17 @@ def view(obj: float, ref: bool = REF_DEFAULT) -> FloatView:
     ...
 
 
+@overload
+def view(obj: _Type, ref: bool = REF_DEFAULT) -> TypeView[_Type]:
+    ...
+
+
 # Ideally we'd have separate overloads for builtin vs user-defined functions,
 # but typeshed only defines builtin functions as Callable.
 @overload
 def view(
     obj: BuiltinFunctionType | FunctionType | Callable, ref: bool = REF_DEFAULT
 ) -> FunctionView | CFunctionView:
-    ...
-
-
-@overload
-def view(obj: _Type, ref: bool = REF_DEFAULT) -> TypeView[_Type]:
     ...
 
 
