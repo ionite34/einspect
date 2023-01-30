@@ -82,7 +82,7 @@ def view(obj: set[_VT], ref: bool = REF_DEFAULT) -> SetView[_VT]:
 
 
 @overload
-def view(obj: tuple[_T, ...], ref: bool = REF_DEFAULT) -> TupleView[_T]:
+def view(obj: tuple[_VT, ...], ref: bool = REF_DEFAULT) -> TupleView[_VT]:
     ...
 
 
