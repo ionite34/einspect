@@ -119,6 +119,22 @@ def test_str_mutable_sequence() -> None:
     assert len(s) == orig_len
 
 
+# noinspection SpellCheckingInspection
+def test_str_sort():
+    s = literal_eval("'9a94-3f7109b7-888c'")
+    v = StrView(s)
+    assert v.interned == State.NOT_INTERNED
+    v.sort()
+    assert s == "--013477888999abcf"
+
+
+def test_str_sort_empty():
+    s = ""
+    v = StrView(s)
+    v.sort()
+    assert s == ""
+
+
 def test_str_remove() -> None:
     s = literal_eval("'4ff4-e1219224-5462'")
     v = StrView(s)
