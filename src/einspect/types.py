@@ -14,7 +14,7 @@ from einspect.compat import Version
 if TYPE_CHECKING:
     from einspect.structs import PyObject
 
-__all__ = ("ptr", "Pointer", "Array", "NULL", "_SelfPtr")
+__all__ = ("ptr", "Pointer", "Array", "NULL", "_SelfPtr", "SupportsLessThan")
 
 _T = TypeVar("_T")
 
@@ -105,6 +105,11 @@ class wchar_p(ctypes.c_wchar_p):
 
 class char_p(ctypes.c_char_p):
     pass
+
+
+class SupportsLessThan(typing.Protocol):
+    def __lt__(self, other: Self) -> bool:
+        ...
 
 
 if not TYPE_CHECKING:
