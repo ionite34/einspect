@@ -110,7 +110,7 @@ custom: 1
 custom: 2
 ```
 
-## Implement methods on built-in types with `@impl`
+## Implement methods on built-in types
 ```python
 from einspect import impl, orig
 
