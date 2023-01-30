@@ -166,6 +166,9 @@ class StrView(View[str, None, None], MutableSequence):
 
         The reverse flag can be set to sort in descending order.
         """
+        # Skip empty
+        if not self._pyobject.length:
+            return None
         temp = list(self._pyobject.into_object())
         temp.sort(key=key, reverse=reverse)
         # Combine to str
