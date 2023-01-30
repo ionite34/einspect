@@ -80,5 +80,13 @@ def test_tuple_mutable_sequence():
     v.insert(1, 123)
     assert tup == (100, 123, 200)
     assert v.pop(0) == 100
+
     v.clear()
     assert tup == ()
+
+
+def test_tuple_sort():
+    tup = literal_eval("(1, 2, 0)")
+    v = TupleView(tup)
+    v.sort()
+    assert tup == (0, 1, 2)
