@@ -413,7 +413,3 @@ class AnyView(View[_T, None, None]):
         py_obj_cls = self._pyobject.__class__.__name__
         base = f"[{self._base_type.__name__}]"
         return f"{self.__class__.__name__}{base}(<{py_obj_cls} at {addr:#04x}>)"
-
-
-class SupportsSubtype:
-    ...
