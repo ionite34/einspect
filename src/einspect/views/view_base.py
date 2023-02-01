@@ -20,7 +20,7 @@ from typing import (
 
 from einspect.api import PTR_SIZE, Py, PyObj_FromPtr, align_size
 from einspect.errors import DroppedReference, MovedError, UnsafeError
-from einspect.structs import PyObject, PyTypeObject, PyVarObject
+from einspect.structs import PyObject, PyTypeObject, PyVarObject, TpFlags
 from einspect.views._display import Formatter
 from einspect.views._moves import check_move, move
 from einspect.views.unsafe import UnsafeContext, unsafe
@@ -326,6 +326,9 @@ class View(BaseView[_T, _KT, _VT]):
 
         # Save the other PyObject type
         other_py_type = type(other._pyobject)
+        other_is_managed_dict = (
+            other._pyobject.ob_type.contents.tp_flags & TpFlags.MANAGED_DICT
+        )
 
         # Check safety of both moves
         if not self._unsafe:
@@ -338,8 +341,9 @@ class View(BaseView[_T, _KT, _VT]):
         buf = ctypes.create_string_buffer(other.mem_allocated)
         ctypes.memmove(buf, other._pyobject.address, other.mem_size)
         # Also save the other instance dict, if it exists
-        if (other_dict := other._pyobject.instance_dict()) is not None:
-            other_dict = other_dict.contents
+        other_dict = None
+        if (other_dict_ptr := other._pyobject.instance_dict()) is not None:
+            other_dict = other_dict_ptr.contents
             # IncRef so the dict stays alive
             other_dict.IncRef()
 
@@ -357,7 +361,12 @@ class View(BaseView[_T, _KT, _VT]):
 
         # Restore other instance dict, if it exists
         if other_dict is not None:
-            new_view._pyobject.SetAttr("__dict__", other_dict.into_object())
+            # For managed dict, use SetAttr
+            if other_is_managed_dict:
+                new_view._pyobject.SetAttr("__dict__", other_dict.into_object())
+            # Otherwise use the instance dict pointer
+            else:
+                new_view._pyobject.instance_dict().contents = other_dict
 
         # Drop old view
         self.drop()
