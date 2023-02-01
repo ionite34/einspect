@@ -84,3 +84,24 @@ def test_swap():
 
     assert a == "236ad434-c134-4f75"
     assert b == "78950fa2-93a4-4ac4"
+
+
+def test_swap_dict():
+    # Classes with instance dicts should also be swapped
+    A = type("A", (str,), {})
+    x = A(literal_eval("'A-bca9f33a-9123'"))
+    x.foo = "123"
+
+    B = type("B", (str,), {})
+    y = B(literal_eval("'B-08b35581-cd6a'"))
+    y.bar = "321"
+
+    view(x).swap(y)
+
+    assert y == "A-bca9f33a-9123"
+    assert y.foo == "123"
+    assert not hasattr(y, "bar")
+
+    assert x == "B-08b35581-cd6a"
+    assert x.bar == "321"
+    assert not hasattr(x, "foo")
