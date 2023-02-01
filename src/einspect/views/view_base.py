@@ -332,13 +332,18 @@ class View(BaseView[_T, _KT, _VT]):
             check_move(self, other)
             check_move(other, self)
 
+        other._pyobject.IncRef()
+
         # Save the other view in a buffer
-        buf = ctypes.create_string_buffer(other.mem_size)
+        buf = ctypes.create_string_buffer(other.mem_allocated)
         ctypes.memmove(buf, other._pyobject.address, other.mem_size)
         # Also save the other instance dict, if it exists
-        other_dict = None
+        other_dict: PyObject | None = None
         if other._pyobject.ob_type.contents.tp_dictoffset != 0:
-            other_dict = other._pyobject.instance_dict()
+            if (other_dict := other._pyobject.instance_dict()) is not None:
+                other_dict = other_dict.contents
+                # IncRef so the dict stays alive
+                other_dict.IncRef()
 
         # Move self to other
         move(src=self._pyobject, dst=other._pyobject)
@@ -347,14 +352,15 @@ class View(BaseView[_T, _KT, _VT]):
         other_obj: PyObject = other_py_type.from_address(ctypes.addressof(buf))  # type: ignore
 
         # Move buffer to self (exclude instance dict, handle it later)
-        move(src=other_obj, dst=self._pyobject, inst_dict=False)
-
-        # Restore other instance dict, if it exists
-        if other_dict is not None:
-            self._pyobject.instance_dict().contents = other_dict.contents
+        move(src=other_obj, dst=self._pyobject, offset=0, inst_dict=False)
 
         # Return a new view of ourselves
         new_view = factory.view(self._pyobject.into_object())
+
+        # Restore other instance dict, if it exists
+        if other_dict is not None:
+            new_view._pyobject.instance_dict().contents = other_dict
+
         # Drop old view
         self.drop()
         return new_view
