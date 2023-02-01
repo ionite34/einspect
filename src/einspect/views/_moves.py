@@ -1,17 +1,18 @@
 from __future__ import annotations
 
-from ctypes import addressof
+from contextlib import suppress
+from ctypes import addressof, c_void_p, memmove
 from typing import TYPE_CHECKING
 
 from einspect.api import PTR_SIZE
 from einspect.errors import UnsafeError
-from einspect.structs import TpFlags
+from einspect.structs import PyASCIIObject, PyObject, TpFlags
 
 if TYPE_CHECKING:
     from einspect.views.view_base import View
 
 
-def _check_move(dst: View, src: View) -> None:
+def check_move(dst: View, src: View) -> None:
     """
     Check if a memory from `dst` to `src` is safe.
 
@@ -63,3 +64,49 @@ def _check_move(dst: View, src: View) -> None:
             f"memory move of {src.mem_size} bytes into allocated space of {dst.mem_allocated} bytes"
             " is out of bounds. Enter an unsafe context to allow this."
         )
+
+
+def move(
+    dst: PyObject, src: PyObject, offset: int = PTR_SIZE, inst_dict: bool = True
+) -> None:
+    """Move data from PyObjects `src` to `dst`."""
+    # Materialize instance dicts in case we need to copy
+    with suppress(AttributeError):
+        src.GetAttr("__dict__")
+    with suppress(AttributeError):
+        dst.GetAttr("__dict__")
+
+    # If either is a string, un-intern them
+    for py_obj in (src, dst):
+        if isinstance(py_obj, PyASCIIObject):
+            py_obj: PyASCIIObject
+            py_obj.interned = 0  # not interned
+            py_obj.hash = -1  # invalidate cached hash
+
+    # If we have an instance dict, copy it now
+    dict_ptr = src.instance_dict()
+    if inst_dict and dict_ptr is not None:
+        dict_addr = addressof(dict_ptr)
+        # Normally we copy by offset, unless managed dict
+        if not src.ob_type.contents.tp_flags & TpFlags.MANAGED_DICT:
+            dict_offset = dict_addr - src.address
+            memmove(
+                dst.address + dict_offset,
+                c_void_p(dict_addr),
+                PTR_SIZE,
+            )
+
+    # Move main object
+    memmove(
+        dst.address + offset,
+        src.address + offset,
+        src.mem_size - offset,
+    )
+
+    # For managed dicts, we materialize the dict after move to copy it
+    if (
+        inst_dict
+        and dict_ptr is not None
+        and src.ob_type.contents.tp_flags & TpFlags.MANAGED_DICT
+    ):
+        dst.SetAttr("__dict__", dict_ptr.contents.into_object())
