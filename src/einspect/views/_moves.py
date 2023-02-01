@@ -71,10 +71,11 @@ def move(
 ) -> None:
     """Move data from PyObjects `src` to `dst`."""
     # Materialize instance dicts in case we need to copy
-    with suppress(AttributeError):
-        src.GetAttr("__dict__")
-    with suppress(AttributeError):
-        dst.GetAttr("__dict__")
+    if inst_dict:
+        with suppress(AttributeError):
+            src.GetAttr("__dict__")
+        with suppress(AttributeError):
+            dst.GetAttr("__dict__")
 
     # If either is a string, un-intern them
     for py_obj in (src, dst):
