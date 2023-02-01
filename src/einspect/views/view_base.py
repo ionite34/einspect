@@ -359,7 +359,7 @@ class View(BaseView[_T, _KT, _VT]):
 
         # Restore other instance dict, if it exists
         if other_dict is not None:
-            new_view._pyobject.instance_dict().contents = other_dict
+            new_view._pyobject.SetAttr("__dict__", other_dict.into_object())
 
         # Drop old view
         self.drop()
