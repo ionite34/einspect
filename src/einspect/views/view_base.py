@@ -5,7 +5,6 @@ import logging
 import warnings
 import weakref
 from abc import ABC
-from contextlib import suppress
 from ctypes import py_object
 from functools import cached_property
 from typing import (
@@ -23,7 +22,7 @@ from einspect.api import PTR_SIZE, Py, PyObj_FromPtr, align_size
 from einspect.errors import DroppedReference, MovedError, UnsafeError
 from einspect.structs import PyObject, PyTypeObject, PyVarObject, TpFlags
 from einspect.views._display import Formatter
-from einspect.views.moves import _check_move
+from einspect.views._moves import check_move, move
 from einspect.views.unsafe import UnsafeContext, unsafe
 
 __all__ = ("View", "VarView", "AnyView", "REF_DEFAULT")
@@ -262,49 +261,19 @@ class View(BaseView[_T, _KT, _VT]):
         self.__dropped = True
 
     @unsafe
-    def move_to(self, dst: View, start: int = 8) -> None:
+    def move_to(self, dst: View, start: int = PTR_SIZE) -> None:
         """
         Copy the object to another view's location.
 
         Args:
             dst: The destination view.
             start: The start offset in bytes to copy from.
-                The default of 8 is to skip `ob_refcnt`
+                The default is pointer size to skip `ob_refcnt`
         """
         if not isinstance(dst, View):
             raise TypeError(f"Expected View, got {type(dst).__name__!r}")
-        # Materialize instance dicts in case we need to copy
-        with suppress(AttributeError):
-            self._pyobject.GetAttr("__dict__")
-        with suppress(AttributeError):
-            dst._pyobject.GetAttr("__dict__")
 
-        # If we have an instance dict, copy it now
-        dict_ptr = self._pyobject.instance_dict()
-        if dict_ptr is not None:
-            dict_addr = ctypes.addressof(dict_ptr)
-            # Normally we copy by offset, unless managed dict
-            if not self._pyobject.ob_type.contents.tp_flags & TpFlags.MANAGED_DICT:
-                dict_offset = dict_addr - self._pyobject.address
-                ctypes.memmove(
-                    dst._pyobject.address + dict_offset,
-                    ctypes.c_void_p(dict_addr),
-                    PTR_SIZE,
-                )
-
-        # Move main object
-        ctypes.memmove(
-            dst._pyobject.address + start,
-            self._pyobject.address + start,
-            self.mem_size - start,
-        )
-
-        # For managed dicts, we materialize the dict after move to copy it
-        if (
-            dict_ptr is not None
-            and self._pyobject.ob_type.contents.tp_flags & TpFlags.MANAGED_DICT
-        ):
-            dst._pyobject.SetAttr("__dict__", dict_ptr.contents.into_object())
+        move(src=self._pyobject, dst=dst._pyobject, offset=start)
 
     @overload
     def move_from(self, other: _View) -> _View:
@@ -315,7 +284,7 @@ class View(BaseView[_T, _KT, _VT]):
         ...
 
     def move_from(self, other):
-        """Moves data at other View to this View."""
+        """Moves data at other Viewable to this View."""
         from einspect.views import factory
 
         if not isinstance(other, View):
@@ -323,7 +292,7 @@ class View(BaseView[_T, _KT, _VT]):
 
         # Check move safety if not in unsafe context
         if not self._unsafe:
-            _check_move(self, other)
+            check_move(self, other)
 
         # Store our address
         addr = self._pyobject.address
@@ -339,6 +308,69 @@ class View(BaseView[_T, _KT, _VT]):
         # Drop old view
         self.drop()
         return v
+
+    @overload
+    def swap(self, other: _View) -> _View:
+        ...
+
+    @overload
+    def swap(self, other: _Obj) -> View[_Obj]:
+        ...
+
+    def swap(self, other):
+        """Swaps data at other Viewable with this View."""
+        from einspect.views import factory
+
+        if not isinstance(other, View):
+            other = factory.view(other)  # type: ignore
+
+        # Save the other PyObject type
+        other_py_type = type(other._pyobject)
+        other_is_managed_dict = (
+            other._pyobject.ob_type.contents.tp_flags & TpFlags.MANAGED_DICT
+        )
+
+        # Check safety of both moves
+        if not self._unsafe:
+            check_move(self, other)
+            check_move(other, self)
+
+        other._pyobject.IncRef()
+
+        # Save the other view in a buffer
+        buf = ctypes.create_string_buffer(other.mem_allocated)
+        ctypes.memmove(buf, other._pyobject.address, other.mem_size)
+        # Also save the other instance dict, if it exists
+        other_dict = None
+        if (other_dict_ptr := other._pyobject.instance_dict()) is not None:
+            other_dict = other_dict_ptr.contents
+            # IncRef so the dict stays alive
+            other_dict.IncRef()
+
+        # Move self to other
+        move(src=self._pyobject, dst=other._pyobject)
+
+        # Get a PyObject from buffer
+        other_obj: PyObject = other_py_type.from_address(ctypes.addressof(buf))  # type: ignore
+
+        # Move buffer to self (exclude instance dict, handle it later)
+        move(src=other_obj, dst=self._pyobject, inst_dict=False)
+
+        # Return a new view of ourselves
+        new_view = factory.view(self._pyobject.into_object())
+
+        # Restore other instance dict, if it exists
+        if other_dict is not None:
+            # For managed dict, use SetAttr
+            if other_is_managed_dict:
+                new_view._pyobject.SetAttr("__dict__", other_dict.into_object())
+            # Otherwise use the instance dict pointer
+            else:
+                new_view._pyobject.instance_dict().contents = other_dict
+
+        # Drop old view
+        self.drop()
+        return new_view
 
     @overload
     def __lshift__(self, other: _View) -> _View:
@@ -394,7 +426,3 @@ class AnyView(View[_T, None, None]):
         py_obj_cls = self._pyobject.__class__.__name__
         base = f"[{self._base_type.__name__}]"
         return f"{self.__class__.__name__}{base}(<{py_obj_cls} at {addr:#04x}>)"
-
-
-class SupportsSubtype:
-    ...
