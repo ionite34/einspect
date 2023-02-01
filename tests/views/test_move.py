@@ -88,20 +88,20 @@ def test_swap():
 
 def test_swap_dict():
     # Classes with instance dicts should also be swapped
-    A = type("A", (str,), {})
-    x = A(literal_eval("'A-bca9f33a-9123'"))
-    x.foo = "123"
+    A = type("A", (int,), {})
+    a = A(500)
+    a.foo = "foo"
 
-    B = type("B", (str,), {})
-    y = B(literal_eval("'B-08b35581-cd6a'"))
-    y.bar = "321"
+    B = type("B", (int,), {})
+    b = B(700)
+    b.bar = "bar"
 
-    view(x).swap(y)
+    view(a).swap(b)
 
-    assert y == "A-bca9f33a-9123"
-    assert y.foo == "123"
-    assert not hasattr(y, "bar")
+    assert a == 700
+    assert a.bar == "bar"
+    assert not hasattr(a, "foo")
 
-    assert x == "B-08b35581-cd6a"
-    assert x.bar == "321"
-    assert not hasattr(x, "foo")
+    assert b == 500
+    assert b.foo == "foo"
+    assert not hasattr(b, "bar")
