@@ -70,13 +70,6 @@ def move(
     dst: PyObject, src: PyObject, offset: int = PTR_SIZE, inst_dict: bool = True
 ) -> None:
     """Move data from PyObjects `src` to `dst`."""
-    # Materialize instance dicts in case we need to copy
-    if inst_dict:
-        with suppress(AttributeError):
-            src.GetAttr("__dict__")
-        with suppress(AttributeError):
-            dst.GetAttr("__dict__")
-
     # If either is a string, un-intern them
     for py_obj in (src, dst):
         if isinstance(py_obj, PyASCIIObject):
@@ -84,18 +77,24 @@ def move(
             py_obj.interned = 0  # not interned
             py_obj.hash = -1  # invalidate cached hash
 
-    # If we have an instance dict, copy it now
-    dict_ptr = src.instance_dict()
-    if inst_dict and dict_ptr is not None:
-        dict_addr = addressof(dict_ptr)
-        # Normally we copy by offset, unless managed dict
-        if not src.ob_type.contents.tp_flags & TpFlags.MANAGED_DICT:
-            dict_offset = dict_addr - src.address
-            memmove(
-                dst.address + dict_offset,
-                c_void_p(dict_addr),
-                PTR_SIZE,
-            )
+    # Materialize instance dicts in case we need to copy
+    src_dict_ptr = None
+    if inst_dict:
+        with suppress(AttributeError):
+            src.GetAttr("__dict__")
+        with suppress(AttributeError):
+            dst.GetAttr("__dict__")
+
+        if (src_dict_ptr := src.instance_dict()) is not None:
+            dict_addr = addressof(src_dict_ptr)
+            # Normally we copy by offset, unless managed dict
+            if not src.ob_type.contents.tp_flags & TpFlags.MANAGED_DICT:
+                dict_offset = dict_addr - src.address
+                memmove(
+                    dst.address + dict_offset,
+                    c_void_p(dict_addr),
+                    PTR_SIZE,
+                )
 
     # Move main object
     memmove(
@@ -107,7 +106,7 @@ def move(
     # For managed dicts, we materialize the dict after move to copy it
     if (
         inst_dict
-        and dict_ptr is not None
+        and src_dict_ptr is not None
         and src.ob_type.contents.tp_flags & TpFlags.MANAGED_DICT
     ):
-        dst.SetAttr("__dict__", dict_ptr.contents.into_object())
+        dst.SetAttr("__dict__", src_dict_ptr.contents.into_object())
