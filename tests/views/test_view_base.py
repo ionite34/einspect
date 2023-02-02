@@ -39,6 +39,13 @@ class TestView:
         assert isinstance(v._pyobject, structs.PyObject)
         assert v.type == type(obj)
 
+    def test_repr(self):
+        obj = self.get_obj()
+        v = self.view_type(obj)
+        text = repr(v)
+        assert type(v).__name__ in text
+        assert str(hex(v._pyobject.address)) in text
+
     def test_subclass(self):
         try:
             obj = self.get_subtype_obj()
