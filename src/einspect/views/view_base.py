@@ -50,6 +50,8 @@ def wrap_py_object(obj: _T | py_object[_T]) -> py_object[_T]:
 class BaseView(ABC, Generic[_T, _KT, _VT], UnsafeContext):
     """Base class for all views."""
 
+    _struct_type: Type[PyObject]
+
     def __init__(self, obj: _T, ref: bool = REF_DEFAULT) -> None:
         super().__init__()
         # Stores base info for repr and errors
@@ -63,6 +65,19 @@ class BaseView(ABC, Generic[_T, _KT, _VT], UnsafeContext):
             self._base_weakref = weakref.ref(obj)
         except TypeError:
             self._base_weakref = None
+
+    def __init_subclass__(cls, **kwargs: Any) -> None:
+        """Add `_struct_type` to subclass using the `_pyobject` type hint."""
+        super().__init_subclass__(**kwargs)
+
+        struct_type = get_type_hints(cls)["_pyobject"]
+        # For unions, use first type
+        # There's no easy way to check this in <3.9 without types.UnionType
+        # So we just check if not a PyObject / generic alias
+        if not getattr(struct_type, "from_object", None):
+            struct_type = get_args(struct_type)[0]
+
+        cls._struct_type = struct_type
 
 
 class View(BaseView[_T, _KT, _VT]):
@@ -78,15 +93,7 @@ class View(BaseView[_T, _KT, _VT]):
 
     def __init__(self, obj: _T, ref: bool = REF_DEFAULT) -> None:
         super().__init__(obj, ref)
-
-        struct_type = get_type_hints(self.__class__)["_pyobject"]
-        # For unions, use first type
-        # There's no easy way to check this in <3.9 without types.UnionType
-        # So we just check if not a PyObject / generic alias
-        if not getattr(struct_type, "from_object", None):
-            struct_type = get_args(struct_type)[0]
-
-        self._pyobject = struct_type.from_object(obj)
+        self._pyobject = self._struct_type.from_object(obj)
         self.__dropped = False
         _ = self.mem_allocated  # cache allocated property
 
