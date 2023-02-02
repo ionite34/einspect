@@ -21,6 +21,7 @@ Extended Inspections for CPython.
 intro
 views
 structs
+extending_types
 ```
 
 ```{toctree}
@@ -29,6 +30,7 @@ structs
 
 api/views/index
 api/structs/index
+api/orig
 api/types
 ```
 

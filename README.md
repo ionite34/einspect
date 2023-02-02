@@ -45,6 +45,8 @@ PyListObject(at 0x2833738):
 [py_doc_mutable_seq]: https://docs.python.org/3/library/stdtypes.html#mutable-sequence-types
 ## Mutate tuples, strings, ints, or other immutable types
 > [TupleView][doc_tuple_view] and [StrView][doc_str_view] supports all [MutableSequence][py_doc_mutable_seq] methods (append, extend, insert, pop, remove, reverse, clear).
+
+> ⚠️ A note on [safety.](#safety)
 ```python
 from einspect import view
 
@@ -111,6 +113,7 @@ custom: 2
 ```
 
 ## Implement methods on built-in types
+> See the [Extending Types](https://docs.ionite.io/einspect/extending_types.html) docs page for more information.
 ```python
 from einspect import impl, orig
 
@@ -140,6 +143,70 @@ print("meaning of life" == 42)  # True
 
 ## Fully typed interface
 <img width="551" alt="image" src="https://user-images.githubusercontent.com/13956642/211129165-38a1c405-9d54-413c-962e-6917f1f3c2a1.png">
+
+## Safety
+
+ This project is mainly for learning purposes or inspecting and debugging CPython internals for development and fun. You should not violate language conventions like mutability in production software and libraries.
+
+The interpreter makes assumptions regarding types that are immutable, and changing them causes all those usages to be affected. While the intent of the project is to make a memory-correct mutation without further side effects, there can be very significant runtime implications of mutating interned strings with lots of shared references, including interpreter crashes.
+
+For example, some strings like "abc" are interned and used by the interpreter. Changing them changes all usages of them, even attribute calls like `collections.abc`.
+
+> The spirit of safety maintained by einspect is to do with memory layouts, not functional effects.
+
+### For example, appending to tuple views (without an unsafe context) will check that the resize can fit within allocated memory
+```python
+from einspect import view
+
+tup = (1, 2)
+v = view(tup)
+
+v.append(3)
+print(tup)  # (1, 2, 3)
+
+v.append(4)
+# UnsafeError: insert required tuple to be resized beyond current memory allocation. Enter an unsafe context to allow this.
+```
+- Despite this, mutating shared references like empty tuples can cause issues in interpreter shutdown and other runtime operations.
+```python
+from einspect import view
+
+tup = ()
+view(tup).append(1)
+```
+```
+Exception ignored in: <module 'threading' from '/lib/python3.11/threading.py'>
+Traceback (most recent call last):
+  File "/lib/python3.11/threading.py", line 1563, in _shutdown
+    _main_thread._stop()
+  File "/lib/python3.11/threading.py", line 1067, in _stop
+    with _shutdown_locks_lock:
+TypeError: 'str' object cannot be interpreted as an integer
+```
+
+### Similarly, memory moves are also checked for GC-header compatibility and allocation sizes
+```python
+from einspect import view
+
+v = view(101)
+v <<= 2
+
+print(101)  # 2
+
+v <<= "hello"
+# UnsafeError: memory move of 54 bytes into allocated space of 32 bytes is out of bounds. Enter an unsafe context to allow this.
+```
+
+- However, this will not check the fact that small integers between (-5, 256) are interned and used by the interpreter. Changing them may cause issues in any library or interpreter Python code.
+```python
+from einspect import view
+
+view(0) << 100
+
+exit()
+# sys:1: ImportWarning: can't resolve package from __spec__ or __package__, falling back on __name__ and __path__
+# IndexError: string index out of range
+```
 
 ## Table of Contents
 - [Views](#views)
