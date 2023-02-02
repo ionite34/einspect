@@ -15,6 +15,17 @@ def test_impl_new_func():
     assert (10)._foo_fn(5) == "15"
 
 
+def test_impl_cache():
+    @impl(int)
+    def _foo_fn(self, x: int) -> str:
+        return str(self + x)
+
+    impl(int)(_foo_fn)
+
+    # noinspection PyUnresolvedReferences
+    assert (10)._foo_fn(5) == "15"
+
+
 def test_impl_new_property():
     @impl(int)
     @property

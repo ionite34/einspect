@@ -92,24 +92,30 @@ class TypeView(VarView[_T, None, None]):
             new = slot.ptr_type()
             ptr.contents = new
 
-    def __getitem__(self, key: str):
+    def __getitem__(self, key: str) -> Any:
         """Get an attribute from the type object."""
         return self._pyobject.GetAttr(key)
 
-    def __setitem__(self, key: str, value):
-        """Set an attribute on the type object."""
-        # Cache original implementation
-        base = self.base
-        if not in_cache(base, key):
-            if (attr := getattr(base, key, MISSING)) is not MISSING:
-                add_cache(base, key, attr)
-        # Check if this is a slots attr
-        if slot := get_slot(key):
-            # Allocate sub-struct if needed
-            self._try_alloc(slot)
+    def __setitem__(self, key: str | tuple[str, ...], value: Any) -> None:
+        """
+        Set attributes on the type object.
 
-        with self.as_mutable():
-            self._pyobject.setattr_safe(key, value)
+        Multiple string keys can be used to set multiple attributes to the same value.
+        """
+        keys = (key,) if isinstance(key, str) else key
+        for k in keys:
+            # Cache original implementation
+            base = self.base
+            if not in_cache(base, k):
+                if (attr := getattr(base, k, MISSING)) is not MISSING:
+                    add_cache(base, k, attr)
+            # Check if this is a slots attr
+            if slot := get_slot(k):
+                # Allocate sub-struct if needed
+                self._try_alloc(slot)
+
+            with self.as_mutable():
+                self._pyobject.setattr_safe(k, value)
 
     # <-- Begin Managed::Properties (structs::py_type.PyTypeObject) -->
 
