@@ -1,4 +1,4 @@
-# Extending types
+# Extending Types
 
 - {class}`~einspect.views.view_type.TypeView` subscripting can be used to set attributes on type objects, including built-in types.
 - The {meth}`~einspect.views.view_type.impl` decorator can implement the decorated method onto a type.
