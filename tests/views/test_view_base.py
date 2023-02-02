@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import gc
+import sys
 from functools import cached_property
 
 import pytest
@@ -32,12 +33,22 @@ class TestView:
             return
         assert a == b
 
+    def test_ref_count(self):
+        obj = self.get_obj()
+        v = self.view_type(obj, ref=False)
+        with v.unsafe():
+            v.ref_count += 0
+        assert v.ref_count
+
     def test_type(self):
         obj = self.get_obj()
         v = self.view_type(obj)
         assert isinstance(v, View)
         assert isinstance(v._pyobject, structs.PyObject)
         assert v.type == type(obj)
+        with v.unsafe():
+            v.type = type(obj)
+        assert isinstance(obj, self.obj_type)
 
     def test_repr(self):
         obj = self.get_obj()
