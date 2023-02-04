@@ -3,11 +3,13 @@ from __future__ import annotations
 from ctypes import (
     POINTER,
     Structure,
+    addressof,
     c_char,
     c_char_p,
     c_uint,
     c_ulong,
     c_void_p,
+    cast,
     pointer,
     py_object,
     pythonapi,
@@ -213,3 +215,53 @@ def _patch_py_object():
 
 
 _patch_py_object()
+
+
+class TypeNewWrapper:
+    def __init__(self, tp_new: newfunc, wrap_type: Type[_T]):
+        # Cast tp_new to remove Structure binding
+        self._tp_new = cast(tp_new, newfunc)
+        self._type = wrap_type
+
+    def __repr__(self):
+        return (
+            f"<wrapped method __new__ of type object at {addressof(self._tp_new):#04x}>"
+        )
+
+    def __call__(self, *args: tuple, **kwds: dict):
+        """Implements `tp_new_wrapper` with a modified safety check."""
+        if not isinstance(args, tuple) or len(args) < 1:
+            raise TypeError(f"{self.__name__}.__new__(): not enough arguments")
+
+        subtype = args[0]
+
+        if not isinstance(subtype, type):
+            raise TypeError(
+                f"{self.__name__}.__new__(X): X is not a type object ({type(subtype).__name__})"
+            )
+
+        if not issubclass(subtype, self._type):
+            raise TypeError(
+                f"{self.__name__}.__new__({subtype.__name__}): "
+                f"{subtype.__name__} is not a subtype of {self.__name__}"
+            )
+
+        # Check that we don't do something silly and unsafe like
+        # object.__new__(dict). To do this, we check that the most derived
+        # base that's not a heap type is this type.
+        staticbase = PyTypeObject.from_object(subtype).as_ref()
+        while staticbase and staticbase[0].tp_new == self._tp_new:
+            staticbase = staticbase[0].tp_base
+
+        # We modify a safety check for (staticbase->tp_new == type->tp_new)
+        # to instead check for type identity.
+        # This is so orig().__new__ can be called within a custom __new__.
+        # Semantically, this is the same as the original check.
+        if staticbase and staticbase[0] != PyTypeObject.from_object(self._type):
+            raise TypeError(
+                f"{self.__name__}.__new__({subtype.__name__}): "
+                f"is not safe, use {self.__name__}.__new__()"
+            )
+
+        args = args[1:]
+        return self._tp_new(subtype, args, kwds)

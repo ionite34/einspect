@@ -3,6 +3,8 @@ from __future__ import annotations
 
 from typing import Any, Type, TypeVar
 
+from einspect.structs.py_type import PyTypeObject, TypeNewWrapper
+
 _T = TypeVar("_T")
 MISSING = object()
 
@@ -17,9 +19,15 @@ dict_getitem = dict.__getitem__
 _slots_cache: dict[type, dict[str, Any]] = {}
 
 
-def add_cache(type_: type, name: str, method: Any):
+def add_cache(type_: Type[_T], name: str, method: Any) -> None:
     """Add a method to the cache."""
     type_methods = dict_setdefault(_slots_cache, type_, {})
+
+    # For `__new__` methods, use special TypeNewWrapper to use modified safety check
+    if name == "__new__":
+        tp_new = PyTypeObject(type_).tp_new
+        method = TypeNewWrapper(tp_new=tp_new, wrap_type=type_)
+
     # Only allow adding once, ignore if already added
     dict_setdefault(type_methods, name, method)
 

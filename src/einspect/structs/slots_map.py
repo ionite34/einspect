@@ -158,11 +158,20 @@ SLOTS = [
 ]
 
 
-def get_slot(name: str) -> Slot | None:
-    # Iterate the list to find a match
-    for slots in SLOTS:
-        if name in slots:
-            res = slots[name]
+def get_slot(name: str, prefer: str | None = None) -> Slot | None:
+    # Filter out slots that conflict with preferred
+    slots_ls = SLOTS
+    if prefer == "sequence":
+        # Prefer sequence to mapping
+        slots_ls = [s for s in SLOTS if s is not SLOTS_MAPPING]
+    elif prefer == "mapping":
+        # Prefer mapping to sequence
+        slots_ls = [s for s in SLOTS if s is not SLOTS_SEQUENCE]
+
+    # Iterate the list to find matches
+    for slots_map in slots_ls:
+        if name in slots_map:
+            res = slots_map[name]
             # Make a Slot if we got a str
             if isinstance(res, str):
                 return Slot(res)

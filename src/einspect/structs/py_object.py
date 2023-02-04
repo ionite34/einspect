@@ -294,7 +294,7 @@ class PyObject(Structure, AsRef, Generic[_T, _KT, _VT]):
         """Decrement the reference count of the PyObject."""
 
     @bind_api(pythonapi["PyObject_GetAttr"])
-    def GetAttr(self, name: str) -> object:
+    def GetAttr(self, name: str) -> Any:
         """Return the attribute of the PyObject."""
 
     @bind_api(pythonapi["PyObject_SetAttr"])
