@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import ContextManager
-
 import einspect._patch
 from einspect.type_orig import orig
 from einspect.types import NULL, ptr
@@ -14,6 +12,6 @@ einspect._patch.run()
 
 __all__ = ("view", "unsafe", "impl", "orig", "ptr", "NULL")
 
-__version__ = "0.5.8"
+__version__ = "0.5.9"
 
-unsafe: ContextManager[None] = global_unsafe
+unsafe = global_unsafe

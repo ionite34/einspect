@@ -77,11 +77,13 @@ class PyObject(Structure, AsRef, Generic[_T, _KT, _VT]):
     _fields_: List[Union[Tuple[str, type], Tuple[str, type, int]]]
 
     @overload
-    def __new__(cls, __obj: _T):
+    def __new__(cls, __obj: _T) -> PyObject[_T, _KT, _VT]:
         ...
 
     @overload
-    def __new__(cls, *, ob_refcnt: int = 1, ob_type: ptr[PyTypeObject], **kwargs):
+    def __new__(
+        cls, *, ob_refcnt: int = 1, ob_type: ptr[PyTypeObject], **kwargs
+    ) -> PyObject[_T, _KT, _VT]:
         ...
 
     def __new__(cls, __obj: _T = DEFAULT, **kwargs):
@@ -294,7 +296,7 @@ class PyObject(Structure, AsRef, Generic[_T, _KT, _VT]):
         """Decrement the reference count of the PyObject."""
 
     @bind_api(pythonapi["PyObject_GetAttr"])
-    def GetAttr(self, name: str) -> object:
+    def GetAttr(self, name: str) -> Any:
         """Return the attribute of the PyObject."""
 
     @bind_api(pythonapi["PyObject_SetAttr"])

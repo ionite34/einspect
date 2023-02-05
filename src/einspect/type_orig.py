@@ -1,11 +1,17 @@
 """Proxy for retrieving original methods and slot wrappers of types."""
 from __future__ import annotations
 
+from ctypes import cast
+from types import BuiltinFunctionType
 from typing import Any, Type, TypeVar
+
+from einspect.structs.include.object_h import newfunc
+from einspect.structs.py_type import PyTypeObject, TypeNewWrapper
 
 _T = TypeVar("_T")
 MISSING = object()
 
+obj_tp_new = cast(PyTypeObject.from_object(object).tp_new, newfunc)
 obj_getattr = object.__getattribute__
 type_hash = type.__hash__
 str_eq = str.__eq__
@@ -17,11 +23,25 @@ dict_getitem = dict.__getitem__
 _slots_cache: dict[type, dict[str, Any]] = {}
 
 
-def add_cache(type_: type, name: str, method: Any):
+def add_cache(type_: Type[_T], name: str, method: Any) -> Any:
     """Add a method to the cache."""
     type_methods = dict_setdefault(_slots_cache, type_, {})
+
+    # For `__new__` methods, use special TypeNewWrapper to use modified safety check
+    if name == "__new__":
+        # Check if we're trying to set a previous impl method
+        # If so, avoid the loop by using object.__new__
+        if not isinstance(method, BuiltinFunctionType):
+            method = get_cache(object, "__new__")
+        else:
+            tp_new = PyTypeObject.from_object(type_).tp_new
+            obj = obj_tp_new(TypeNewWrapper, (), {})
+            obj.__init__(tp_new, type_)
+            method = obj
+
     # Only allow adding once, ignore if already added
     dict_setdefault(type_methods, name, method)
+    return method
 
 
 def in_cache(type_: type, name: str) -> bool:
@@ -36,6 +56,10 @@ def get_cache(type_: type, name: str) -> Any:
     return dict_getitem(type_methods, name)
 
 
+add_cache(object, "__new__", object.__new__)
+add_cache(type, "__new__", type.__new__)
+
+
 class orig:
     """
     Proxy to access a type's original attributes.
@@ -45,7 +69,9 @@ class orig:
     """
 
     def __new__(cls, type_: Type[_T]) -> Type[_T]:
-        obj = object.__new__(cls)
+        # To avoid a circular call loop when orig is called within
+        # impl of object.__new__, we use the raw tp_new of object here.
+        obj = obj_tp_new(cls, (), {})
         obj.__type = type_
         return obj  # type: ignore
 
@@ -70,5 +96,4 @@ class orig:
             pass
         # Get the attribute from the original type and cache it
         attr = getattr(_type, name)
-        add_cache(_type, name, attr)
-        return attr
+        return add_cache(_type, name, attr)

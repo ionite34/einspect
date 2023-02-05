@@ -89,8 +89,8 @@ def convert_type_hints(source: type, owner_cls: type) -> type | None:
             source = typing.get_args(source)[0]
             return convert_type_hints(source, owner_cls)
 
-    # Convert TypeVar and Type to py_object
-    if (type(source) is TypeVar) or get_origin(source) is type:
+    # Convert Any, TypeVar and Type to py_object
+    if (source is Any) or (type(source) is TypeVar) or get_origin(source) is type:
         return ctypes.py_object
 
     if source == Self:

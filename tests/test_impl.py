@@ -82,13 +82,42 @@ def test_impl_func_2():
     assert a @ b == 25
 
 
-@pytest.mark.run_in_subprocess
 def test_impl_property():
-    # Implement an override property for int
+    _call = None
+
     @impl(int)
     @property
     def real(self):
-        return orig(int).real.__get__(self) + 10
+        nonlocal _call
+        _call = self
+        return orig(int).real.__get__(self)
 
-    assert (0).real == 10
-    assert (5).real == 15
+    assert (123).real == 123
+    assert _call == 123
+
+    assert (456).real == 456
+    assert _call == 456
+
+
+def test_impl_new():
+    _call = None
+
+    @impl(object)
+    def __new__(cls, *args, **kwargs):
+        nonlocal _call
+        _call = (cls, args, kwargs)
+        return orig(cls).__new__(cls, *args, **kwargs)
+
+    # Test normal object creation
+    _ = object()
+    assert _call == (object, (), {})
+
+    # Test subclass
+    class Foo:
+        def __init__(self, a, b, kwd=None):
+            self.args = (a, b)
+            self.kwd = kwd
+
+    obj = Foo(1, 2, kwd="hi")
+    assert isinstance(obj, Foo)
+    assert _call == (Foo, (1, 2), {"kwd": "hi"})
