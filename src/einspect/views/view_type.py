@@ -1,9 +1,9 @@
 from __future__ import annotations
 
+import sys
 from collections.abc import Generator, Sequence
 from contextlib import contextmanager, suppress
-from types import UnionType
-from typing import Any, Callable, Literal, Type, TypeVar, get_args
+from typing import TYPE_CHECKING, Any, Callable, Literal, Type, TypeVar, Union, get_args
 
 from typing_extensions import Self
 
@@ -22,6 +22,12 @@ from einspect.structs.slots_map import (
 )
 from einspect.type_orig import add_cache, in_cache
 from einspect.views.view_base import REF_DEFAULT, VarView
+
+if TYPE_CHECKING:
+    if sys.version_info >= (3, 9):
+        from types import UnionType
+    else:
+        UnionType = type(Union)
 
 __all__ = ("TypeView", "impl")
 
