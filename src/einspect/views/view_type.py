@@ -31,8 +31,6 @@ if TYPE_CHECKING:
 
 __all__ = ("TypeView", "impl")
 
-MISSING = object()
-
 _T = TypeVar("_T")
 _Fn = TypeVar("_Fn", bound=Callable)
 
