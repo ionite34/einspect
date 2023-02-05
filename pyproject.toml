@@ -49,6 +49,7 @@ mypy = "^0.991"
 pre-commit = "^2.20.0"
 flake8 = { version = "^6.0.0", python = ">= 3.8.1" }
 flake8-print = { version = "^5.0.0", python = ">= 3.8.1" }
+black = "^23.1.0"
 
 [tool.poetry.group.tools.dependencies]
 rich = "^12.6.0"
