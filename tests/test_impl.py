@@ -92,3 +92,28 @@ def test_impl_property():
 
     assert (0).real == 10
     assert (5).real == 15
+
+
+@pytest.mark.run_in_subprocess
+def test_impl_new():
+    _call = None
+
+    @impl(object)
+    def __new__(cls, *args, **kwargs):
+        nonlocal _call
+        _call = (cls, args, kwargs)
+        return orig(cls).__new__(cls, *args, **kwargs)
+
+    # Test normal object creation
+    _ = object()
+    assert _call == (object, (), {})
+
+    # Test subclass
+    class Foo:
+        def __init__(self, a, b, kwd=None):
+            self.args = (a, b)
+            self.kwd = kwd
+
+    obj = Foo(1, 2, kwd="hi")
+    assert isinstance(obj, Foo)
+    assert _call == (Foo, (1, 2), {"kwd": "hi"})
