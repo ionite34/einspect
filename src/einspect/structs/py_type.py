@@ -222,6 +222,7 @@ class TypeNewWrapper:
         # Cast tp_new to remove Structure binding
         self._tp_new = cast(tp_new, newfunc)
         self._type = wrap_type
+        self.__name__ = "__new__"
 
     def __repr__(self):
         return (
@@ -257,11 +258,22 @@ class TypeNewWrapper:
         # to instead check for type identity.
         # This is so orig().__new__ can be called within a custom __new__.
         # Semantically, this is the same as the original check.
-        if staticbase and staticbase[0] != PyTypeObject.from_object(self._type):
-            raise TypeError(
-                f"{self.__name__}.__new__({subtype.__name__}): "
-                f"is not safe, use {self.__name__}.__new__()"
-            )
+        # Also bypass this check if the type is a heap type, and _type is object / type.
+        if staticbase and (staticbase_obj := staticbase[0]):
+            if (staticbase_obj.tp_flags & TpFlags.HEAPTYPE) and (
+                self._type is object or self._type is type
+            ):
+                staticbase_obj = None
+            if staticbase_obj and staticbase_obj != PyTypeObject.from_object(
+                self._type
+            ):
+                raise TypeError(
+                    f"{self._type.__name__}.__new__({subtype.__name__}): "
+                    f"is not safe, use {staticbase[0].tp_name}.__new__()"
+                )
 
-        args = args[1:]
-        return self._tp_new(subtype, args, kwds)
+        # object.__new__ takes no arguments, so don't pass any if we're calling it
+        if self._type is object:
+            return self._tp_new(subtype, (), {})
+
+        return self._tp_new(subtype, args[1:], kwds)

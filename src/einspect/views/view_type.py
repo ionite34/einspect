@@ -86,7 +86,8 @@ def impl(
             name = func.__name__
 
         for type_ in targets:
-            with TypeView(type_).alloc_mode(alloc) as t_view:
+            t_view = TypeView(type_)
+            with t_view.alloc_mode(alloc):
                 t_view[name] = func
 
         return func
@@ -196,21 +197,22 @@ class TypeView(VarView[_T, None, None]):
         # For all alloc mode, allocate now
         if self._alloc_mode == "all":
             self.alloc_slot()
-        for k in keys:
+        for name in keys:
             # Cache original implementation
             base = self.base
-            if not in_cache(base, k):
+            if not in_cache(base, name):
                 with suppress(AttributeError):
-                    add_cache(base, k, getattr(base, k))
+                    attr = getattr(base, name)
+                    add_cache(base, name, attr)
             # Check if this is a slots attr (skip all since we already allocated)
             if self._alloc_mode != "all" and (
-                slot := get_slot(k, prefer=self._alloc_mode)
+                slot := get_slot(name, prefer=self._alloc_mode)
             ):
                 # Allocate sub-struct if needed
                 self._try_alloc(slot)
 
             with self.as_mutable():
-                self._pyobject.setattr_safe(k, value)
+                self._pyobject.setattr_safe(name, value)
 
     # <-- Begin Managed::Properties (structs::py_type.PyTypeObject) -->
 
