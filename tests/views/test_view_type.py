@@ -82,22 +82,17 @@ def test_as_mutable():
 
 
 def test_setitem():
-    class Foo:
-        pass
-
-    v = TypeView(Foo)
-    # Lock type
-    v.immutable = True
+    v = TypeView(dict)
 
     # Setting attributes should fail
     with pytest.raises(TypeError):
-        Foo.abc = "test"
+        dict._abc_123 = "test"
 
     with pytest.raises(AttributeError):
-        _ = v["abc"]
+        _ = v["_abc_123"]
 
     # Add the attribute
-    v["abc"] = lambda self: "test"
+    v["_abc_123"] = lambda self: "test"
     # Check that it works
     # noinspection PyUnresolvedReferences
-    assert Foo().abc() == "test"
+    assert dict()._abc_123() == "test"
