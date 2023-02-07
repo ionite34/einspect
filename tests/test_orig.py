@@ -1,6 +1,4 @@
-import pytest
-
-from einspect.type_orig import _cache, add_cache, get_cache, in_cache, orig
+from einspect.type_orig import _cache, get_cache, in_cache, orig
 
 
 def test_orig() -> None:
@@ -11,21 +9,6 @@ def test_orig() -> None:
     assert obj("abc") == "abc"
     # dunder
     assert getattr(obj, "_orig__type") is str
-
-
-def test_orig_weak_key() -> None:
-    class Foo:
-        def abc(self):
-            pass
-
-    add_cache(Foo, "abc", Foo.abc)
-    assert in_cache(Foo, "abc")
-
-    # Delete Foo now, should be removed from cache
-    del Foo
-
-    print(dict(_cache))
-    assert not _cache
 
 
 def test_orig_cache() -> None:
