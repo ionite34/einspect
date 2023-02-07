@@ -139,9 +139,22 @@ def test_impl_new():
 
 def test_impl_detach_weakref():
     # impl detach should require methods to be weakrefable
-    class Foo:
+    class SomeClass:
         pass
+
+    class Func:
+        __slots__ = ("_func",)
+        __name__ = "Func"
+
+        def __call__(self, *args, **kwargs):
+            pass
+
+    fn = Func()
 
     with pytest.raises(TypeError, match="support weakrefs"):
         # noinspection PyTypeChecker
-        impl(Foo, detach=True)(123)
+        impl(SomeClass, detach=True)(fn)
+
+    # With detach=False, it should work
+    res = impl(SomeClass, detach=False)(fn)
+    assert res is fn
