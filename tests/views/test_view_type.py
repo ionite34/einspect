@@ -96,3 +96,14 @@ def test_setitem():
     # Check that it works
     # noinspection PyUnresolvedReferences
     assert dict()._abc_123() == "test"
+
+    with v.as_mutable():
+        # Remove the attribute
+        delattr(dict, "_abc_123")
+
+    with pytest.raises(AttributeError):
+        _ = v["_abc_123"]
+
+    with pytest.raises(AttributeError):
+        # noinspection PyUnresolvedReferences
+        _ = dict()._abc_123
