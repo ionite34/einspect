@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import pytest
 
+from einspect.errors import UnsafeError
 from einspect.views.view_type import TypeView
 from tests.views.test_view_base import TestView
 
@@ -19,6 +20,13 @@ class TestTypeView(TestView):
             pass
 
         return Foo
+
+    def test_py_obj_attrs(self):
+        v = self.view_type(set)
+        assert v.tp_name == b"set"
+
+        with v.unsafe():
+            v.tp_name = b"abc"
 
     def test_immutable(self):
         # int type should be immutable
@@ -43,6 +51,17 @@ class TestTypeView(TestView):
         with pytest.raises(AttributeError):
             assert not v["__iter__"]
 
+    def test_alloc_mode(self):
+        v = self.view_type(float)
+        assert v._alloc_mode is None
+        with v.alloc_mode("mapping"):
+            assert v._alloc_mode == "mapping"
+
+        with pytest.raises(ValueError):
+            # noinspection PyTypeChecker
+            with v.alloc_mode("abc"):
+                pass
+
 
 @pytest.mark.run_in_subprocess
 def test_as_mutable():
@@ -62,18 +81,29 @@ def test_as_mutable():
     assert repr(10) == "int_repr"
 
 
-@pytest.mark.run_in_subprocess
 def test_setitem():
-    # Setitem should add attributes / slots
-    v = TypeView(float)
-    # This should fail initially
+    v = TypeView(dict)
+
+    # Setting attributes should fail
+    with pytest.raises(TypeError):
+        dict._abc_123 = "test"
+
     with pytest.raises(AttributeError):
-        assert not v["__iter__"]
-    # Add an __iter__ method to float
-    v["__iter__"] = lambda self: iter(range(int(self)))
+        _ = v["_abc_123"]
+
+    # Add the attribute
+    v["_abc_123"] = lambda self: "test"
     # Check that it works
-    n = 12.1
-    expect = list(range(12))
-    # noinspection PyTypeChecker
-    assert list(n) == expect
-    assert [*n] == expect
+    # noinspection PyUnresolvedReferences
+    assert dict()._abc_123() == "test"
+
+    with v.as_mutable():
+        # Remove the attribute
+        delattr(dict, "_abc_123")
+
+    with pytest.raises(AttributeError):
+        _ = v["_abc_123"]
+
+    with pytest.raises(AttributeError):
+        # noinspection PyUnresolvedReferences
+        _ = dict()._abc_123

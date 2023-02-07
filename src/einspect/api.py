@@ -187,6 +187,10 @@ class Py:
             """
 
 
+# Preload some core APIs to not rely on type hint inference.
+getattr(Py, "IncRef")
+getattr(Py, "DecRef")
+
 PyObj_FromPtr: Callable[[int], object] = _ctypes.PyObj_FromPtr
 """(Py_ssize_t ptr) -> Py_ssize_t"""
 

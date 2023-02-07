@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import sys
+import weakref
 from collections.abc import Generator, Sequence
 from contextlib import contextmanager, suppress
 from typing import TYPE_CHECKING, Any, Callable, Literal, Type, TypeVar, Union, get_args
@@ -12,6 +13,7 @@ from einspect.compat import Version
 from einspect.errors import UnsafeError
 from einspect.structs import PyTypeObject
 from einspect.structs.include.object_h import TpFlags
+from einspect.structs.py_type import TypeNewWrapper
 from einspect.structs.slots_map import (
     Slot,
     get_slot,
@@ -20,7 +22,7 @@ from einspect.structs.slots_map import (
     tp_as_number,
     tp_as_sequence,
 )
-from einspect.type_orig import add_cache, in_cache
+from einspect.type_orig import add_cache, get_cache, in_cache
 from einspect.views.view_base import REF_DEFAULT, VarView
 
 if TYPE_CHECKING:
@@ -38,6 +40,20 @@ AllocMode = Literal["mapping", "sequence", "all"]
 ALLOC_MODES = frozenset({"mapping", "sequence", "all"})
 
 
+def get_func_name(func: Callable) -> str:
+    """Returns the name of the function."""
+    return get_func_base(func).__name__
+
+
+def get_func_base(func: Callable) -> Callable:
+    """Returns the base function of a method or property."""
+    if isinstance(func, property):
+        return func.fget
+    elif isinstance(func, (classmethod, staticmethod)):
+        return func.__func__
+    return func
+
+
 def _to_types(
     types_or_unions: Sequence[type | UnionType],
 ) -> Generator[type, None, None]:
@@ -51,9 +67,48 @@ def _to_types(
             raise TypeError(f"cls must be a type or Union, not {t.__class__.__name__}")
 
 
+def _restore_impl(*types: type, name: str) -> None:
+    """
+    Finalizer to restore the original `name` attribute on type(s).
+
+    If there is no original attribute, delete the attribute.
+    """
+    for t in types:
+        v = TypeView(t, ref=False)
+        # Get the original attribute from cache
+        if in_cache(t, name):
+            attr = get_cache(t, name)
+            # For TypeNewWrapper, use the original slot wrapper
+            if isinstance(t, TypeNewWrapper):
+                attr = t._orig_slot_fn
+            # Set the attribute back using a view
+            v[name] = attr
+        else:
+            # If there is no original attribute, delete the attribute
+            with v.as_mutable():
+                delattr(t, name)
+
+
+def _attach_finalizer(types: Sequence[type], func: Callable) -> None:
+    """Attaches a finalizer to the function to remove the implemented method on types."""
+    # Use the base function (we can't set attributes on properties)
+    func = get_func_base(func)
+    name = func.__name__
+    # Don't finalize types that are already registered
+    if hasattr(func, "_impl_types"):
+        types = [t for t in types if t not in func._impl_types]
+        # Update list
+        func._impl_types.extend(types)
+    else:
+        func._impl_types = list(types)
+
+    func._impl_finalize = weakref.finalize(func, _restore_impl, *types, name=name)
+
+
 def impl(
     *cls: Type[_T] | UnionType,
     alloc: AllocMode | None = None,
+    detach: bool = False,
 ) -> Callable[[_Fn], _Fn]:
     # noinspection PyShadowingNames, PyCallingNonCallable
     """
@@ -62,12 +117,19 @@ def impl(
     Supports methods decorated with property, classmethod, or staticmethod.
 
     Args:
-        cls: The types to implement the method on. Can be types or Unions.
-        alloc: The allocation type of the type. If the type is a mapping or
+        cls: The type(s) or Union(s) to implement the method on.
+        alloc: The PyMethod allocation mode. Default of None will automatically allocate
+            PyMethod structs as needed. If "sequence" or "mapping", will prefer the
+            respective PySequenceMethods or PyMappingMethods in cases of ambiguious slot names.
+            (e.g. "__getitem__" or "__len__"). If "all", will allocate all PyMethod structs.
+        detach: If True, will remove the implemented method from the type when
+            the decorated function is garbage collected. This will hold a reference to
+            the type(s) for the lifetime of the function. Requires function to support weakrefs.
 
     Returns:
         The original function after it has been implemented on the types,
         allows chaining of multiple impl decorators.
+
     Examples:
         >>> @impl(int)
         ... def is_even(self):
@@ -81,18 +143,26 @@ def impl(
         ...     except ValueError:
         ...         return None
     """
-    targets = list(_to_types(cls))
+    targets = tuple(_to_types(cls))
 
     def wrapper(func: _Fn) -> _Fn:
-        if isinstance(func, property):
-            name = func.fget.__name__
-        else:
-            name = func.__name__
+        # detach requires weakrefs
+        try:
+            weakref.ref(get_func_base(func))
+        except TypeError:
+            raise TypeError(
+                f"detach=True requires function {func!r} to support weakrefs"
+            ) from None
+
+        name = get_func_name(func)
 
         for type_ in targets:
             t_view = TypeView(type_)
             with t_view.alloc_mode(alloc):
                 t_view[name] = func
+
+        if detach:
+            _attach_finalizer(targets, func)
 
         return func
 

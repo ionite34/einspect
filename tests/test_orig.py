@@ -1,6 +1,4 @@
-import pytest
-
-from einspect.type_orig import _slots_cache, get_cache, in_cache, orig
+from einspect.type_orig import _cache, get_cache, in_cache, orig
 
 
 def test_orig() -> None:
@@ -17,7 +15,7 @@ def test_orig_cache() -> None:
     # First access will cache methods
     assert orig(str).upper("abc") == "ABC"
     # check in _slots_cache
-    assert _slots_cache[str]["upper"] == str.upper
+    assert _cache[str]["upper"] == str.upper
     assert in_cache(str, "upper")
     assert get_cache(str, "upper") == str.upper
     # check in orig
