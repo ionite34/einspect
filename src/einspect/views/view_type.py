@@ -9,10 +9,9 @@ from typing import TYPE_CHECKING, Any, Callable, Literal, Type, TypeVar, Union, 
 from typing_extensions import Self
 
 from einspect._typing import is_union
-from einspect.api import address
 from einspect.compat import Version
 from einspect.errors import UnsafeError
-from einspect.structs import PyObject, PyTypeObject
+from einspect.structs import PyTypeObject
 from einspect.structs.include.object_h import TpFlags
 from einspect.structs.py_type import TypeNewWrapper
 from einspect.structs.slots_map import (
@@ -68,7 +67,7 @@ def _to_types(
             raise TypeError(f"cls must be a type or Union, not {t.__class__.__name__}")
 
 
-def _restore_impl(*types: type, name: str, fn_obj: PyObject) -> None:
+def _restore_impl(*types: type, name: str) -> None:
     """
     Finalizer to restore the original `name` attribute on type(s).
 
@@ -79,12 +78,6 @@ def _restore_impl(*types: type, name: str, fn_obj: PyObject) -> None:
         # Get the original attribute from cache
         if in_cache(t, name):
             attr = get_cache(t, name)
-            # Sanity check, we shouldn't be restoring the same attribute
-            if address(attr) == fn_obj.address:
-                raise RuntimeError(
-                    f"Attribute {name}: {attr!r} is already restored on "
-                    f"{t.__name__!r} (During impl finalize)"
-                )
             # For TypeNewWrapper, use the original slot wrapper
             if isinstance(t, TypeNewWrapper):
                 attr = t._orig_slot_fn
@@ -109,10 +102,7 @@ def _attach_finalizer(types: Sequence[type], func: Callable) -> None:
     else:
         func._impl_types = list(types)
 
-    fn_obj = PyObject.from_object(func)
-    func._impl_finalize = weakref.finalize(
-        func, _restore_impl, *types, name=name, fn_obj=fn_obj
-    )
+    func._impl_finalize = weakref.finalize(func, _restore_impl, *types, name=name)
 
 
 def impl(
