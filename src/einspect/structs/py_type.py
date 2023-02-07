@@ -222,6 +222,8 @@ class TypeNewWrapper:
         # Cast tp_new to remove Structure binding
         self._tp_new = cast(tp_new, newfunc)
         self._type = wrap_type
+        # Store the original slot wrapper as well, for restoring
+        self._orig_slot_fn = self._type.__new__
         self.__name__ = "__new__"
 
     def __repr__(self):

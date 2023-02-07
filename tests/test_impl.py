@@ -4,15 +4,29 @@ from __future__ import annotations
 import pytest
 
 from einspect import impl, orig, view
+from einspect.structs import PyObject
 
 
 def test_impl_new_func():
     @impl(int)
-    def _foo_fn(self, x: int) -> str:
+    def _foo_fn(self, x):
         return str(self + x)
 
     # noinspection PyUnresolvedReferences
     assert (10)._foo_fn(5) == "15"
+
+
+def test_impl_new_func_finalize():
+    # Test that finalizer works, deleting function should remove the impl
+    @impl(int, detach=True)
+    def _test_final(self):
+        return str(self)
+
+    _test_final._impl_finalize()
+
+    with pytest.raises(AttributeError, match="has no attribute '_test_final'"):
+        # noinspection PyUnresolvedReferences
+        _ = (10)._test_final()
 
 
 def test_impl_cache():
