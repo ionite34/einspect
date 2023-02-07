@@ -147,12 +147,13 @@ def impl(
 
     def wrapper(func: _Fn) -> _Fn:
         # detach requires weakrefs
-        try:
-            weakref.ref(get_func_base(func))
-        except TypeError:
-            raise TypeError(
-                f"detach=True requires function {func!r} to support weakrefs"
-            ) from None
+        if detach:
+            try:
+                weakref.ref(get_func_base(func))
+            except TypeError:
+                raise TypeError(
+                    f"detach=True requires function {func!r} to support weakrefs"
+                ) from None
 
         name = get_func_name(func)
 
