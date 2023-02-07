@@ -135,3 +135,13 @@ def test_impl_new():
     obj = Foo(1, 2, kwd="hi")
     assert isinstance(obj, Foo)
     assert _call == (Foo, (1, 2), {"kwd": "hi"})
+
+
+def test_impl_detach_weakref():
+    # impl detach should require methods to be weakrefable
+    class Foo:
+        pass
+
+    with pytest.raises(TypeError, match="support weakrefs"):
+        # noinspection PyTypeChecker
+        impl(Foo, detach=True)(123)
