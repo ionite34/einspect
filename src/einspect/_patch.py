@@ -6,7 +6,7 @@ from ctypes import POINTER, addressof, c_void_p, memmove, sizeof
 
 from einspect import types
 from einspect.structs.py_object import PyObject
-from einspect.types import PyCFuncPtrType
+from einspect.types import Pointer, PyCFuncPtrType
 
 
 class _Null_LP_PyObject(POINTER(PyObject)):
@@ -18,8 +18,7 @@ class _Null_LP_PyObject(POINTER(PyObject)):
 
     def __eq__(self, other) -> bool:
         """Returns equal to other null pointers."""
-        # noinspection PyUnresolvedReferences
-        if isinstance(other, ctypes._Pointer):
+        if isinstance(other, Pointer):
             return not other
 
         if isinstance(type(other), PyCFuncPtrType):
