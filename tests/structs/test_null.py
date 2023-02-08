@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from einspect import NULL
-from einspect.structs import PyTupleObject, PyTypeObject
+from einspect.structs import MappingProxyObject, PyObject, PyTupleObject, PyTypeObject
 
 
 def test_func_ptr():
@@ -18,7 +18,7 @@ def test_func_ptr():
     assert n.nb_matrix_multiply == NULL
 
 
-def test_py_object():
+def test_py_object_arr():
     """Test usage as a NULL PyObject pointer."""
 
     s = PyTupleObject(
@@ -31,3 +31,28 @@ def test_py_object():
     assert not s.ob_item[1]
     assert s.ob_item[0] == NULL
     assert s.ob_item[1] == NULL
+
+    # Set an object value
+    s.ob_item[0] = PyObject(10).as_ref()
+    assert s.ob_item[0].contents.into_object() == 10
+
+    # Set back to NULL
+    s.ob_item[0] = NULL
+    assert not s.ob_item[0]
+
+
+def test_py_object():
+    """Test usage as a NULL PyObject pointer."""
+
+    class Foo:
+        x = 100
+
+    # Materialize dict
+    assert Foo.__dict__
+
+    s = PyTypeObject(Foo)
+    assert s.tp_dict != NULL
+
+    # Set to NULL
+    s.tp_dict = NULL
+    assert s.tp_dict == NULL

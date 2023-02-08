@@ -108,6 +108,27 @@ def _struct(cls: _T, __fields: FieldsType | None = None) -> _T:
     return cls
 
 
+def _cast_field(field_type, value):
+    """Attempt to cast value for assignment to ctypes field_type."""
+    # Both Pointer types
+    if issubclass(field_type, Pointer) and isinstance(value, Pointer):
+        # Null case, create empty pointer
+        if value is NULL:
+            return field_type()
+        # try to coerce Structure subclasses
+        # i.e. LP_PyObject should accept LP_PyDictObject
+        if issubclass(field_type._type_, Structure) and issubclass(
+            value._type_, field_type._type_
+        ):
+            return ctypes.cast(value, field_type)
+
+    # PYFUNCTYPE, create a null type of itself
+    if isinstance(field_type, PyCFuncPtrType):
+        return field_type()
+
+    return value
+
+
 class UnionMeta(type(ctypes.Union)):
     def __init__(self, name, bases, mapping, **kwargs) -> None:
         super().__init__(name, bases, mapping, **kwargs)
@@ -134,18 +155,11 @@ class Struct(Structure, AsRef, Display, metaclass=StructMeta):
         return {**super_fields, **{f[0]: f for f in self._fields_}}
 
     def __setattr__(self, key, value):
-        # Skip assignments that don't have a _fields_ entry
+        # Overrides for field assignments
         if key in self._fields_map_:
             # Get the field type
             field_type = self._fields_map_[key][1]
-
-            # Special cases for NULL singleton
-            if value is NULL:
-                # PYFUNCTYPE, create a null type of itself
-                if isinstance(field_type, PyCFuncPtrType):
-                    value = field_type()
-                # Pointer types
-                elif isinstance(field_type, Pointer):
-                    value = field_type()
+            # Attempt to cast value to field type
+            value = _cast_field(field_type, value)
 
         super().__setattr__(key, value)
