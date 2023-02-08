@@ -10,6 +10,8 @@ from typing import Any, Protocol, Sequence, TypeVar, get_origin, runtime_checkab
 
 from typing_extensions import Self
 
+from einspect.types import _SelfPtr
+
 log = logging.getLogger(__name__)
 
 Py_ssize_t = ctypes.c_ssize_t
@@ -100,6 +102,12 @@ def convert_type_hints(source: type, owner_cls: type) -> type | None:
     # noinspection PyUnresolvedReferences, PyProtectedMember
     if isinstance(source, typing._GenericAlias):
         source = get_origin(source)
+
+    # For special SelfPtr object
+    if source is _SelfPtr:
+        res = POINTER(owner_cls)  # type: ignore
+        res.__module__ = owner_cls.__module__
+        return res
 
     if source in aliases:
         return aliases[source]

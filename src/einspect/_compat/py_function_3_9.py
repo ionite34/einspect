@@ -2,13 +2,11 @@ from __future__ import annotations
 
 from types import FunctionType
 
-from einspect.structs.deco import struct
 from einspect.structs.include.object_h import vectorcallfunc
 from einspect.structs.py_object import PyObject
 from einspect.types import ptr
 
 
-@struct
 class PyFunctionObject(PyObject[FunctionType, None, None]):
     code: ptr[PyObject]  # A code object, the __code__ attribute
     globals: ptr[PyObject]

@@ -3,7 +3,6 @@ from __future__ import annotations
 from types import MappingProxyType
 from typing import TypeVar
 
-from einspect.structs.deco import struct
 from einspect.structs.py_dict import PyDictObject
 from einspect.structs.py_object import Fields, PyObject
 from einspect.structs.traits import IsGC
@@ -16,7 +15,6 @@ _KT = TypeVar("_KT")
 _VT_co = TypeVar("_VT_co", covariant=True)
 
 
-@struct
 class MappingProxyObject(PyObject[MappingProxyType, _KT, _VT_co], IsGC):
     """
     Defines a mappingproxyobject Structure.

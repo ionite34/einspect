@@ -1,11 +1,11 @@
 """https://github.com/python/cpython/blob/3.11/Include/object.h"""
 from __future__ import annotations
 
-from ctypes import PYFUNCTYPE, Structure, c_char_p, c_int, c_void_p, py_object
+from ctypes import PYFUNCTYPE, c_char_p, c_int, c_void_p, py_object
 from enum import IntEnum
 
 from einspect.api import Py_ssize_t
-from einspect.structs.deco import struct
+from einspect.structs.deco import Struct
 from einspect.structs.include.pybuffer_h import getbufferproc, releasebufferproc
 from einspect.types import ptr
 
@@ -158,22 +158,19 @@ class TpFlags(IntEnum):
     HAVE_VERSION_TAG = 1 << 18
 
 
-@struct
-class PyAsyncMethods(Structure):
+class PyAsyncMethods(Struct):
     am_await: unaryfunc
     am_aiter: unaryfunc
     am_anext: unaryfunc
     am_send: sendfunc
 
 
-@struct
-class PyBufferProcs(Structure):
+class PyBufferProcs(Struct):
     bf_getbuffer: getbufferproc
     bf_releasebuffer: releasebufferproc
 
 
-@struct
-class PyNumberMethods(Structure):
+class PyNumberMethods(Struct):
     """
     Number implementations must check *both*
     arguments for proper type and implement the necessary conversions
@@ -222,15 +219,13 @@ class PyNumberMethods(Structure):
     nb_inplace_matrix_multiply: binaryfunc
 
 
-@struct
-class PyMappingMethods(Structure):
+class PyMappingMethods(Struct):
     mp_length: lenfunc
     mp_subscript: binaryfunc
     mp_ass_subscript: objobjargproc
 
 
-@struct
-class PySequenceMethods(Structure):
+class PySequenceMethods(Struct):
     sq_length: lenfunc
     sq_concat: binaryfunc
     sq_repeat: ssizeargfunc

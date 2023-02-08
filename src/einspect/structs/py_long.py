@@ -7,12 +7,10 @@ from ctypes import addressof, c_uint32, sizeof
 from typing_extensions import Annotated
 
 from einspect.api import seq_to_array
-from einspect.structs.deco import struct
 from einspect.structs.py_object import Fields, PyVarObject
 from einspect.types import Array
 
 
-@struct
 class PyLongObject(PyVarObject[int, None, None]):
     """
     Defines a PyLongObject Structure.

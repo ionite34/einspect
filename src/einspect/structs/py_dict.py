@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from ctypes import (
     POINTER,
-    Structure,
     _SimpleCData,
     addressof,
     c_char,
@@ -20,9 +19,9 @@ from typing import Dict, TypeVar
 from typing_extensions import Annotated
 
 from einspect.protocols.delayed_bind import bind_api
-from einspect.structs.deco import struct
+from einspect.structs.deco import Struct
 from einspect.structs.py_object import Fields, PyObject
-from einspect.structs.traits import Display, IsGC
+from einspect.structs.traits import IsGC
 from einspect.types import Array, ptr
 
 __all__ = ("PyDictObject",)
@@ -32,8 +31,7 @@ _KT = TypeVar("_KT")
 _VT = TypeVar("_VT")
 
 
-@struct
-class PyDictKeysObject(Structure, Display):
+class PyDictKeysObject(Struct):
     """
     Defines a DictKeysObject Structure.
 
@@ -94,12 +92,10 @@ class PyDictKeysObject(Structure, Display):
         }
 
 
-@struct
-class PyDictValues(Structure, Display):
+class PyDictValues(Struct):
     values: ptr[PyObject]
 
 
-@struct
 class PyDictObject(PyObject[dict, _KT, _VT], IsGC):
     """
     Defines a PyDictObject Structure.

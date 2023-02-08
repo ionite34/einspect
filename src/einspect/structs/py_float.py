@@ -2,12 +2,10 @@ from __future__ import annotations
 
 import ctypes
 
-from einspect.structs.deco import struct
 from einspect.structs.py_object import PyObject
 
 
-@struct
-class PyFloatObject(PyObject):
+class PyFloatObject(PyObject[float, None, None]):
     """
     Defines a PyFloatObject Structure.
 

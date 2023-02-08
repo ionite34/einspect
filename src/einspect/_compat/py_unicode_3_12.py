@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from ctypes import (
-    Union,
     addressof,
     c_char,
     c_char_p,
@@ -22,7 +21,7 @@ from typing_extensions import Annotated
 
 from einspect.api import Py_hash_t
 from einspect.protocols import bind_api
-from einspect.structs.deco import struct
+from einspect.structs.deco import Union
 from einspect.structs.py_object import Fields, PyObject
 from einspect.structs.traits import IsGC
 from einspect.types import Array, char_p, ptr, void_p
@@ -103,7 +102,6 @@ class Kind(IntEnum):
         return types_map[int(self)]
 
 
-@struct
 class LegacyUnion(Union):
     any: void_p
     latin1: ptr[c_uint8]  # Py_UCS1
@@ -111,7 +109,6 @@ class LegacyUnion(Union):
     ucs4: ptr[c_uint32]  # Py_UCS4
 
 
-@struct
 class PyASCIIObject(PyObject[str, None, None], IsGC):
     """
     Defines a PyUnicodeObject Structure
@@ -205,7 +202,6 @@ class PyASCIIObject(PyObject[str, None, None], IsGC):
         """Return the length of the string in code points."""
 
 
-@struct
 class PyCompactUnicodeObject(PyASCIIObject):
     """
     Defines a PyCompactUnicodeObject Structure
@@ -226,7 +222,6 @@ class PyCompactUnicodeObject(PyASCIIObject):
         }
 
 
-@struct
 class PyUnicodeObject(PyCompactUnicodeObject):
     """Defines a PyUnicodeObject Structure."""
 

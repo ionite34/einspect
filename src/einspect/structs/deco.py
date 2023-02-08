@@ -1,17 +1,19 @@
 from __future__ import annotations
 
+import ctypes
 import logging
 from ctypes import POINTER, Structure
-from functools import partial
+from functools import cached_property, partial
 from typing import Callable, Literal, Sequence, Tuple, Type, TypeVar, Union, overload
 
 # noinspection PyUnresolvedReferences, PyProtectedMember
 from typing_extensions import _AnnotatedAlias, get_args, get_type_hints
 
 from einspect.protocols.type_parse import convert_type_hints, fix_ctypes_generics
-from einspect.types import _SelfPtr
+from einspect.structs.traits import AsRef, Display
+from einspect.types import NULL, Pointer, PyCFuncPtrType, _SelfPtr
 
-__all__ = ("struct",)
+__all__ = ("struct", "Struct")
 
 log = logging.getLogger(__name__)
 
@@ -98,8 +100,49 @@ def _struct(cls: _T, __fields: FieldsType | None = None) -> _T:
     try:
         cls._fields_ = fields
     except (TypeError, AttributeError) as err:
-        raise TypeError(
-            f"Failed to set _fields_ ({fields}) on {cls.__name__} -> {err}"
-        ) from err
+        raise TypeError(f"Failed to set {cls.__name__!r} _fields_, {err}") from err
 
     return cls
+
+
+class UnionMeta(type(ctypes.Union)):
+    def __init__(self, name, bases, mapping, **kwargs) -> None:
+        super().__init__(name, bases, mapping, **kwargs)
+        _struct(self)  # type: ignore
+
+
+class StructMeta(type(ctypes.Structure)):
+    def __init__(self, name, bases, mapping, **kwargs) -> None:
+        super().__init__(name, bases, mapping, **kwargs)
+        _struct(self)  # type: ignore
+
+
+class Union(ctypes.Union, AsRef, Display, metaclass=UnionMeta):
+    """Defines a ctypes.Union subclass using type hints."""
+
+
+class Struct(Structure, AsRef, Display, metaclass=StructMeta):
+    """Defines a ctypes.Structure subclass using type hints."""
+
+    @cached_property
+    def _fields_map_(self) -> dict[str, tuple[str, type] | tuple[str, type, int]]:
+        """Returns a dict of field name to field tuple."""
+        return {f[0]: f for f in self._fields_}
+
+    def __setattr__(self, key, value):
+        # Skip assignments that don't have a _fields_ entry
+        if key in self._fields_map_:
+            log.debug(f"Found {key!r} in {self._fields_map_!r}")
+            # Get the field type
+            field_type = self._fields_map_[key][1]
+
+            # Special cases for NULL singleton
+            if value is NULL:
+                # PYFUNCTYPE, create a null type of itself
+                if isinstance(field_type, PyCFuncPtrType):
+                    value = field_type()
+                # Pointer types
+                elif isinstance(field_type, Pointer):
+                    value = field_type()
+
+        super().__setattr__(key, value)

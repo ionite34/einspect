@@ -6,7 +6,6 @@ from typing import List, TypeVar
 from typing_extensions import Annotated
 
 from einspect.protocols.delayed_bind import bind_api
-from einspect.structs.deco import struct
 from einspect.structs.py_object import Fields, PyObject, PyVarObject
 from einspect.structs.traits import IsGC
 from einspect.types import ptr
@@ -14,8 +13,6 @@ from einspect.types import ptr
 _VT = TypeVar("_VT")
 
 
-# noinspection PyPep8Naming
-@struct
 class PyListObject(PyVarObject[list, None, _VT], IsGC):
     """
     Defines a PyListObject Structure.

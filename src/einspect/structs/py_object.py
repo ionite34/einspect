@@ -24,7 +24,7 @@ from einspect.api import PTR_SIZE, address, align_size
 from einspect.compat import Version, python_req
 from einspect.protocols.delayed_bind import bind_api
 from einspect.protocols.type_parse import is_ctypes_type
-from einspect.structs.deco import struct
+from einspect.structs.deco import Struct
 from einspect.structs.py_gc import PyGC_Head
 from einspect.structs.traits import AsRef, IsGC
 from einspect.types import ptr
@@ -67,8 +67,7 @@ def py_set(obj_ptr: ptr[PyObject], value: object | PyObject | ptr[PyObject]) -> 
     obj_ptr.contents = PyObject.try_from(value).with_ref()
 
 
-@struct
-class PyObject(Structure, AsRef, Generic[_T, _KT, _VT]):
+class PyObject(Struct, AsRef, Generic[_T, _KT, _VT]):
     """Defines a base PyObject Structure."""
 
     ob_refcnt: int
@@ -321,7 +320,6 @@ def _PyObject__init__(self, *args, **kwargs) -> None:
 PyObject.__init__ = _PyObject__init__
 
 
-@struct
 class PyVarObject(PyObject[_T, _KT, _VT]):
     """
     Defines a base PyVarObject Structure.

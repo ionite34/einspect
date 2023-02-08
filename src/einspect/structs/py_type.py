@@ -19,7 +19,6 @@ from typing import Any, Type, TypeVar
 from typing_extensions import Annotated, Self
 
 from einspect.protocols import bind_api
-from einspect.structs.deco import struct
 from einspect.structs.include.descrobject_h import PyGetSetDef, PyMemberDef
 from einspect.structs.include.methodobject_h import PyMethodDef
 from einspect.structs.include.object_h import *
@@ -35,7 +34,6 @@ DEFAULT = object()
 
 
 # noinspection PyPep8Naming
-@struct
 class PyTypeObject(PyVarObject[_T, None, None]):
     """
     Defines a PyTypeObject Structure.
