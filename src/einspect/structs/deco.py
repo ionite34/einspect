@@ -6,14 +6,17 @@ from ctypes import POINTER, Structure
 from functools import cached_property, partial
 from typing import Callable, Literal, Sequence, Tuple, Type, TypeVar, Union, overload
 
-# noinspection PyUnresolvedReferences, PyProtectedMember
-from typing_extensions import _AnnotatedAlias, get_args, get_type_hints
+import typing_extensions
+from typing_extensions import get_args, get_type_hints
 
 from einspect.protocols.type_parse import convert_type_hints, fix_ctypes_generics
 from einspect.structs.traits import AsRef, Display
 from einspect.types import NULL, Pointer, PyCFuncPtrType, _SelfPtr
 
 __all__ = ("struct", "Struct")
+
+# noinspection PyUnresolvedReferences, PyProtectedMember
+AnnotatedAlias = typing_extensions._AnnotatedAlias
 
 log = logging.getLogger(__name__)
 
@@ -86,7 +89,7 @@ def _struct(cls: _T, __fields: FieldsType | None = None) -> _T:
             continue
 
         # For Annotated, directly use fields 1 and 2
-        if type(type_hint) is _AnnotatedAlias:
+        if type(type_hint) is AnnotatedAlias:
             args = get_args(type_hint)
             res = (name, *args[1:3])
             log.debug(f"Annotated: {type_hint} -> {res}")
@@ -126,8 +129,9 @@ class Struct(Structure, AsRef, Display, metaclass=StructMeta):
 
     @cached_property
     def _fields_map_(self) -> dict[str, tuple[str, type] | tuple[str, type, int]]:
-        """Returns a dict of field name to field tuple."""
-        return {f[0]: f for f in self._fields_}
+        """Returns a dict of field name to field tuple. Includes inherited fields."""
+        super_fields = super()._fields_ if hasattr(super(), "_fields_") else {}
+        return {**super_fields, **{f[0]: f for f in self._fields_}}
 
     def __setattr__(self, key, value):
         # Skip assignments that don't have a _fields_ entry
