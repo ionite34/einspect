@@ -14,7 +14,7 @@ class _Null_LP_PyObject(POINTER(PyObject)):
 
     def __repr__(self) -> str:
         """Returns the string representation of the pointer."""
-        return f"<NULL ptr[PyObject] at {addressof(self):#04x}>"
+        return f"<Null LP_PyObject at {addressof(self):#04x}>"
 
     def __eq__(self, other) -> bool:
         """Returns equal to other null pointers."""
