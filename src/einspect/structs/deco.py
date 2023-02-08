@@ -132,7 +132,6 @@ class Struct(Structure, AsRef, Display, metaclass=StructMeta):
     def __setattr__(self, key, value):
         # Skip assignments that don't have a _fields_ entry
         if key in self._fields_map_:
-            log.debug(f"Found {key!r} in {self._fields_map_!r}")
             # Get the field type
             field_type = self._fields_map_[key][1]
 
