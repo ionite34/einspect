@@ -111,7 +111,7 @@ class PyObject(Struct, AsRef, Generic[_T, _KT, _VT]):
         if "ob_type" not in kwargs:
             raise TypeError("Missing required keyword-argument field 'ob_type'")
 
-        new_ob_size: int = kwargs.get("ob_size", 0).__index__()
+        new_ob_size = kwargs.get("ob_size", 0).__index__()
         new_ob_type = PyTypeObject.try_from(kwargs["ob_type"])
 
         if issubclass(cls, IsGC):
@@ -126,6 +126,7 @@ class PyObject(Struct, AsRef, Generic[_T, _KT, _VT]):
                 if issubclass(cls, PyVarObject)
                 else new_ob_type.New()
             )
+
         return res.contents.astype(cls)
 
     @property
