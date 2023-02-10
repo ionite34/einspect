@@ -301,7 +301,15 @@ class PyObject(Struct, AsRef, Generic[_T, _KT, _VT]):
 
     @bind_api(pythonapi["PyObject_SetAttr"])
     def SetAttr(self, name: str, value: object) -> int:
-        """Set the attribute of the PyObject."""
+        """Set the attribute of the PyObject. Returns -1 on failure."""
+
+    @bind_api(pythonapi["PyObject_HasAttr"])
+    def HasAttr(self, name: str) -> bool:
+        """Return True if the PyObject has the attribute."""
+
+    def DelAttr(self, name: str) -> int:
+        """Delete attribute `name` of the PyObject. Returns -1 on failure."""
+        return self.SetAttr(name, ctypes.py_object())
 
 
 # We don't want this visible to type-checking but `PyObject.__init__`
