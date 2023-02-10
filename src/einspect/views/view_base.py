@@ -234,6 +234,11 @@ class View(BaseView[_T, _KT, _VT]):
             )
         self._pyobject.instance_dict().contents = PyObject.from_object(value).with_ref()
 
+    @property
+    def address(self) -> int:
+        """Memory address of the object."""
+        return self._pyobject.address
+
     def is_gc(self) -> bool:
         """
         Returns True if the object implements the Garbage Collector protocol.
