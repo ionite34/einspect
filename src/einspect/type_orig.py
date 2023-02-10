@@ -23,11 +23,15 @@ dict_contains = dict.__contains__
 dict_getitem = dict.__getitem__
 dict_get = dict.get
 
+set_contains = set.__contains__
+
 wk_dict_setdefault = WeakKeyDictionary.setdefault
 wk_dict_getitem = WeakKeyDictionary.__getitem__
+wk_dict_get = WeakKeyDictionary.get
 
 # Cache of original type attributes, keys are weakrefs to not delay GC of user types
 _cache: WeakKeyDictionary[type, dict[str, Any]] = WeakKeyDictionary()
+_impls: WeakKeyDictionary[type, set[str]] = WeakKeyDictionary()
 
 
 def add_cache(type_: Type[_T], name: str, method: Any) -> Any:
@@ -50,16 +54,50 @@ def add_cache(type_: Type[_T], name: str, method: Any) -> Any:
     return method
 
 
+def add_impls(type_: type, *attrs: str) -> None:
+    """Add a set of implemented attributes to the cache."""
+    attrs_set = wk_dict_setdefault(_impls, type_, set())
+    attrs_set.update(attrs)
+
+
 def in_cache(type_: type, name: str) -> bool:
     """Return True if the method is in the cache."""
     type_methods = wk_dict_setdefault(_cache, type_, {})
     return dict_contains(type_methods, name)
 
 
+def in_impls(type_: type, name: str) -> bool:
+    """Return True if the attribute is in the impls cache."""
+    attrs_set = wk_dict_get(_impls, type_)
+    return set_contains(attrs_set, name) if attrs_set else False
+
+
 def get_cache(type_: type, name: str) -> Any:
     """Get the method from the type in cache."""
     type_methods = wk_dict_setdefault(_cache, type_, {})
-    return dict_getitem(type_methods, name)
+    try:
+        return dict_getitem(type_methods, name)
+    except KeyError:
+        raise KeyError(
+            f"Original attribute {name!r} was not found for type {type_!r}"
+        ) from None
+
+
+def get_type_cache(type_: type) -> dict[str, Any]:
+    """Get the cache for the type."""
+    try:
+        return wk_dict_getitem(_cache, type_)
+    except KeyError:
+        raise KeyError(
+            f"Original attributes cache was not found for type {type_!r}"
+        ) from None
+
+
+def normalize_slot_attr(attr: object | TypeNewWrapper) -> Any:
+    """Normalize a slot attribute to its original value."""
+    if isinstance(attr, TypeNewWrapper):
+        return attr._orig_slot_fn
+    return attr
 
 
 add_cache(object, "__new__", object.__new__)

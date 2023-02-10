@@ -9,11 +9,11 @@ from typing import TYPE_CHECKING, Any, Callable, Literal, Type, TypeVar, Union, 
 from typing_extensions import Self
 
 from einspect._typing import is_union
+from einspect.api import address
 from einspect.compat import Version
 from einspect.errors import UnsafeError
 from einspect.structs import PyTypeObject
 from einspect.structs.include.object_h import TpFlags
-from einspect.structs.py_type import TypeNewWrapper
 from einspect.structs.slots_map import (
     Slot,
     get_slot,
@@ -22,7 +22,15 @@ from einspect.structs.slots_map import (
     tp_as_number,
     tp_as_sequence,
 )
-from einspect.type_orig import add_cache, get_cache, in_cache
+from einspect.type_orig import (
+    add_cache,
+    add_impls,
+    get_cache,
+    get_type_cache,
+    in_cache,
+    in_impls,
+    normalize_slot_attr,
+)
 from einspect.views.view_base import REF_DEFAULT, VarView
 
 if TYPE_CHECKING:
@@ -78,11 +86,8 @@ def _restore_impl(*types: type, name: str) -> None:
         # Get the original attribute from cache
         if in_cache(t, name):
             attr = get_cache(t, name)
-            # For TypeNewWrapper, use the original slot wrapper
-            if isinstance(t, TypeNewWrapper):
-                attr = t._orig_slot_fn
             # Set the attribute back using a view
-            v[name] = attr
+            v[name] = normalize_slot_attr(attr)
         else:
             # If there is no original attribute, delete the attribute
             with v.as_mutable():
@@ -234,7 +239,10 @@ class TypeView(VarView[_T, None, None]):
             return
         py_objs = [self._pyobject]
         if subclasses:
-            for sub in self._pyobject.GetAttr("__subclasses__")():
+            sub_fn = self._pyobject.GetAttr("__subclasses__")
+            # __subclasses__ takes 1 argument if we are `type`
+            args = (type,) if self.address == address(type) else ()
+            for sub in sub_fn(*args):
                 assert isinstance(sub, type)
                 py_objs.append(PyTypeObject.from_object(sub))
         for py_obj in py_objs:
@@ -258,23 +266,57 @@ class TypeView(VarView[_T, None, None]):
         for s in slots:
             self._try_alloc(s)
 
+    def restore(self, *names: str | Callable) -> None:
+        """
+        Restore named attribute(s) on type.
+
+        Args:
+            *names: Optional name(s) of attribute(s) to restore.
+                Can be str or callable with ``__name__``. If empty, restore all attributes.
+        """
+        type_ = self._pyobject.into_object()
+
+        if not names:
+            # Restore all attributes
+            type_cache = get_type_cache(type_)
+            for name, attr in type_cache.items():
+                self[name] = normalize_slot_attr(attr)
+            return type_
+
+        # Normalize names of stuff like properties and class methods
+        names = [get_func_name(n) if callable(n) else n for n in names]
+        # Check all names exist first
+        for name in names:
+            if in_cache(type_, name):
+                attr = get_cache(type_, name)
+                self[name] = normalize_slot_attr(attr)
+            # If in impl record, and not in cache, remove the attribute
+            elif in_impls(type_, name):
+                del self[name]
+            else:
+                raise AttributeError(
+                    f"{type_.__name__!r} has no original attribute {name!r}"
+                )
+
     def __getitem__(self, key: str) -> Any:
         """Get an attribute from the type object."""
         return self._pyobject.GetAttr(key)
 
-    def __setitem__(self, key: str | tuple[str, ...], value: Any) -> None:
+    def __setitem__(self, names: str | tuple[str, ...], value: Any) -> None:
         """
         Set attributes on the type object.
 
         Multiple string keys can be used to set multiple attributes to the same value.
         """
-        keys = (key,) if isinstance(key, str) else key
+        keys = (names,) if isinstance(names, str) else names
         # For all alloc mode, allocate now
         if self._alloc_mode == "all":
             self.alloc_slot()
         for name in keys:
-            # Cache original implementation
             base = self.base
+            # Add impls record
+            add_impls(base, name)
+            # Cache original implementation
             if not in_cache(base, name):
                 with suppress(AttributeError):
                     attr = getattr(base, name)
@@ -289,9 +331,21 @@ class TypeView(VarView[_T, None, None]):
             with self.as_mutable():
                 self._pyobject.setattr_safe(name, value)
 
-    # <-- Begin Managed::Properties (structs::py_type.PyTypeObject) -->
+    def __delitem__(self, names: str | tuple[str, ...]) -> None:
+        """Delete attributes from the type object."""
+        keys = (names,) if isinstance(names, str) else names
+        for name in keys:
+            base = self.base
+            # Add impls record
+            add_impls(base, name)
+            # Cache original implementation
+            if not in_cache(base, name):
+                with suppress(AttributeError):
+                    attr = getattr(base, name)
+                    add_cache(base, name, attr)
 
-    # <-- End Managed::Properties -->
+            with self.as_mutable():
+                self._pyobject.delattr_safe(name)
 
     def __getattr__(self, item: str):
         # Forward `tp_` attributes from PyTypeObject

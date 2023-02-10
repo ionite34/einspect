@@ -158,3 +158,13 @@ def test_impl_detach_weakref():
     # With detach=False, it should work
     res = impl(SomeClass, detach=False)(fn)
     assert res is fn
+
+
+def test_impl_type():
+    # Test that impl works on types
+    @impl(type, detach=True)
+    def __matmul__(self, other):
+        return self, other
+
+    # noinspection PyUnresolvedReferences
+    assert str @ 123 == (str, 123)
