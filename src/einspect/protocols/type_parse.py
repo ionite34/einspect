@@ -29,6 +29,7 @@ class FuncPtr(Protocol):
 
 
 aliases = {
+    bool: ctypes.c_bool,
     # ctypes will cast c_ssize_t to (int)
     int: Py_ssize_t,
     # ctypes will cast py_object to (object)
