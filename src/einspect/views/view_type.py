@@ -238,7 +238,7 @@ class TypeView(VarView[_T, None, None]):
         if slot.ptr_type is None:
             return
         py_objs = [self._pyobject]
-        if subclasses:
+        if subclasses and self.base is not type:
             sub_fn = self._pyobject.GetAttr("__subclasses__")
             # __subclasses__ takes 1 argument if we are `type`
             args = (type,) if self.address == address(type) else ()
