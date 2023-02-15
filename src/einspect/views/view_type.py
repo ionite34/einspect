@@ -111,7 +111,7 @@ def _attach_finalizer(types: Sequence[type], func: Callable) -> None:
 
 
 def impl(
-    *cls: Type[_T] | UnionType,
+    *cls: Type[_T] | type | UnionType,
     alloc: AllocMode | None = None,
     detach: bool = False,
 ) -> Callable[[_Fn], _Fn]:
