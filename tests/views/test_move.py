@@ -13,7 +13,6 @@ def test_move_err():
         v.move_to("not a view")  # type: ignore
 
 
-@pytest.mark.run_in_subprocess
 def test_move_op():
     a = literal_eval("'eed25194-bb5e-4c96'")
     b = literal_eval("'90d584f0-2b6e-449c'")
@@ -31,7 +30,6 @@ def test_move_from():
     assert a == b
 
 
-@pytest.mark.run_in_subprocess
 def test_move_instance_dicts():
     """Move between objects with instance dicts."""
     Foo = type("Num", (tuple,), {})
@@ -83,14 +81,17 @@ def test_move_unsafe_instance_dict():
         v <<= Num()
 
 
-@pytest.mark.run_in_subprocess
 def test_swap():
-    a = literal_eval("'78950fa2-93a4-4ac4'")
-    b = literal_eval("'236ad434-c134-4f75'")
+    a = literal_eval("'A-78950fa2-93a4-4ac4'")
+    b = literal_eval("'B-236ad434-c134-4f75'")
     view(a).swap(b)
 
-    assert a == "236ad434-c134-4f75"
-    assert b == "78950fa2-93a4-4ac4"
+    assert a[0] == "B"
+    assert b[0] == "A"
+
+    view(a).swap(b)
+    assert a[0] == "A"
+    assert b[0] == "B"
 
 
 @pytest.mark.run_in_subprocess

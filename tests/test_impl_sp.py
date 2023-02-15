@@ -100,7 +100,7 @@ def test_impl_type():
 def test_impl_new():
     _call = None
 
-    @impl(object, detach=True)
+    @impl(object)
     def __new__(cls, *args, **kwargs):
         nonlocal _call
         _call = (cls, args, kwargs)
