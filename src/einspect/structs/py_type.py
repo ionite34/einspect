@@ -181,12 +181,12 @@ class PyTypeObject(PyVarObject[_T, None, None]):
 
     def delattr_safe(self, name: str) -> None:
         """Delete an attribute on the type object. Uses custom overrides if available."""
-        # Resolve the slot into an attr name, if any
+        # If not a recognized slot, delete with normal api
         if (slot := get_slot(name)) is None:
             self.DelAttr(name)
             return
 
-        # Check if slot has a PyMethods
+        # Slot is in a PyMethods sub-struct
         if slot.ptr_type:
             # Get PyMethods pointer, if null, we don't have to delete anything
             if not (method_ptr := getattr(self, slot.parts[0])):
@@ -199,12 +199,16 @@ class PyTypeObject(PyVarObject[_T, None, None]):
         # Get type as element 1 of the field tuple
         field = self._fields_map_.get(slot.name)
         field_type = field[1]
+
+        # Overrides
         # For c_char_p types, set encoded bytes
         if field_type is c_char_p:
             setattr(self, slot.name, b"")
         # For ptr[PyObject] types, set PyObject pointer
         elif field_type == POINTER(PyObject):
             setattr(self, slot.name, POINTER(PyObject)())
+        # Otherwise, set to null
+        setattr(self, slot.name, NULL)
 
     def is_gc(self) -> bool:
         """
