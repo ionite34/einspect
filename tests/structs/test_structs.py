@@ -169,6 +169,15 @@ class TestPyTypeObject:
         assert repr_fn(50) == "50"
         assert repr_fn(True) == "1"
 
+    def test_setattr_safe_alloc_check(self):
+        # If PyMethods is NULL, should TypeError
+        py_int = st.PyTypeObject.from_object(int)
+        # PySequenceMethods pointer should be NULL for int
+        assert not py_int.tp_as_sequence
+
+        with pytest.raises(TypeError):
+            py_int.setattr_safe("__contains__", lambda a, b: True)
+
 
 class TestPyLongObject:
     def test_digit(self, new_int):

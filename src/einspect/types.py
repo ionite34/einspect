@@ -29,6 +29,9 @@ Resolves to the `_Ptr` class at runtime to allow for generic subscripting.
 Pointer = ctypes._Pointer
 """Alias to `ctypes._Pointer`."""
 
+PyCFuncPtrType = type(ctypes.PYFUNCTYPE(ctypes.c_void_p))
+"""Runtime Type of ``_ctypes.PyCFuncPtrType``."""
+
 _SelfPtr = object()
 """Singleton object returned on ptr[Self]."""
 

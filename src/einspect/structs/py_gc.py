@@ -1,13 +1,12 @@
 from __future__ import annotations
 
-from ctypes import Structure, c_void_p, cast
+from ctypes import c_void_p, cast
 from enum import IntEnum
 
 from typing_extensions import Annotated
 
 from einspect.api import uintptr_t
-from einspect.structs.deco import struct
-from einspect.structs.traits import AsRef
+from einspect.structs.deco import Struct
 from einspect.types import ptr
 
 
@@ -23,8 +22,7 @@ class PyGC(IntEnum):
     PREV_MASK = uintptr_t(-1).value << PREV_SHIFT
 
 
-@struct
-class PyGC_Head(Structure, AsRef):
+class PyGC_Head(Struct):
     """
     Defines the PyGC_Head Structure.
 

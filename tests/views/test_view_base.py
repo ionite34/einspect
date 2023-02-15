@@ -75,6 +75,12 @@ class TestView:
         v = view(obj)  # type: ignore
         assert type(v) is self.view_type
 
+    def test_address(self):
+        obj = self.get_obj()
+        v = self.view_type(obj)
+        assert v.address == v._pyobject.address
+        assert v.address == id(obj)
+
     def test_size(self):
         # For sized test subclasses
         obj = self.get_obj()

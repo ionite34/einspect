@@ -1,17 +1,22 @@
 from __future__ import annotations
 
+import ctypes
 import logging
 from ctypes import POINTER, Structure
-from functools import partial
+from functools import cached_property, partial
 from typing import Callable, Literal, Sequence, Tuple, Type, TypeVar, Union, overload
 
-# noinspection PyUnresolvedReferences, PyProtectedMember
-from typing_extensions import _AnnotatedAlias, get_args, get_type_hints
+import typing_extensions
+from typing_extensions import get_args, get_type_hints
 
 from einspect.protocols.type_parse import convert_type_hints, fix_ctypes_generics
-from einspect.types import _SelfPtr
+from einspect.structs.traits import AsRef, Display
+from einspect.types import NULL, Pointer, PyCFuncPtrType, _SelfPtr
 
-__all__ = ("struct",)
+__all__ = ("struct", "Struct")
+
+# noinspection PyUnresolvedReferences, PyProtectedMember
+AnnotatedAlias = typing_extensions._AnnotatedAlias
 
 log = logging.getLogger(__name__)
 
@@ -84,7 +89,7 @@ def _struct(cls: _T, __fields: FieldsType | None = None) -> _T:
             continue
 
         # For Annotated, directly use fields 1 and 2
-        if type(type_hint) is _AnnotatedAlias:
+        if type(type_hint) is AnnotatedAlias:
             args = get_args(type_hint)
             res = (name, *args[1:3])
             log.debug(f"Annotated: {type_hint} -> {res}")
@@ -98,8 +103,63 @@ def _struct(cls: _T, __fields: FieldsType | None = None) -> _T:
     try:
         cls._fields_ = fields
     except (TypeError, AttributeError) as err:
-        raise TypeError(
-            f"Failed to set _fields_ ({fields}) on {cls.__name__} -> {err}"
-        ) from err
+        raise TypeError(f"Failed to set {cls.__name__!r} _fields_, {err}") from err
 
     return cls
+
+
+def _cast_field(field_type, value):
+    """Attempt to cast value for assignment to ctypes field_type."""
+    # Both Pointer types
+    if issubclass(field_type, Pointer) and isinstance(value, Pointer):
+        # Null case, create empty pointer
+        if value is NULL:
+            return field_type()
+        # try to coerce Structure subclasses
+        # i.e. LP_PyObject should accept LP_PyDictObject
+        if issubclass(field_type._type_, Structure) and issubclass(
+            value._type_, field_type._type_
+        ):
+            return ctypes.cast(value, field_type)
+
+    # PYFUNCTYPE, create a null type of itself
+    if isinstance(field_type, PyCFuncPtrType):
+        return field_type()
+
+    return value
+
+
+class UnionMeta(type(ctypes.Union)):
+    def __init__(self, name, bases, mapping, **kwargs) -> None:
+        super().__init__(name, bases, mapping, **kwargs)
+        _struct(self)  # type: ignore
+
+
+class StructMeta(type(ctypes.Structure)):
+    def __init__(self, name, bases, mapping, **kwargs) -> None:
+        super().__init__(name, bases, mapping, **kwargs)
+        _struct(self)  # type: ignore
+
+
+class Union(ctypes.Union, AsRef, Display, metaclass=UnionMeta):
+    """Defines a ctypes.Union subclass using type hints."""
+
+
+class Struct(Structure, AsRef, Display, metaclass=StructMeta):
+    """Defines a ctypes.Structure subclass using type hints."""
+
+    @cached_property
+    def _fields_map_(self) -> dict[str, tuple[str, type] | tuple[str, type, int]]:
+        """Returns a dict of field name to field tuple. Includes inherited fields."""
+        super_fields = super()._fields_ if hasattr(super(), "_fields_") else {}
+        return {**super_fields, **{f[0]: f for f in self._fields_}}
+
+    def __setattr__(self, key, value):
+        # Overrides for field assignments
+        if key in self._fields_map_:
+            # Get the field type
+            field_type = self._fields_map_[key][1]
+            # Attempt to cast value to field type
+            value = _cast_field(field_type, value)
+
+        super().__setattr__(key, value)

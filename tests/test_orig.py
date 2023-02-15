@@ -1,4 +1,13 @@
-from einspect.type_orig import _cache, get_cache, in_cache, orig
+import pytest
+
+from einspect.type_orig import (
+    _cache,
+    get_cache,
+    get_type_cache,
+    in_cache,
+    orig,
+    try_cache_attr,
+)
 
 
 def test_orig() -> None:
@@ -20,3 +29,18 @@ def test_orig_cache() -> None:
     assert get_cache(str, "upper") == str.upper
     # check in orig
     assert orig(str).upper("abc") == "ABC"
+
+
+def test_get_type_cache() -> None:
+    class A:
+        pass
+
+    # Initially should not be in cache
+    with pytest.raises(KeyError):
+        get_type_cache(A)
+
+    # Add to cache
+    A.abc = 123
+    try_cache_attr(A, "abc")
+
+    assert get_type_cache(A) == {"abc": 123}

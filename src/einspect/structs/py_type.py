@@ -19,13 +19,12 @@ from typing import Any, Type, TypeVar
 from typing_extensions import Annotated, Self
 
 from einspect.protocols import bind_api
-from einspect.structs.deco import struct
 from einspect.structs.include.descrobject_h import PyGetSetDef, PyMemberDef
 from einspect.structs.include.methodobject_h import PyMethodDef
 from einspect.structs.include.object_h import *
 from einspect.structs.py_object import PyObject, PyVarObject
 from einspect.structs.slots_map import get_slot
-from einspect.types import ptr
+from einspect.types import NULL, ptr
 
 __all__ = ("PyTypeObject",)
 
@@ -35,7 +34,6 @@ DEFAULT = object()
 
 
 # noinspection PyPep8Naming
-@struct
 class PyTypeObject(PyVarObject[_T, None, None]):
     """
     Defines a PyTypeObject Structure.
@@ -153,22 +151,76 @@ class PyTypeObject(PyVarObject[_T, None, None]):
         return f"<{cls_name}[{type_name}] at {self.address:#04x}>"
 
     @classmethod
-    def from_object(cls, obj: Type[_T]) -> PyTypeObject[Type[_T]]:
+    def from_object(cls, obj: Type[_T] | type) -> PyTypeObject[Type[_T]]:
         return super().from_object(obj)  # type: ignore
 
     def setattr_safe(self, name: str, value: Any) -> None:
         """Set an attribute on the type object. Uses custom overrides if available."""
         # Resolve the slot into an attr name, if any
-        if (slot := get_slot(name)) is not None:
-            # Override c_char_p types
-            if type_object_fields.get(slot.name) is c_char_p:
-                setattr(self, slot.name, value.encode())
-                return
-            # Override ptr[PyObject] types
-            if type_object_fields.get(slot.name) == ptr[PyObject]:
+        if (slot := get_slot(name)) is None:
+            self.SetAttr(name, value)
+            return
+
+        # Get PyMethods pointer, if null, error
+        if slot.ptr_type and not getattr(self, slot.parts[0]):
+            raise TypeError(
+                f"PyTypeObject {self} has no allocated {slot.ptr_type} {slot.parts[0]!r}"
+            )
+
+        # Get type as element 1 of the field tuple
+        if field := self._fields_map_.get(slot.name):
+            field_type = field[1]
+            # For c_char_p types, set encoded bytes
+            if field_type is c_char_p:
+                setattr(self, slot.name, value.encode("utf-8"))
+            # For ptr[PyObject] types, set PyObject pointer
+            elif field_type == POINTER(PyObject):
                 setattr(self, slot.name, PyObject.from_object(value).as_ref())
-                return
+
         self.SetAttr(name, value)
+
+    def _try_del_tp_dict(self, name: str) -> None:
+        """Try to delete a key from the type's dict, if tp_dict is not NULL."""
+        if self.tp_dict:
+            type_dict: dict[str, Any] = self.tp_dict.contents.into_object()
+            if name in type_dict:
+                del type_dict[name]
+
+    def delattr_safe(self, name: str) -> None:
+        """Delete an attribute on the type object. Uses custom overrides if available."""
+        # If not a recognized slot, delete with normal api
+        if (slot := get_slot(name)) is None:
+            self.DelAttr(name)
+            self._try_del_tp_dict(name)
+            return
+
+        # Slot is in a PyMethods sub-struct
+        if slot.ptr_type:
+            # Get PyMethods pointer, if null, we don't have to delete anything
+            if not (method_ptr := getattr(self, slot.parts[0])):
+                return
+            # Set slot function pointer on PyMethods to null
+            method = method_ptr.contents
+            setattr(method, slot.parts[1], NULL)
+            self._try_del_tp_dict(name)
+            return
+
+        # Get type as element 1 of the field tuple
+        field = self._fields_map_.get(slot.name)
+        field_type = field[1]
+
+        # Overrides
+        # For c_char_p types, set encoded bytes
+        if field_type is c_char_p:
+            setattr(self, slot.name, b"")
+        # For ptr[PyObject] types, set PyObject pointer
+        elif field_type == POINTER(PyObject):
+            setattr(self, slot.name, POINTER(PyObject)())
+        # Otherwise, set to null
+        setattr(self, slot.name, NULL)
+
+        # Delete from type dict
+        self._try_del_tp_dict(name)
 
     def is_gc(self) -> bool:
         """

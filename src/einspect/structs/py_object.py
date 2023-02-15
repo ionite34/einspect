@@ -24,7 +24,7 @@ from einspect.api import PTR_SIZE, address, align_size
 from einspect.compat import Version, python_req
 from einspect.protocols.delayed_bind import bind_api
 from einspect.protocols.type_parse import is_ctypes_type
-from einspect.structs.deco import struct
+from einspect.structs.deco import Struct
 from einspect.structs.py_gc import PyGC_Head
 from einspect.structs.traits import AsRef, IsGC
 from einspect.types import ptr
@@ -67,8 +67,7 @@ def py_set(obj_ptr: ptr[PyObject], value: object | PyObject | ptr[PyObject]) -> 
     obj_ptr.contents = PyObject.try_from(value).with_ref()
 
 
-@struct
-class PyObject(Structure, AsRef, Generic[_T, _KT, _VT]):
+class PyObject(Struct, AsRef, Generic[_T, _KT, _VT]):
     """Defines a base PyObject Structure."""
 
     ob_refcnt: int
@@ -112,7 +111,7 @@ class PyObject(Structure, AsRef, Generic[_T, _KT, _VT]):
         if "ob_type" not in kwargs:
             raise TypeError("Missing required keyword-argument field 'ob_type'")
 
-        new_ob_size: int = kwargs.get("ob_size", 0).__index__()
+        new_ob_size = kwargs.get("ob_size", 0).__index__()
         new_ob_type = PyTypeObject.try_from(kwargs["ob_type"])
 
         if issubclass(cls, IsGC):
@@ -127,6 +126,7 @@ class PyObject(Structure, AsRef, Generic[_T, _KT, _VT]):
                 if issubclass(cls, PyVarObject)
                 else new_ob_type.New()
             )
+
         return res.contents.astype(cls)
 
     @property
@@ -301,7 +301,15 @@ class PyObject(Structure, AsRef, Generic[_T, _KT, _VT]):
 
     @bind_api(pythonapi["PyObject_SetAttr"])
     def SetAttr(self, name: str, value: object) -> int:
-        """Set the attribute of the PyObject."""
+        """Set the attribute of the PyObject. Returns -1 on failure."""
+
+    @bind_api(pythonapi["PyObject_HasAttr"])
+    def HasAttr(self, name: str) -> bool:
+        """Return True if the PyObject has the attribute."""
+
+    def DelAttr(self, name: str) -> int:
+        """Delete attribute `name` of the PyObject. Returns -1 on failure."""
+        return self.SetAttr(name, ctypes.py_object())
 
 
 # We don't want this visible to type-checking but `PyObject.__init__`
@@ -321,7 +329,6 @@ def _PyObject__init__(self, *args, **kwargs) -> None:
 PyObject.__init__ = _PyObject__init__
 
 
-@struct
 class PyVarObject(PyObject[_T, _KT, _VT]):
     """
     Defines a base PyVarObject Structure.

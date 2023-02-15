@@ -5,7 +5,7 @@ from einspect._patch import _Null_LP_PyObject
 
 def test_null_lp_repr() -> None:
     obj = _Null_LP_PyObject()
-    assert repr(obj).startswith("<NULL ptr[PyObject] at")
+    assert repr(obj).startswith("<Null LP_PyObject at")
 
 
 def test_null_lp_eq() -> None:

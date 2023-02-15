@@ -1,14 +1,13 @@
 from __future__ import annotations
 
-from ctypes import Structure
 from typing import Generic, TypeVar
 
 from typing_extensions import Annotated
 
 from einspect.api import Py_hash_t
-from einspect.structs.deco import struct
+from einspect.structs.deco import Struct
 from einspect.structs.py_object import Fields, PyObject
-from einspect.structs.traits import AsRef, IsGC
+from einspect.structs.traits import IsGC
 from einspect.types import ptr
 
 _T = TypeVar("_T")
@@ -17,8 +16,7 @@ PySet_MINSIZE = 8
 """https://github.com/python/cpython/blob/3.11/Include/cpython/setobject.h#L18"""
 
 
-@struct
-class SetEntry(Structure, AsRef, Generic[_T]):
+class SetEntry(Struct, Generic[_T]):
     key: ptr[PyObject[_T, None, None]]
     hash: Annotated[int, Py_hash_t]  # noqa: A003
 
@@ -30,8 +28,7 @@ class SetEntry(Structure, AsRef, Generic[_T]):
         }
 
 
-@struct
-class PySetObject(PyObject[set, None, _T], AsRef, IsGC):
+class PySetObject(PyObject[set, None, _T], IsGC):
     """
     Defines a PySetObject Structure.
 

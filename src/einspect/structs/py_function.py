@@ -5,13 +5,11 @@ from types import FunctionType
 
 from typing_extensions import Annotated
 
-from einspect.structs.deco import struct
 from einspect.structs.include.object_h import vectorcallfunc
 from einspect.structs.py_object import PyObject
 from einspect.types import ptr
 
 
-@struct
 class PyFunctionObject(PyObject[FunctionType, None, None]):
     globals: ptr[PyObject]
     builtins: ptr[PyObject]

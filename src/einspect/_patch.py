@@ -6,6 +6,7 @@ from ctypes import POINTER, addressof, c_void_p, memmove, sizeof
 
 from einspect import types
 from einspect.structs.py_object import PyObject
+from einspect.types import Pointer, PyCFuncPtrType
 
 
 class _Null_LP_PyObject(POINTER(PyObject)):
@@ -13,14 +14,17 @@ class _Null_LP_PyObject(POINTER(PyObject)):
 
     def __repr__(self) -> str:
         """Returns the string representation of the pointer."""
-        return f"<NULL ptr[PyObject] at {addressof(self):#04x}>"
+        return f"<Null LP_PyObject at {addressof(self):#04x}>"
 
     def __eq__(self, other) -> bool:
         """Returns equal to other null pointers."""
-        # noinspection PyUnresolvedReferences
-        if not isinstance(other, ctypes._Pointer):
-            return NotImplemented
-        return not other
+        if isinstance(other, Pointer):
+            return not other
+
+        if isinstance(type(other), PyCFuncPtrType):
+            return not ctypes.cast(other, c_void_p)
+
+        return NotImplemented
 
 
 def run() -> None:

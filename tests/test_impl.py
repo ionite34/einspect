@@ -1,66 +1,11 @@
 """Tests for the @impl decorator and orig proxy."""
 from __future__ import annotations
 
+from contextlib import ExitStack
+
 import pytest
 
 from einspect import impl, orig, view
-from einspect.structs import PyObject
-
-
-def test_impl_new_func():
-    @impl(int)
-    def _foo_fn(self, x):
-        return str(self + x)
-
-    # noinspection PyUnresolvedReferences
-    assert (10)._foo_fn(5) == "15"
-
-
-def test_impl_new_func_finalize():
-    # Test that finalizer works, deleting function should remove the impl
-    @impl(int, detach=True)
-    def _test_final(self):
-        return str(self)
-
-    _test_final._impl_finalize()
-
-    with pytest.raises(AttributeError, match="has no attribute '_test_final'"):
-        # noinspection PyUnresolvedReferences
-        _ = (10)._test_final()
-
-
-def test_impl_cache():
-    @impl(int)
-    def _foo_fn(self, x: int) -> str:
-        return str(self + x)
-
-    impl(int)(_foo_fn)
-
-    # noinspection PyUnresolvedReferences
-    assert (10)._foo_fn(5) == "15"
-
-
-def test_impl_new_property():
-    @impl(int)
-    @property
-    def _custom_as_str(self) -> str:
-        return orig(int).__str__(self)
-
-    # noinspection PyUnresolvedReferences
-    assert (10)._custom_as_str == "10"
-
-
-# noinspection PyUnresolvedReferences
-def test_impl_new_slot():
-    UserType = type("UserType", (object,), {})
-    obj = UserType()
-
-    @impl(UserType)
-    def __getitem__(self, item) -> str:
-        return item
-
-    assert obj[0] == 0
-    assert obj[1] == 1
 
 
 def test_impl_error():
@@ -71,40 +16,65 @@ def test_impl_error():
             pass
 
 
-@pytest.mark.run_in_subprocess
+def test_impl_new_func():
+    with ExitStack() as stack:
+
+        @impl(int, detach=True)
+        def _foo_fn(self, x):
+            return str(self + x)
+
+        stack.callback(_foo_fn._impl_finalize)
+
+        # noinspection PyUnresolvedReferences
+        assert (10)._foo_fn(5) == "15"
+
+
+def test_impl_new_property():
+    UserStr = type("UserStr", (str,), {})
+
+    @impl(UserStr, detach=True)
+    @property
+    def as_str(self) -> str:
+        return str(self)
+
+    # noinspection PyUnresolvedReferences
+    assert UserStr("abc").as_str == "abc"
+
+
 def test_impl_func():
-    # Implement an override for list __add__
-    @impl(list)
-    def __add__(self, other):
-        return ["test-123"]
-
-    a = [1, 2]
-    b = [3, 4]
-    assert a + b == ["test-123"]
-
-
-@pytest.mark.run_in_subprocess
-def test_impl_func_2():
     # Implement a new method for int
     @impl(int)
     def __matmul__(self, other):
-        return self // other
+        return self * other
 
-    a = 100
-    b = 4
+    assert hasattr(int, "__matmul__")
+
+    a = 4
+    b = 10
     # noinspection PyUnresolvedReferences
-    assert a @ b == 25
+    assert a @ b == 40
+
+    # Restore original (this deletes our implementation)
+    view(int).restore("__matmul__")
+    # check int no longer has __matmul__
+    assert not hasattr(int, "__matmul__")
+    # using the operator should error
+    with pytest.raises(TypeError):
+        # noinspection PyUnresolvedReferences
+        assert not a @ b
 
 
 def test_impl_property():
     _call = None
 
-    @impl(int)
+    @impl(int, detach=True)
     @property
     def real(self):
         nonlocal _call
         _call = self
         return orig(int).real.__get__(self)
+
+    assert int.real is real
 
     assert (123).real == 123
     assert _call == 123
@@ -112,36 +82,6 @@ def test_impl_property():
     assert (456).real == 456
     assert _call == 456
 
-
-def test_impl_new():
-    _call = None
-
-    @impl(object)
-    def __new__(cls, *args, **kwargs):
-        nonlocal _call
-        _call = (cls, args, kwargs)
-        return orig(cls).__new__(cls, *args, **kwargs)
-
-    # Test normal object creation
-    _ = object()
-    assert _call == (object, (), {})
-
-    # Test subclass
-    class Foo:
-        def __init__(self, a, b, kwd=None):
-            self.args = (a, b)
-            self.kwd = kwd
-
-    obj = Foo(1, 2, kwd="hi")
-    assert isinstance(obj, Foo)
-    assert _call == (Foo, (1, 2), {"kwd": "hi"})
-
-
-def test_impl_detach_weakref():
-    # impl detach should require methods to be weakrefable
-    class Foo:
-        pass
-
-    with pytest.raises(TypeError, match="support weakrefs"):
-        # noinspection PyTypeChecker
-        impl(Foo, detach=True)(123)
+    # Restore original
+    view(int).restore("real")
+    assert int.real is not real
