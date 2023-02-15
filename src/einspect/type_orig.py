@@ -10,6 +10,8 @@ from einspect.structs.include.object_h import newfunc
 from einspect.structs.py_type import PyTypeObject, TypeNewWrapper
 
 _T = TypeVar("_T")
+
+# Singleton to cache for attributes that don't exist on the type
 MISSING = object()
 
 # Statically cache some methods used in cache lookups
@@ -19,6 +21,7 @@ type_hash = type.__hash__
 str_eq = str.__eq__
 
 dict_setdefault = dict.setdefault
+dict_setitem = dict.__setitem__
 dict_contains = dict.__contains__
 dict_getitem = dict.__getitem__
 dict_get = dict.get
@@ -34,9 +37,9 @@ _cache: WeakKeyDictionary[type, dict[str, Any]] = WeakKeyDictionary()
 _impls: WeakKeyDictionary[type, set[str]] = WeakKeyDictionary()
 
 
-def add_cache(type_: Type[_T], name: str, method: Any) -> Any:
-    """Add a method to the cache."""
-    type_methods = wk_dict_setdefault(_cache, type_, {})
+def add_cache(type_: type, name: str, method: Any, overwrite: bool = False) -> Any:
+    """Add a type's attribute to the cache."""
+    type_attrs = wk_dict_setdefault(_cache, type_, {})
 
     # For `__new__` methods, use special TypeNewWrapper for modified safety check
     if name == "__new__":
@@ -49,8 +52,11 @@ def add_cache(type_: Type[_T], name: str, method: Any) -> Any:
             method = obj_tp_new(TypeNewWrapper, (), {})
             method.__init__(tp_new, type_)
 
-    # Only allow adding once, ignore if already added
-    dict_setdefault(type_methods, name, method)
+    if overwrite:
+        dict_setitem(type_attrs, name, method)
+    else:
+        dict_setdefault(type_attrs, name, method)
+
     return method
 
 
@@ -58,6 +64,40 @@ def add_impls(type_: type, *attrs: str) -> None:
     """Add a set of implemented attributes to the cache."""
     attrs_set = wk_dict_setdefault(_impls, type_, set())
     attrs_set.update(attrs)
+
+
+def try_cache_attr(
+    type_: type,
+    name: str,
+    flag_missing: bool = True,
+    exists_ok: bool = True,
+    overwrite: bool = False,
+) -> None:
+    """
+    Caches a type's attribute if it exists.
+
+    Args:
+        type_: The type to cache the attribute for.
+        name: The name of the attribute.
+        flag_missing: If True, add the `type_orig.MISSING` object to cache if it doesn't exist.
+        exists_ok: If False, raise KeyError if the attribute is already in cache.
+        overwrite: If True, overwrite the attribute in cache if it already exists.
+    """
+    # Check if the attribute is already in cache
+    if not exists_ok and in_cache(type_, name):
+        raise ValueError(f"Attribute {name!r} is already in cache for type {type_!r}")
+
+    # Get the attribute
+    try:
+        attr = getattr(type_, name)
+    except AttributeError:
+        if flag_missing:
+            attr = MISSING
+        else:
+            return
+
+    # Add the attribute to the cache
+    add_cache(type_, name, attr, overwrite=overwrite)
 
 
 def in_cache(type_: type, name: str) -> bool:

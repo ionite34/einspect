@@ -179,11 +179,19 @@ class PyTypeObject(PyVarObject[_T, None, None]):
 
         self.SetAttr(name, value)
 
+    def _try_del_tp_dict(self, name: str) -> None:
+        """Try to delete a key from the type's dict, if tp_dict is not NULL."""
+        if self.tp_dict:
+            type_dict: dict[str, Any] = self.tp_dict.contents.into_object()
+            if name in type_dict:
+                del type_dict[name]
+
     def delattr_safe(self, name: str) -> None:
         """Delete an attribute on the type object. Uses custom overrides if available."""
         # If not a recognized slot, delete with normal api
         if (slot := get_slot(name)) is None:
             self.DelAttr(name)
+            self._try_del_tp_dict(name)
             return
 
         # Slot is in a PyMethods sub-struct
@@ -194,6 +202,7 @@ class PyTypeObject(PyVarObject[_T, None, None]):
             # Set slot function pointer on PyMethods to null
             method = method_ptr.contents
             setattr(method, slot.parts[1], NULL)
+            self._try_del_tp_dict(name)
             return
 
         # Get type as element 1 of the field tuple
@@ -209,6 +218,9 @@ class PyTypeObject(PyVarObject[_T, None, None]):
             setattr(self, slot.name, POINTER(PyObject)())
         # Otherwise, set to null
         setattr(self, slot.name, NULL)
+
+        # Delete from type dict
+        self._try_del_tp_dict(name)
 
     def is_gc(self) -> bool:
         """

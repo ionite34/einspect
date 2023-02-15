@@ -3,7 +3,7 @@ from __future__ import annotations
 import sys
 import weakref
 from collections.abc import Generator, Sequence
-from contextlib import contextmanager, suppress
+from contextlib import contextmanager
 from typing import TYPE_CHECKING, Any, Callable, Literal, Type, TypeVar, Union, get_args
 
 from typing_extensions import Self
@@ -23,13 +23,14 @@ from einspect.structs.slots_map import (
     tp_as_sequence,
 )
 from einspect.type_orig import (
-    add_cache,
+    MISSING,
     add_impls,
     get_cache,
     get_type_cache,
     in_cache,
     in_impls,
     normalize_slot_attr,
+    try_cache_attr,
 )
 from einspect.views.view_base import REF_DEFAULT, VarView
 
@@ -86,12 +87,13 @@ def _restore_impl(*types: type, name: str) -> None:
         # Get the original attribute from cache
         if in_cache(t, name):
             attr = get_cache(t, name)
-            # Set the attribute back using a view
-            v[name] = normalize_slot_attr(attr)
-        else:
-            # If there is no original attribute, delete the attribute
-            with v.as_mutable():
-                delattr(t, name)
+            if attr is not MISSING:
+                # Set the attribute back using a view
+                v[name] = normalize_slot_attr(attr)
+
+        # No original attribute, delete the attribute
+        with v.as_mutable():
+            del v[name]
 
 
 def _attach_finalizer(types: Sequence[type], func: Callable) -> None:
@@ -289,7 +291,12 @@ class TypeView(VarView[_T, None, None]):
         for name in names:
             if in_cache(type_, name):
                 attr = get_cache(type_, name)
-                self[name] = normalize_slot_attr(attr)
+                # MISSING is a special case, it means there is no original attribute
+                if attr is MISSING:
+                    # Same as no attribute, delete it
+                    del self[name]
+                else:
+                    self[name] = normalize_slot_attr(attr)
             # If in impl record, and not in cache, remove the attribute
             elif in_impls(type_, name):
                 del self[name]
@@ -298,9 +305,9 @@ class TypeView(VarView[_T, None, None]):
                     f"{type_.__name__!r} has no original attribute {name!r}"
                 )
 
-    def __getitem__(self, key: str) -> Any:
+    def __getitem__(self, name: str) -> Any:
         """Get an attribute from the type object."""
-        return self._pyobject.GetAttr(key)
+        return self._pyobject.GetAttr(name)
 
     def __setitem__(self, names: str | tuple[str, ...], value: Any) -> None:
         """
@@ -317,10 +324,7 @@ class TypeView(VarView[_T, None, None]):
             # Add impls record
             add_impls(base, name)
             # Cache original implementation
-            if not in_cache(base, name):
-                with suppress(AttributeError):
-                    attr = getattr(base, name)
-                    add_cache(base, name, attr)
+            try_cache_attr(base, name)
             # Check if this is a slots attr (skip all since we already allocated)
             if self._alloc_mode != "all" and (
                 slot := get_slot(name, prefer=self._alloc_mode)
@@ -339,10 +343,7 @@ class TypeView(VarView[_T, None, None]):
             # Add impls record
             add_impls(base, name)
             # Cache original implementation
-            if not in_cache(base, name):
-                with suppress(AttributeError):
-                    attr = getattr(base, name)
-                    add_cache(base, name, attr)
+            try_cache_attr(base, name)
 
             with self.as_mutable():
                 self._pyobject.delattr_safe(name)
