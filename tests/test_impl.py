@@ -1,35 +1,47 @@
 """Tests for the @impl decorator and orig proxy."""
 from __future__ import annotations
 
+from contextlib import ExitStack
+
 import pytest
 
 from einspect import impl, orig, view
-from einspect.structs import PyObject
 
 
 def test_impl_new_func():
-    @impl(int)
-    def _foo_fn(self, x):
-        return str(self + x)
+    with ExitStack() as stack:
 
-    # noinspection PyUnresolvedReferences
-    assert (10)._foo_fn(5) == "15"
+        @impl(int, detach=True)
+        def _foo_fn(self, x):
+            return str(self + x)
+
+        stack.callback(_foo_fn._impl_finalize)
+
+        # noinspection PyUnresolvedReferences
+        assert (10)._foo_fn(5) == "15"
 
 
+@pytest.mark.run_in_subprocess
 def test_impl_new_func_finalize():
     # Test that finalizer works, deleting function should remove the impl
-    @impl(int, detach=True)
-    def _test_final(self):
-        return str(self)
+    with ExitStack() as stack:
 
-    _test_final._impl_finalize()
+        @impl(int, detach=True)
+        def _test_final(self):
+            return str(self)
 
-    with pytest.raises(AttributeError, match="has no attribute '_test_final'"):
-        # noinspection PyUnresolvedReferences
-        _ = (10)._test_final()
+        stack.callback(_test_final._impl_finalize)
+
+        _test_final._impl_finalize()
+
+        with pytest.raises(AttributeError, match="has no attribute '_test_final'"):
+            # noinspection PyUnresolvedReferences
+            _ = (10)._test_final()
 
 
+@pytest.mark.run_in_subprocess
 def test_impl_cache():
+    # Test that impls are cached
     @impl(int)
     def _foo_fn(self, x: int) -> str:
         return str(self + x)
@@ -39,18 +51,24 @@ def test_impl_cache():
     # noinspection PyUnresolvedReferences
     assert (10)._foo_fn(5) == "15"
 
+    # Restore original
+    view(int).restore("_foo_fn")
+
 
 def test_impl_new_property():
-    @impl(int)
+    UserStr = type("UserStr", (str,), {})
+
+    @impl(UserStr, detach=True)
     @property
     def _custom_as_str(self) -> str:
-        return orig(int).__str__(self)
+        return orig(UserStr).__str__(self)
 
     # noinspection PyUnresolvedReferences
-    assert (10)._custom_as_str == "10"
+    assert UserStr("abc")._custom_as_str == "abc"
 
 
 # noinspection PyUnresolvedReferences
+@pytest.mark.run_in_subprocess
 def test_impl_new_slot():
     UserType = type("UserType", (object,), {})
     obj = UserType()
@@ -63,6 +81,7 @@ def test_impl_new_slot():
     assert obj[1] == 1
 
 
+@pytest.mark.run_in_subprocess
 def test_impl_error():
     with pytest.raises(TypeError, match="cls must be a type"):
         # noinspection PyTypeChecker
@@ -71,35 +90,24 @@ def test_impl_error():
             pass
 
 
-@pytest.mark.run_in_subprocess
 def test_impl_func():
-    # Implement an override for list __add__
-    @impl(list)
-    def __add__(self, other):
-        return ["test-123"]
-
-    a = [1, 2]
-    b = [3, 4]
-    assert a + b == ["test-123"]
-
-
-@pytest.mark.run_in_subprocess
-def test_impl_func_2():
     # Implement a new method for int
     @impl(int)
     def __matmul__(self, other):
-        return self // other
+        return self * other
 
-    a = 100
-    b = 4
+    a = 4
+    b = 10
     # noinspection PyUnresolvedReferences
-    assert a @ b == 25
+    assert a @ b == 40
+
+    view(int).restore("__matmul__")
 
 
 def test_impl_property():
     _call = None
 
-    @impl(int)
+    @impl(int, detach=True)
     @property
     def real(self):
         nonlocal _call
@@ -116,7 +124,7 @@ def test_impl_property():
 def test_impl_new():
     _call = None
 
-    @impl(object)
+    @impl(object, detach=True)
     def __new__(cls, *args, **kwargs):
         nonlocal _call
         _call = (cls, args, kwargs)
@@ -137,6 +145,7 @@ def test_impl_new():
     assert _call == (Foo, (1, 2), {"kwd": "hi"})
 
 
+@pytest.mark.run_in_subprocess
 def test_impl_detach_weakref():
     # impl detach should require methods to be weakrefable
     class SomeClass:
@@ -160,11 +169,21 @@ def test_impl_detach_weakref():
     assert res is fn
 
 
+@pytest.mark.run_in_subprocess
 def test_impl_type():
     # Test that impl works on types
-    @impl(type, detach=True)
+    @impl(type)
     def __matmul__(self, other):
         return self, other
 
+    # stack.callback(__matmul__._impl_finalize)
+
     # noinspection PyUnresolvedReferences
     assert str @ 123 == (str, 123)
+
+    # Should also work for custom types
+    class Foo:
+        pass
+
+    # noinspection PyUnresolvedReferences
+    assert Foo @ "hi" == (Foo, "hi")
