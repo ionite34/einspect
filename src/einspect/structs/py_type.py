@@ -230,6 +230,10 @@ class PyTypeObject(PyVarObject[_T, None, None]):
         """
         return bool(self.tp_flags & TpFlags.HAVE_GC)
 
+    @bind_api(pythonapi["PyType_Ready"])
+    def Ready(self) -> int:
+        """Finalize a type object."""
+
     @bind_api(pythonapi["PyType_Modified"])
     def Modified(self) -> None:
         """Mark the type as modified."""
