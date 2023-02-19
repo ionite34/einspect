@@ -47,9 +47,8 @@ pytest-cov = "^4.0.0"
 pytest-xdist = "^3.1.0"
 mypy = "^0.991"
 pre-commit = "^2.20.0"
-flake8 = { version = "^6.0.0", python = ">= 3.8.1" }
-flake8-print = { version = "^5.0.0", python = ">= 3.8.1" }
 black = "^23.1.0"
+ruff = "^0.0.247"
 
 [tool.poetry.group.tools.dependencies]
 rich = "^12.6.0"
@@ -72,6 +71,11 @@ myst-parser = "^0.18.1"
 sphinx-copybutton = "^0.5.1"
 furo = "^2022.12.7"
 sphinx-autodoc-typehints = "^1.21.8"
+
+[tool.ruff]
+ignore = ["F842", "A003", "F403", "F405"]
+line-length = 120
+fixable = ["F"]
 
 [tool.coverage.report]
 exclude_lines = [

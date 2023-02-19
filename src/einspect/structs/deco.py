@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import ctypes
 import logging
+import typing
 from ctypes import POINTER, Structure
 from functools import cached_property, partial
-from typing import Callable, Literal, Sequence, Tuple, Type, TypeVar, Union, overload
+from typing import Callable, Literal, Sequence, Tuple, Type, TypeVar, overload
 
 import typing_extensions
 from typing_extensions import get_args, get_type_hints
@@ -22,7 +23,7 @@ log = logging.getLogger(__name__)
 
 _T = TypeVar("_T", bound=Type[Structure])
 
-FieldsType = Sequence[Union[Tuple[str, type], Tuple[str, type, int]]]
+FieldsType = Sequence[typing.Union[Tuple[str, type], Tuple[str, type, int]]]
 
 
 @overload

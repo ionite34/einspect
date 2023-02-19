@@ -138,6 +138,9 @@ def _patch_object_base() -> None:
         tp_bases=PyObject.from_object(()).with_ref().as_ref(),
     )
 
+    # Keep a reference to the base object
+    PY_METHOD_STRUCTS.setdefault(object, []).append(base)
+
     # Patch to object
     obj.tp_base = base.as_ref()
 
@@ -175,7 +178,9 @@ def _allocate_methods(obj: PyTypeObject, *slots: Slot, subclasses: bool = True) 
     py_obj = obj.into_object()
 
     if obj.ob_type.contents != type:
-        raise TypeError(f"obj must be a type, not {obj.ob_type[0].into_object()!r}")
+        raise TypeError(
+            f"During allocation for {obj.into_object()}: obj must be a type, not {obj.ob_type[0].into_object()!r}"
+        )
 
     if subclasses and obj != type:
         sub_fn = obj.ob_type.contents.GetAttr("__subclasses__")
