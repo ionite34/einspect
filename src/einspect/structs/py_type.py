@@ -8,7 +8,6 @@ from ctypes import (
     c_char_p,
     c_uint,
     c_ulong,
-    c_void_p,
     cast,
     pointer,
     py_object,
@@ -110,7 +109,7 @@ class PyTypeObject(PyVarObject[_T, None, None]):
     tp_bases: ptr[PyObject]
     tp_mro: ptr[PyObject]  # method resolution order
     tp_cache: ptr[PyObject]
-    tp_subclasses: c_void_p  # for static builtin types this is an index
+    tp_subclasses: ptr[PyObject]  # for static builtin types this is an index
     tp_weaklist: ptr[PyObject]
     tp_del: destructor
 
