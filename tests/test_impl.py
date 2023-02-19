@@ -5,7 +5,7 @@ from contextlib import ExitStack
 
 import pytest
 
-from einspect import impl, orig, view
+from einspect import NULL, impl, orig, view
 
 
 def test_impl_error():
