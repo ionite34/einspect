@@ -434,3 +434,23 @@ class TypeView(VarView[_T, None, None]):
             setattr(self._pyobject, key, value)
             return
         super().__setattr__(key, value)
+
+    @property
+    def tp_name(self) -> str:
+        """Return the type's name."""
+        return self._pyobject.tp_name.decode("utf-8")
+
+    @tp_name.setter
+    def tp_name(self, value: str) -> None:
+        """Set the type's name."""
+        self._pyobject.tp_name = value.encode("utf-8")
+
+    @property
+    def tp_flags(self) -> TpFlags:
+        """Return the type's flags."""
+        return TpFlags(self._pyobject.tp_flags)
+
+    @tp_flags.setter
+    def tp_flags(self, value: int | TpFlags) -> None:
+        """Set the type's flags."""
+        self._pyobject.tp_flags = value
