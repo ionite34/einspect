@@ -425,6 +425,8 @@ class TypeView(VarView[_T, None, None]):
         raise AttributeError(item)
 
     def __setattr__(self, key: str, value: Any) -> None:
+        if key in type(self).__dict__:
+            return super().__setattr__(key, value)
         # Forward `tp_` attributes from PyTypeObject
         if key.startswith("tp_") and hasattr(self._pyobject, key):
             if not self._unsafe:
