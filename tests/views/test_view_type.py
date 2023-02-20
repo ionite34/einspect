@@ -23,10 +23,12 @@ class TestTypeView(TestView):
 
     def test_py_obj_attrs(self):
         v = self.view_type(set)
-        assert v.tp_name == b"set"
+        assert v.tp_name == "set"
 
         with v.unsafe():
-            v.tp_name = b"abc"
+            v.tp_name = "set"
+
+        assert v.tp_name == "set"
 
     def test_immutable(self):
         # int type should be immutable

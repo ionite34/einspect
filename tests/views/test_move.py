@@ -94,7 +94,6 @@ def test_swap():
     assert b[0] == "B"
 
 
-@pytest.mark.run_in_subprocess
 def test_swap_dict():
     # Classes with instance dicts should also be swapped
     A = type("A", (int,), {})

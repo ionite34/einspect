@@ -8,4 +8,4 @@ def is_union(obj: Any) -> bool:
         return False
     if getattr(types, "UnionType", None):
         return get_origin(obj) in (Union, types.UnionType)
-    return get_origin(obj) is Union
+    return get_origin(obj) is Union  # pragma: no cover

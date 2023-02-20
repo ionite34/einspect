@@ -119,3 +119,19 @@ def test_impl_new():
     obj = Foo(1, 2, kwd="hi")
     assert isinstance(obj, Foo)
     assert _call == (Foo, (1, 2), {"kwd": "hi"})
+
+
+# noinspection PyUnresolvedReferences
+@pytest.mark.run_in_subprocess
+def test_impl_object():
+    @impl(object)
+    def __matmul__(self, other):
+        return self.__class__.__name__ + str(other)
+
+    assert object() @ 1 == "object1"
+    assert int() @ 10 == "int10"
+
+    # Restore original
+    view(object).restore("__matmul__")
+    with pytest.raises(TypeError):
+        _ = object()[3]

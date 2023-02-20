@@ -9,11 +9,9 @@ from typing import TYPE_CHECKING, Any, Callable, Literal, Type, TypeVar, Union, 
 from typing_extensions import Self
 
 from einspect._typing import is_union
-from einspect.api import address
 from einspect.compat import Version
 from einspect.errors import UnsafeError
-from einspect.structs import PyTypeObject
-from einspect.structs.include.object_h import TpFlags
+from einspect.structs import PyDictObject, PyObject, PyTypeObject, TpFlags
 from einspect.structs.slots_map import (
     Slot,
     get_slot,
@@ -47,6 +45,7 @@ _Fn = TypeVar("_Fn", bound=Callable)
 
 AllocMode = Literal["mapping", "sequence", "all"]
 ALLOC_MODES = frozenset({"mapping", "sequence", "all"})
+PY_METHOD_STRUCTS = weakref.WeakKeyDictionary()
 
 
 def get_func_name(func: Callable) -> str:
@@ -110,6 +109,99 @@ def _attach_finalizer(types: Sequence[type], func: Callable) -> None:
         func._impl_types = list(types)
 
     func._impl_finalize = weakref.finalize(func, _restore_impl, *types, name=name)
+
+
+def _patch_object_base() -> None:
+    """
+    Adds a new PyTypeObject into base mro of `object`.
+
+    This allows for PyMethods allocations on `object` without
+    breaking CPython's assumption checks on `object` having
+    PyMethod pointers as NULL.
+
+    Reference logic for object patch by chilaxan in:
+      - https://github.com/chilaxan/fishhook/blob/master/fishhook/fishhook.py
+    """
+    obj = PyTypeObject.from_object(object)
+
+    # Skip if already patched
+    if obj.tp_base:
+        return
+
+    base = PyTypeObject(
+        ob_refcnt=1,
+        ob_type=PyTypeObject.from_object(type).as_ref(),
+        tp_name=b"base_object",
+        tp_basicsize=object.__basicsize__,
+        tp_flags=TpFlags.READY | TpFlags.IMMUTABLETYPE,
+        tp_dict=PyObject.from_object({}).with_ref().as_ref(),
+        tp_bases=PyObject.from_object(()).with_ref().as_ref(),
+    )
+
+    # Keep a reference to the base object
+    PY_METHOD_STRUCTS.setdefault(object, []).append(base)
+
+    # Patch to object
+    obj.tp_base = base.as_ref()
+
+    # Patch type.__base__ to return None on object instead of base_object
+    orig_base = vars(type)["__base__"].__get__
+
+    @property
+    def __base__(self):
+        if self is object:
+            return None
+        return orig_base(self)
+
+    type_obj = PyTypeObject.from_object(type)
+    type_obj.tp_dict.contents.astype(PyDictObject).SetItem("__base__", __base__)
+    type_obj.Modified()
+
+
+def _allocate_methods(obj: PyTypeObject, *slots: Slot, subclasses: bool = True) -> None:
+    """
+    Allocate PyMethods structs on the type.
+
+    Args:
+        obj: The type to allocate the PyMethod struct on.
+        slots: The slots to allocate.
+        subclasses: If True, will allocate the PyMethod struct on subclasses as well.
+    """
+    # Skip if no slots or no PyMethods struct on any slot
+    if not slots or not any(slot.ptr_type for slot in slots):
+        return
+
+    # For object, need to run a patch for bases
+    if obj == object:
+        _patch_object_base()
+
+    py_obj = obj.into_object()
+
+    if obj.ob_type.contents != type:
+        raise TypeError(
+            f"During allocation for {obj.into_object()}: obj must be a type, not {obj.ob_type[0].into_object()!r}"
+        )
+
+    if subclasses and obj != type:
+        sub_fn = obj.ob_type.contents.GetAttr("__subclasses__")
+        for t in sub_fn(py_obj):
+            py_type = PyTypeObject.from_object(t)
+            if py_type.ob_type.contents != type:
+                continue
+            _allocate_methods(PyTypeObject.from_object(t), *slots)
+
+    for slot in slots:
+        # Skip if no PyMethods struct for slot
+        if not slot.ptr_type:
+            continue
+        # Allocate if the slot is null
+        if not (py_method := getattr(obj, slot.parts[0])):
+            new_struct = slot.ptr_type()
+            # Need to keep a reference to the PyMethod struct,
+            # so it doesn't get garbage collected.
+            # Here we append it to a WeakKeyDictionary
+            PY_METHOD_STRUCTS.setdefault(py_obj, []).append(new_struct)
+            py_method.contents = new_struct
 
 
 def impl(
@@ -234,28 +326,7 @@ class TypeView(VarView[_T, None, None]):
         yield self
         self._alloc_mode = orig
 
-    def _try_alloc(self, slot: Slot, subclasses: bool = True) -> None:
-        """Allocate a slot method struct if the pointer is NULL."""
-        # Check if there is a ptr class
-        if slot.ptr_type is None:
-            return
-        py_objs = [self._pyobject]
-        if subclasses and self.base is not type:
-            sub_fn = self._pyobject.GetAttr("__subclasses__")
-            # __subclasses__ takes 1 argument if we are `type`
-            args = (type,) if self.address == address(type) else ()
-            for sub in sub_fn(*args):
-                assert isinstance(sub, type)
-                py_objs.append(PyTypeObject.from_object(sub))
-        for py_obj in py_objs:
-            # Check if the slot is a null pointer
-            ptr = getattr(py_obj, slot.parts[0])
-            if not ptr:
-                # Make a new ptr type struct
-                new = slot.ptr_type()
-                ptr.contents = new
-
-    def alloc_slot(self, *slot: Slot) -> None:
+    def alloc_slot(self, *slot: Slot, subclasses: bool = True) -> None:
         """
         Allocate slot method structs. Defaults to all the following:
 
@@ -265,8 +336,7 @@ class TypeView(VarView[_T, None, None]):
         - tp_as_sequence (PySequenceMethods)
         """
         slots = slot or (tp_as_async, tp_as_number, tp_as_mapping, tp_as_sequence)
-        for s in slots:
-            self._try_alloc(s)
+        _allocate_methods(self._pyobject, *slots, subclasses=subclasses)
 
     def restore(self, *names: str | Callable) -> None:
         """
@@ -330,7 +400,7 @@ class TypeView(VarView[_T, None, None]):
                 slot := get_slot(name, prefer=self._alloc_mode)
             ):
                 # Allocate sub-struct if needed
-                self._try_alloc(slot)
+                self.alloc_slot(slot)
 
             with self.as_mutable():
                 self._pyobject.setattr_safe(name, value)
@@ -355,6 +425,8 @@ class TypeView(VarView[_T, None, None]):
         raise AttributeError(item)
 
     def __setattr__(self, key: str, value: Any) -> None:
+        if key in type(self).__dict__:
+            return super().__setattr__(key, value)
         # Forward `tp_` attributes from PyTypeObject
         if key.startswith("tp_") and hasattr(self._pyobject, key):
             if not self._unsafe:
@@ -364,3 +436,23 @@ class TypeView(VarView[_T, None, None]):
             setattr(self._pyobject, key, value)
             return
         super().__setattr__(key, value)
+
+    @property
+    def tp_name(self) -> str:
+        """Return the type's name."""
+        return self._pyobject.tp_name.decode("utf-8")
+
+    @tp_name.setter
+    def tp_name(self, value: str) -> None:
+        """Set the type's name."""
+        self._pyobject.tp_name = value.encode("utf-8")
+
+    @property
+    def tp_flags(self) -> TpFlags:
+        """Return the type's flags."""
+        return TpFlags(self._pyobject.tp_flags)
+
+    @tp_flags.setter
+    def tp_flags(self, value: int | TpFlags) -> None:
+        """Set the type's flags."""
+        self._pyobject.tp_flags = value

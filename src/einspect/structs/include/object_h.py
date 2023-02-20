@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from ctypes import PYFUNCTYPE, c_char_p, c_int, c_void_p, py_object
-from enum import IntEnum
+from enum import IntEnum, IntFlag
 
 from einspect.api import Py_ssize_t
 from einspect.structs.deco import Struct
@@ -99,7 +99,7 @@ class PySendResult(IntEnum):
     PYGEN_NEXT = 1
 
 
-class TpFlags(IntEnum):
+class TpFlags(IntFlag):
     """
     Type flags (tp_flags)
 

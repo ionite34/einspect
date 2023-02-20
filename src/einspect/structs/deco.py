@@ -2,14 +2,19 @@ from __future__ import annotations
 
 import ctypes
 import logging
+import typing
 from ctypes import POINTER, Structure
 from functools import cached_property, partial
-from typing import Callable, Literal, Sequence, Tuple, Type, TypeVar, Union, overload
+from typing import Callable, Literal, Sequence, Tuple, Type, TypeVar, overload
 
 import typing_extensions
 from typing_extensions import get_args, get_type_hints
 
-from einspect.protocols.type_parse import convert_type_hints, fix_ctypes_generics
+from einspect.protocols.type_parse import (
+    convert_type_hints,
+    fix_ctypes_generics,
+    is_ctypes_type,
+)
 from einspect.structs.traits import AsRef, Display
 from einspect.types import NULL, Pointer, PyCFuncPtrType, _SelfPtr
 
@@ -22,7 +27,7 @@ log = logging.getLogger(__name__)
 
 _T = TypeVar("_T", bound=Type[Structure])
 
-FieldsType = Sequence[Union[Tuple[str, type], Tuple[str, type, int]]]
+FieldsType = Sequence[typing.Union[Tuple[str, type], Tuple[str, type, int]]]
 
 
 @overload
@@ -117,14 +122,19 @@ def _cast_field(field_type, value):
             return field_type()
         # try to coerce Structure subclasses
         # i.e. LP_PyObject should accept LP_PyDictObject
-        if issubclass(field_type._type_, Structure) and issubclass(
+        elif issubclass(field_type._type_, Structure) and issubclass(
             value._type_, field_type._type_
         ):
             return ctypes.cast(value, field_type)
 
-    # PYFUNCTYPE, create a null type of itself
+    # PYFUNCTYPE
     if isinstance(field_type, PyCFuncPtrType):
-        return field_type()
+        # For null, return new empty function pointer
+        if value is NULL:
+            return field_type()
+        # For function, cast with PYFUNCTYPE
+        elif not is_ctypes_type(value):
+            return field_type(value)
 
     return value
 

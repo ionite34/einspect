@@ -76,7 +76,7 @@ class PyObject(Struct, AsRef, Generic[_T, _KT, _VT]):
     _fields_: List[Union[Tuple[str, type], Tuple[str, type, int]]]
 
     @overload
-    def __new__(cls, __obj: _T) -> PyObject[_T, _KT, _VT]:
+    def __new__(cls, __obj: _T | PyObject[_T, _KT, _VT]) -> PyObject[_T, _KT, _VT]:
         ...
 
     @overload
@@ -139,10 +139,10 @@ class PyObject(Struct, AsRef, Generic[_T, _KT, _VT]):
         """Return the address of the PyObject."""
         return ctypes.addressof(self)
 
-    def __eq__(self, other: Self) -> bool:
-        """Return True if the PyObject is equal in address to the other."""
+    def __eq__(self, other: Self | object) -> bool:
+        """Return True if equal in address to another PyObject or object."""
         if not isinstance(other, PyObject):
-            return NotImplemented
+            return self.address == address(other)
         return self.address == other.address
 
     def __repr__(self) -> str:
