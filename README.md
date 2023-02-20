@@ -139,6 +139,59 @@ print("meaning of life")        # 42
 print("meaning of life" == 42)  # True
 ```
 
+## CPython Struct bindings and API methods
+- Easily make calls to CPython stable ABI (`ctypes.pythonapi`) as bound methods on `PyObject` instances.
+```python
+from einspect.structs import PyDictObject
+
+d = {"a": (1, 2), "b": (3, 4)}
+
+res = PyDictObject(d).GetItem("a")
+
+if res:
+    print(res.contents.NewRef())
+```
+> Equivalent to the following with ctypes:
+```python
+from ctypes import pythonapi, py_object, c_void_p, cast
+
+d = {"a": (1, 2), "b": (3, 4)}
+
+PyDict_GetItem = pythonapi["PyDict_GetItem"]
+# Can't use auto cast py_object for restype,
+# since missing keys return NULL and causes segmentation fault with no set error
+PyDict_GetItem.restype = c_void_p
+PyDict_GetItem.argtypes = [py_object, py_object]
+
+res = PyDict_GetItem(d, "a")
+res = cast(res, py_object)
+
+Py_NewRef = pythonapi["Py_NewRef"]
+Py_NewRef.restype = py_object
+Py_NewRef.argtypes = [py_object]
+
+try:
+    print(Py_NewRef(res.value))
+except ValueError:
+    pass
+```
+
+- Create new instances of PyObject structs with field values, from existing objects, or from address.
+```python
+from einspect.structs import PyLongObject, PyTypeObject
+
+x = PyLongObject(
+    ob_refcnt=1,
+    ob_type=PyTypeObject(int).as_ref(),
+    ob_size=1,
+    ob_item=[15],
+).into_object()
+
+print(x)        # 15
+print(x == 15)  # True
+print(x is 15)  # False
+```
+
 <!-- end intro -->
 
 ## Fully typed interface
