@@ -144,12 +144,14 @@ def _patch_object_base() -> None:
     # Patch to object
     obj.tp_base = base.as_ref()
 
-    # Patch type.__base__ to return None on object instead of base_object
+    # Since some internal code paths find `object` by expecting `__base__` to be None,
+    # we need to patch `type.__base__` to return None on `object`.
     orig_base = vars(type)["__base__"].__get__
+    _object = object
 
     @property
     def __base__(self):
-        if self is object:
+        if self is _object:
             return None
         return orig_base(self)
 
