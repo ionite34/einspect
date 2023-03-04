@@ -51,7 +51,7 @@ black = "^23.1.0"
 ruff = ">=0.0.247,<0.0.254"
 
 [tool.poetry.group.tools.dependencies]
-rich = "^12.6.0"
+rich = ">=12.6,<14.0"
 
 [tool.poetry.group.dev-extras.dependencies]
 jupyter = "^1.0.0"
