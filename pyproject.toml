@@ -67,7 +67,7 @@ pytest-cov = "^4.0.0"
 
 [tool.poetry.group.docs.dependencies]
 Sphinx = ">4.0.0,<6.0.0"
-myst-parser = "^0.18.1"
+myst-parser = ">=0.18.1,<0.20.0"
 sphinx-copybutton = "^0.5.1"
 furo = "^2022.12.7"
 sphinx-autodoc-typehints = "^1.21.8"
