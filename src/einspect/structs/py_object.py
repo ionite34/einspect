@@ -10,7 +10,6 @@ from typing import (
     Any,
     Dict,
     Generic,
-    List,
     Tuple,
     Type,
     TypeVar,
@@ -72,8 +71,6 @@ class PyObject(Struct, AsRef, Generic[_T, _KT, _VT]):
 
     ob_refcnt: int
     ob_type: Annotated[ptr[PyTypeObject[Type[_T]]], c_void_p]
-
-    _fields_: List[Union[Tuple[str, type], Tuple[str, type, int]]]
 
     @overload
     def __new__(cls, __obj: _T | PyObject[_T, _KT, _VT]) -> PyObject[_T, _KT, _VT]:
