@@ -48,7 +48,7 @@ pytest-xdist = "^3.1.0"
 mypy = "^0.991"
 pre-commit = "^2.20.0"
 black = "^23.1.0"
-ruff = "^0.0.247"
+ruff = ">=0.0.247,<0.0.254"
 
 # tools group only required for running the tools package
 # requests used for checking source compatibility with CPython source
