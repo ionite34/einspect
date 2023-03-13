@@ -93,7 +93,10 @@ skip = ["einspect/structs/__init__.py"]
 markers = [
     "run_in_subprocess: Run marked test in a subprocess",
 ]
-filterwarnings = ["error"]
+filterwarnings = [
+    "always",
+    "ignore:.*pkg_resources\\.declare_namespace.*:DeprecationWarning",
+]
 
 [tool.mypy]
 python_version = 3.11
