@@ -15,7 +15,7 @@ sys.path.insert(0, str(Path(__file__).parents[2] / "src"))
 project = "einspect"
 copyright = "2023, Ionite"
 author = "Ionite"
-release = "v0.5.12"
+release = "v0.5.13"
 
 
 # -- General configuration ---------------------------------------------------

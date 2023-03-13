@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "einspect"
-version = "0.5.12"
+version = "0.5.13"
 packages = [{ include = "einspect", from = "src" }]
 description = "Extended Inspect - view and modify memory structs of runtime objects."
 authors = ["ionite34 <dev@ionite.io>"]
@@ -50,8 +50,12 @@ pre-commit = "^2.20.0"
 black = "^23.1.0"
 ruff = "^0.0.247"
 
+# tools group only required for running the tools package
+# requests used for checking source compatibility with CPython source
 [tool.poetry.group.tools.dependencies]
 rich = "^12.6.0"
+typer = "^0.7.0"
+requests = "^2.28.2"
 
 [tool.poetry.group.dev-extras.dependencies]
 jupyter = "^1.0.0"
