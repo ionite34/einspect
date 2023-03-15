@@ -41,6 +41,20 @@ def test_impl_new_property():
     assert UserStr("abc").as_str == "abc"
 
 
+def test_impl_new():
+    UserCls = type("UserCls", (), {})
+    called = None
+
+    @impl(UserCls)
+    def __new__(cls, *args) -> str:
+        nonlocal called
+        called = args
+        return orig(cls).__new__(cls)
+
+    _ = UserCls(123)
+    assert called == (123,)
+
+
 def test_impl_func():
     # Implement a new method for int
     @impl(int)

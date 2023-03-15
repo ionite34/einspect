@@ -154,9 +154,13 @@ class StructMeta(type(ctypes.Structure)):
 class Union(ctypes.Union, AsRef, Display, metaclass=UnionMeta):
     """Defines a ctypes.Union subclass using type hints."""
 
+    _fields_: typing.List[typing.Union[Tuple[str, type], Tuple[str, type, int]]]
+
 
 class Struct(Structure, AsRef, Display, metaclass=StructMeta):
     """Defines a ctypes.Structure subclass using type hints."""
+
+    _fields_: typing.List[typing.Union[Tuple[str, type], Tuple[str, type, int]]]
 
     @cached_property
     def _fields_map_(self) -> dict[str, tuple[str, type] | tuple[str, type, int]]:

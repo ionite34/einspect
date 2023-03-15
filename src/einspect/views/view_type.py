@@ -49,12 +49,12 @@ PY_METHOD_STRUCTS = weakref.WeakKeyDictionary()
 
 
 def get_func_name(func: Callable) -> str:
-    """Returns the name of the function."""
+    """Returns the name of a method, class/static method, or property.."""
     return get_func_base(func).__name__
 
 
 def get_func_base(func: Callable) -> Callable:
-    """Returns the base function of a method or property."""
+    """Returns the base function of a method, class/static method, or property."""
     if isinstance(func, property):
         return func.fget
     elif isinstance(func, (classmethod, staticmethod)):
@@ -144,12 +144,14 @@ def _patch_object_base() -> None:
     # Patch to object
     obj.tp_base = base.as_ref()
 
-    # Patch type.__base__ to return None on object instead of base_object
+    # Since some internal code paths find `object` by expecting `__base__` to be None,
+    # we need to patch `type.__base__` to return None on `object`.
     orig_base = vars(type)["__base__"].__get__
+    _object = object
 
     @property
     def __base__(self):
-        if self is object:
+        if self is _object:
             return None
         return orig_base(self)
 
