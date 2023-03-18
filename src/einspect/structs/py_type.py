@@ -175,8 +175,9 @@ class PyTypeObject(PyVarObject[_T, None, None]):
             # For ptr[PyObject] types, set PyObject pointer
             elif field_type == POINTER(PyObject):
                 setattr(self, slot.name, PyObject.from_object(value).as_ref())
-
-        self.SetAttr(name, value)
+        else:
+            # If not a recognized slot, set with PyObject_SetAttr api
+            self.SetAttr(name, value)
 
     def _try_del_tp_dict(self, name: str) -> None:
         """Try to delete a key from the type's dict, if tp_dict is not NULL."""
