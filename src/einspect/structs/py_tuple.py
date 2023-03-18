@@ -19,6 +19,9 @@ class PyTupleObject(PyVarObject[tuple, None, _VT], IsGC):
     Defines a PyTupleObject Structure.
 
     https://github.com/python/cpython/blob/3.11/Include/cpython/tupleobject.h
+
+    ..
+        source: Include/cpython/tupleobject.h (struct PyTupleObject) #[58f9cac944]
     """
 
     # Size of this array is only known after creation

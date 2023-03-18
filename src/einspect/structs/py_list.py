@@ -18,6 +18,10 @@ class PyListObject(PyVarObject[list, None, _VT], IsGC):
     Defines a PyListObject Structure.
 
     https://github.com/python/cpython/blob/3.11/Include/cpython/listobject.h
+
+    ..
+        source: Include/cpython/listobject.h (struct PyListObject) #[15e5541daa]
+        source[<3.9]: Include/listobject.h (struct PyListObject) #[15e5541daa]
     """
 
     ob_item: ptr[ptr[PyObject[_VT, None, None]]]

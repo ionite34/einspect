@@ -33,6 +33,10 @@ class PySetObject(PyObject[set, None, _T], IsGC):
     Defines a PySetObject Structure.
 
     https://github.com/python/cpython/blob/3.11/Include/cpython/setobject.h#L36-L59
+
+    ..
+        source: Include/cpython/setobject.h (struct PySetObject) #[5a21a4c7be]
+        source[<3.11]: Include/setobject.h (struct PySetObject) #[5a21a4c7be]
     """
 
     fill: int  # Number active and dummy entries

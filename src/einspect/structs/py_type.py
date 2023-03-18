@@ -38,6 +38,9 @@ class PyTypeObject(PyVarObject[_T, None, None]):
     Defines a PyTypeObject Structure.
 
     https://github.com/python/cpython/blob/3.11/Doc/includes/typestruct.h
+
+    ..
+        source: Include/cpython/object.h (struct _typeobject)
     """
 
     tp_name: Annotated[bytes, c_char_p]
