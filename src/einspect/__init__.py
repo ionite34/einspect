@@ -12,6 +12,6 @@ einspect._patch.run()
 
 __all__ = ("view", "unsafe", "impl", "orig", "ptr", "NULL")
 
-__version__ = "0.5.13"
+__version__ = "0.5.14"
 
 unsafe = global_unsafe
