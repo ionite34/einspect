@@ -7,11 +7,10 @@ from einspect.views.factory import view
 from einspect.views.unsafe import global_unsafe
 from einspect.views.view_type import impl
 
-# Runtime patches
-einspect._patch.run()
-
-__all__ = ("view", "unsafe", "impl", "orig", "ptr", "NULL")
-
-__version__ = "0.5.14"
+__all__ = ("view", "unsafe", "impl", "orig", "ptr", "NULL", "__version__")
+__version__ = "0.5.15"
 
 unsafe = global_unsafe
+
+# Runtime patches
+einspect._patch.run()
