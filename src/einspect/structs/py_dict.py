@@ -36,6 +36,10 @@ class PyDictKeysObject(Struct):
     Defines a DictKeysObject Structure.
 
     https://github.com/python/cpython/blob/3.11/Include/internal/pycore_dict.h#L87-L125
+
+    ..
+        source: Include/internal/pycore_dict.h (struct _dictkeysobject) #[59827ad2d5]
+        source[<3.11]: Objects/dict-common.h (struct _dictkeysobject) #[12e0897a69]
     """
 
     dk_refcnt: int

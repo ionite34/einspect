@@ -67,7 +67,15 @@ def py_set(obj_ptr: ptr[PyObject], value: object | PyObject | ptr[PyObject]) -> 
 
 
 class PyObject(Struct, AsRef, Generic[_T, _KT, _VT]):
-    """Defines a base PyObject Structure."""
+    """
+    Defines a base PyObject Structure.
+
+    ..
+        source: Include/object.h (struct _object)
+        source[=3.8]: #[cc8cfe0d6c]
+        source[<3.11]: #[c39f0de871]
+        source[<3.13]: #[79c692b04c]
+    """
 
     ob_refcnt: int
     ob_type: Annotated[ptr[PyTypeObject[Type[_T]]], c_void_p]

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "einspect"
-version = "0.5.13"
+version = "0.5.15"
 packages = [{ include = "einspect", from = "src" }]
 description = "Extended Inspect - view and modify memory structs of runtime objects."
 authors = ["ionite34 <dev@ionite.io>"]
@@ -42,7 +42,7 @@ python = ">=3.8,<3.13"
 typing-extensions = "^4.4.0"
 
 [tool.poetry.group.dev.dependencies]
-pytest = "^7.2.0"
+pytest = "^7.2.2"
 pytest-cov = "^4.0.0"
 pytest-xdist = "^3.1.0"
 mypy = "^0.991"
@@ -62,11 +62,11 @@ jupyter = "^1.0.0"
 
 [tool.poetry.group.ci.dependencies]
 typing-extensions = "^4.4.0"
-pytest = "^7.2.0"
+pytest = "^7.2.2"
 
 [tool.poetry.group.ci-cov.dependencies]
 typing-extensions = "^4.4.0"
-pytest = "^7.2.0"
+pytest = "^7.2.2"
 pytest-cov = "^4.0.0"
 
 [tool.poetry.group.docs.dependencies]

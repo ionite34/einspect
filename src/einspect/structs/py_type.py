@@ -38,6 +38,9 @@ class PyTypeObject(PyVarObject[_T, None, None]):
     Defines a PyTypeObject Structure.
 
     https://github.com/python/cpython/blob/3.11/Doc/includes/typestruct.h
+
+    ..
+        source: Include/cpython/object.h (struct _typeobject)
     """
 
     tp_name: Annotated[bytes, c_char_p]
@@ -171,11 +174,12 @@ class PyTypeObject(PyVarObject[_T, None, None]):
             field_type = field[1]
             # For c_char_p types, set encoded bytes
             if field_type is c_char_p:
-                setattr(self, slot.name, value.encode("utf-8"))
+                return setattr(self, slot.name, value.encode("utf-8"))
             # For ptr[PyObject] types, set PyObject pointer
             elif field_type == POINTER(PyObject):
-                setattr(self, slot.name, PyObject.from_object(value).as_ref())
+                return setattr(self, slot.name, PyObject.from_object(value).as_ref())
 
+        # If not a recognized slot, set with PyObject_SetAttr api
         self.SetAttr(name, value)
 
     def _try_del_tp_dict(self, name: str) -> None:
