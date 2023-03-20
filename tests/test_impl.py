@@ -99,3 +99,22 @@ def test_impl_property():
     # Restore original
     view(int).restore("real")
     assert int.real is not real
+
+
+def test_impl_view():
+    v = view(frozenset)
+    v["__name__"] = "custom_frozenset"
+    v["__getitem__"] = lambda self, item: len(self) * item
+
+    assert frozenset.__name__ == "custom_frozenset"
+    assert repr(frozenset) == "<class 'custom_frozenset'>"
+
+    # noinspection PyTypeChecker,PyUnresolvedReferences
+    res = frozenset({1, 2})[5]
+    assert res == 10
+
+    v.restore("__name__", "__getitem__")
+
+    with pytest.raises(TypeError):
+        # noinspection PyTypeChecker,PyUnresolvedReferences
+        _ = frozenset({1, 2})[5]
