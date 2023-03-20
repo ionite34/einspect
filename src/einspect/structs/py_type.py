@@ -174,13 +174,13 @@ class PyTypeObject(PyVarObject[_T, None, None]):
             field_type = field[1]
             # For c_char_p types, set encoded bytes
             if field_type is c_char_p:
-                setattr(self, slot.name, value.encode("utf-8"))
+                return setattr(self, slot.name, value.encode("utf-8"))
             # For ptr[PyObject] types, set PyObject pointer
             elif field_type == POINTER(PyObject):
-                setattr(self, slot.name, PyObject.from_object(value).as_ref())
-        else:
-            # If not a recognized slot, set with PyObject_SetAttr api
-            self.SetAttr(name, value)
+                return setattr(self, slot.name, PyObject.from_object(value).as_ref())
+
+        # If not a recognized slot, set with PyObject_SetAttr api
+        self.SetAttr(name, value)
 
     def _try_del_tp_dict(self, name: str) -> None:
         """Try to delete a key from the type's dict, if tp_dict is not NULL."""
