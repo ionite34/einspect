@@ -353,9 +353,7 @@ class TypeView(VarView[_T, None, None]):
         if not names:
             # Restore all attributes
             type_cache = get_type_cache(type_)
-            for name, attr in type_cache.items():
-                self[name] = normalize_slot_attr(attr)
-            return type_
+            names = type_cache.keys()
 
         # Normalize names of stuff like properties and class methods
         names = [get_func_name(n) if callable(n) else n for n in names]
