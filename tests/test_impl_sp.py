@@ -135,3 +135,26 @@ def test_impl_object():
     view(object).restore("__matmul__")
     with pytest.raises(TypeError):
         _ = object()[3]
+
+
+@pytest.mark.run_in_subprocess
+def test_impl_restore():
+    @impl(int)
+    def __repr__(self):
+        return "repr"
+
+    @impl(int)
+    def x(self):
+        return "x"
+
+    n = 5
+    assert repr(n) == "repr"
+    # noinspection PyUnresolvedReferences
+    assert n.x() == "x"
+
+    view(int).restore()
+
+    assert repr(n) == "5"
+    with pytest.raises(AttributeError):
+        # noinspection PyUnresolvedReferences
+        _ = n.x()
