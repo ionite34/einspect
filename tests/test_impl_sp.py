@@ -6,7 +6,6 @@ import pytest
 from einspect import impl, orig, view
 
 
-@pytest.mark.order(1)
 @pytest.mark.run_in_subprocess
 def test_impl_restore():
     @impl(int)
