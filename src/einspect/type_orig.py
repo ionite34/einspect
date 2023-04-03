@@ -141,6 +141,16 @@ def get_type_cache(type_: type) -> dict[str, Any]:
         ) from None
 
 
+def get_impls(type_: type) -> set[str]:
+    """Get the impls cache for the type."""
+    try:
+        return wk_dict_getitem(_impls, type_)
+    except KeyError:
+        raise KeyError(
+            f"Original attributes cache was not found for type {type_!r}"
+        ) from None
+
+
 def normalize_slot_attr(attr: object | TypeNewWrapper) -> Any:
     """Normalize a slot attribute to its original value."""
     if isinstance(attr, TypeNewWrapper):

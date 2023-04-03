@@ -24,7 +24,7 @@ from einspect.type_orig import (
     MISSING,
     add_impls,
     get_cache,
-    get_type_cache,
+    get_impls,
     in_cache,
     in_impls,
     normalize_slot_attr,
@@ -353,8 +353,7 @@ class TypeView(VarView[_T, None, None]):
 
         if not names:
             # Restore all attributes
-            type_cache = get_type_cache(type_)
-            names = type_cache.keys()
+            names = get_impls(type_)
 
         # Normalize names of stuff like properties and class methods
         names = [get_func_name(n) if callable(n) else n for n in names]
