@@ -66,6 +66,14 @@ def add_impls(type_: type, *attrs: str) -> None:
     attrs_set.update(attrs)
 
 
+def remove_impls(type_: type, *attrs: str) -> None:
+    """Remove a set of implemented attributes from the cache."""
+    attrs_set = wk_dict_getitem(_impls, type_)
+    if attrs_set is not None:
+        for attr in attrs:
+            attrs_set.discard(attr)
+
+
 def try_cache_attr(
     type_: type,
     name: str,
