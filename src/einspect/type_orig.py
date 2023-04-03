@@ -66,6 +66,14 @@ def add_impls(type_: type, *attrs: str) -> None:
     attrs_set.update(attrs)
 
 
+def remove_impls(type_: type, *attrs: str) -> None:
+    """Remove a set of implemented attributes from the cache."""
+    attrs_set = wk_dict_getitem(_impls, type_)
+    if attrs_set is not None:
+        for attr in attrs:
+            attrs_set.discard(attr)
+
+
 def try_cache_attr(
     type_: type,
     name: str,
@@ -127,6 +135,16 @@ def get_type_cache(type_: type) -> dict[str, Any]:
     """Get the cache for the type."""
     try:
         return wk_dict_getitem(_cache, type_)
+    except KeyError:
+        raise KeyError(
+            f"Original attributes cache was not found for type {type_!r}"
+        ) from None
+
+
+def get_impls(type_: type) -> set[str]:
+    """Get the impls cache for the type."""
+    try:
+        return wk_dict_getitem(_impls, type_)
     except KeyError:
         raise KeyError(
             f"Original attributes cache was not found for type {type_!r}"

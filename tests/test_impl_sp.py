@@ -4,6 +4,38 @@ from __future__ import annotations
 import pytest
 
 from einspect import impl, orig, view
+from einspect.type_orig import _impls
+
+
+@pytest.mark.run_in_subprocess
+def test_impl_restore():
+    # Clear impls cache
+    backup_impls = _impls.copy()
+    _impls.clear()
+
+    @impl(int)
+    def __repr__(self):
+        return "repr"
+
+    @impl(int)
+    def x(self):
+        return "x"
+
+    n = 5
+    assert repr(n) == "repr"
+    # noinspection PyUnresolvedReferences
+    assert n.x() == "x"
+
+    view(int).restore()
+
+    assert repr(n) == "5"
+    with pytest.raises(AttributeError):
+        # noinspection PyUnresolvedReferences
+        _ = n.x()
+
+    # Restore impls cache
+    _impls.clear()
+    _impls.update(backup_impls)
 
 
 @pytest.mark.run_in_subprocess

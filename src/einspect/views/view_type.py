@@ -24,10 +24,11 @@ from einspect.type_orig import (
     MISSING,
     add_impls,
     get_cache,
-    get_type_cache,
+    get_impls,
     in_cache,
     in_impls,
     normalize_slot_attr,
+    remove_impls,
     try_cache_attr,
 )
 from einspect.views.view_base import REF_DEFAULT, VarView
@@ -352,26 +353,25 @@ class TypeView(VarView[_T, None, None]):
 
         if not names:
             # Restore all attributes
-            type_cache = get_type_cache(type_)
-            for name, attr in type_cache.items():
-                self[name] = normalize_slot_attr(attr)
-            return type_
+            names = get_impls(type_)
 
         # Normalize names of stuff like properties and class methods
         names = [get_func_name(n) if callable(n) else n for n in names]
         # Check all names exist first
         for name in names:
-            if in_cache(type_, name):
+            if in_impls(type_, name) and in_cache(type_, name):
                 attr = get_cache(type_, name)
                 # MISSING is a special case, it means there is no original attribute
                 if attr is MISSING:
                     # Same as no attribute, delete it
                     del self[name]
+                    remove_impls(type_, name)
                 else:
                     self[name] = normalize_slot_attr(attr)
             # If in impl record, and not in cache, remove the attribute
             elif in_impls(type_, name):
                 del self[name]
+                remove_impls(type_, name)
             else:
                 raise AttributeError(
                     f"{type_.__name__!r} has no original attribute {name!r}"
