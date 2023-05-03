@@ -13,9 +13,10 @@ sys.path.insert(0, str(Path(__file__).parents[2] / "src"))
 
 # -- Project information -----------------------------------------------------
 project = "einspect"
+# noinspection PyShadowingBuiltins
 copyright = "2023, Ionite"
 author = "Ionite"
-release = "v0.5.16"
+release = "v0.5.17"
 
 
 # -- General configuration ---------------------------------------------------
