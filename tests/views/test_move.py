@@ -118,11 +118,7 @@ def test_swap_dict():
 
 @pytest.mark.run_in_subprocess
 def test_swap_id():
-    # Swap id() with abs()
     view(id).swap(abs)
-
-    result = id(-15)
-    assert result == 15
-
-    # Swap back
+    result = id(-1)
     view(abs).swap(id)
+    assert result == 1
