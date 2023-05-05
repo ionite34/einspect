@@ -4,6 +4,7 @@ from ast import literal_eval
 import pytest
 
 from einspect import view
+from einspect.api import address
 from einspect.errors import UnsafeError
 
 
@@ -113,3 +114,15 @@ def test_swap_dict():
     assert b == 500
     assert b.foo == "foo"
     assert not hasattr(b, "bar")
+
+
+@pytest.mark.run_in_subprocess
+def test_swap_id():
+    # Swap id() with abs()
+    view(id).swap(abs)
+
+    result = id(-15)
+    assert result == 15
+
+    # Swap back
+    view(abs).swap(id)
