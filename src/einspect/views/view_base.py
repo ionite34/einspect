@@ -18,7 +18,7 @@ from typing import (
     overload,
 )
 
-from einspect.api import PTR_SIZE, Py, PyObj_FromPtr, align_size
+from einspect.api import PTR_SIZE, Py, PyObj_FromPtr, address, align_size
 from einspect.errors import DroppedReference, MovedError, UnsafeError
 from einspect.structs import PyObject, PyTypeObject, PyVarObject, TpFlags
 from einspect.views._display import Formatter
@@ -56,7 +56,7 @@ class BaseView(ABC, Generic[_T, _KT, _VT], UnsafeContext):
         super().__init__()
         # Stores base info for repr and errors
         self._base_type: type[_T] = type(obj)
-        self._base_id = id(obj)
+        self._base_id = address(obj)
         # Get a reference if ref=True
         self._base: py_object[_T] | None
         self._base = wrap_py_object(obj) if ref else None
