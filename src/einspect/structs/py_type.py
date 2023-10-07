@@ -17,6 +17,7 @@ from typing import Any, Type, TypeVar
 
 from typing_extensions import Annotated, Self
 
+from einspect.api import address
 from einspect.protocols import bind_api
 from einspect.structs.include.descrobject_h import PyGetSetDef, PyMemberDef
 from einspect.structs.include.methodobject_h import PyMethodDef
@@ -270,7 +271,9 @@ def _patch_py_object():
     fields = PyObject._fields_
     fields[1] = ("ob_type", POINTER(PyTypeObject))
     offset = object.__basicsize__ + tuple.__itemsize__ * 3
-    py_object.from_address(id(PyObject.ob_type) + offset).value = POINTER(PyTypeObject)
+    py_object.from_address(address(PyObject.ob_type) + offset).value = POINTER(
+        PyTypeObject
+    )
 
 
 _patch_py_object()

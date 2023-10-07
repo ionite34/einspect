@@ -5,6 +5,7 @@ import ctypes
 from ctypes import POINTER, addressof, c_void_p, memmove, sizeof
 
 from einspect import types
+from einspect.api import address
 from einspect.structs.py_object import PyObject
 from einspect.types import Pointer, PyCFuncPtrType
 
@@ -37,7 +38,7 @@ def run() -> None:
     # Move the pointer object (excluding ob_refcnt)
     ptr_size = sizeof(c_void_p)
     memmove(
-        id(types.NULL) + ptr_size,
-        id(new_null) + ptr_size,
+        address(types.NULL) + ptr_size,
+        address(new_null) + ptr_size,
         types.NULL.__sizeof__() - ptr_size,
     )

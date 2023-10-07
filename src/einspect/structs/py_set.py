@@ -63,4 +63,4 @@ class PySetObject(PyObject[set, None, _T], IsGC):
 
     @classmethod
     def from_object(cls, obj: set[_T]) -> PySetObject[_T]:
-        return cls.from_address(id(obj))
+        return super().from_object(obj)
