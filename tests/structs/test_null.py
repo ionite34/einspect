@@ -1,4 +1,5 @@
 """Test behavior of the `types.NULL` singleton."""
+
 from __future__ import annotations
 
 from einspect import NULL

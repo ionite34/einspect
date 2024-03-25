@@ -37,12 +37,10 @@ class TupleView(VarView[tuple, None, _T], MutableSequence):
         return self.size
 
     @overload
-    def __getitem__(self, index: SupportsIndex) -> _T:
-        ...
+    def __getitem__(self, index: SupportsIndex) -> _T: ...
 
     @overload
-    def __getitem__(self, index: slice) -> tuple[_T]:
-        ...
+    def __getitem__(self, index: slice) -> tuple[_T]: ...
 
     def __getitem__(self, index: SupportsIndex | slice) -> _T | tuple[_T]:
         if isinstance(index, slice):
@@ -82,12 +80,10 @@ class TupleView(VarView[tuple, None, _T], MutableSequence):
             self.item[index] = obj.as_ref()
 
     @overload
-    def __delitem__(self, index: SupportsIndex) -> None:
-        ...
+    def __delitem__(self, index: SupportsIndex) -> None: ...
 
     @overload
-    def __delitem__(self, index: slice) -> None:
-        ...
+    def __delitem__(self, index: slice) -> None: ...
 
     def __delitem__(self, index: SupportsIndex | slice) -> None:
         if isinstance(index, slice):

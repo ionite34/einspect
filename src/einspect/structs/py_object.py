@@ -1,4 +1,5 @@
 """Structures for CPython objects."""
+
 from __future__ import annotations
 
 import ctypes
@@ -81,14 +82,12 @@ class PyObject(Struct, AsRef, Generic[_T, _KT, _VT]):
     ob_type: Annotated[ptr[PyTypeObject[Type[_T]]], c_void_p]
 
     @overload
-    def __new__(cls, __obj: _T | PyObject[_T, _KT, _VT]) -> PyObject[_T, _KT, _VT]:
-        ...
+    def __new__(cls, __obj: _T | PyObject[_T, _KT, _VT]) -> PyObject[_T, _KT, _VT]: ...
 
     @overload
     def __new__(
         cls, *, ob_refcnt: int = 1, ob_type: ptr[PyTypeObject], **kwargs
-    ) -> PyObject[_T, _KT, _VT]:
-        ...
+    ) -> PyObject[_T, _KT, _VT]: ...
 
     def __new__(cls, __obj: _T = DEFAULT, **kwargs):
         """
