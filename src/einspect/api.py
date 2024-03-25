@@ -1,4 +1,5 @@
 """CPython API Methods and intrinsic constants."""
+
 from __future__ import annotations
 
 import ctypes
