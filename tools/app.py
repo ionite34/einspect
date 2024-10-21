@@ -103,13 +103,13 @@ def compare_meta(struct_name: str, min_tag: str = "3.8", max_tag: str = "main"):
             body["hash"] = f"[plum4]{remote_hash}[/plum4]"
             if local_hash := entry.hash:
                 if not check_hash(local_hash):
-                    body[
-                        "hash (local)"
-                    ] = f"[bold red]{local_hash}[/bold red] [red](invalid)[/red]"
+                    body["hash (local)"] = (
+                        f"[bold red]{local_hash}[/bold red] [red](invalid)[/red]"
+                    )
                 elif remote_hash != local_hash:
-                    body[
-                        "hash (local)"
-                    ] = f"[bold yellow]{local_hash}[/bold yellow] [red](does not match)[/red]"
+                    body["hash (local)"] = (
+                        f"[bold yellow]{local_hash}[/bold yellow] [red](does not match)[/red]"
+                    )
                 else:
                     body["hash (local)"] = f"[green]{local_hash}[/green]"
 
