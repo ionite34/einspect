@@ -31,13 +31,11 @@ FieldsType = Sequence[typing.Union[Tuple[str, type], Tuple[str, type, int]]]
 
 
 @overload
-def struct(*, fields: FieldsType) -> Callable[[_T], _T]:
-    ...
+def struct(*, fields: FieldsType) -> Callable[[_T], _T]: ...
 
 
 @overload
-def struct(cls: _T, fields: Literal[None] = ...) -> _T:
-    ...
+def struct(cls: _T, fields: Literal[None] = ...) -> _T: ...
 
 
 def struct(cls: _T | None = None, fields: FieldsType | None = None):

@@ -1,4 +1,5 @@
 """Tests for the @impl decorator and orig proxy."""
+
 from __future__ import annotations
 
 from contextlib import ExitStack

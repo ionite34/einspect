@@ -1,4 +1,5 @@
 """Function factory to create views for objects."""
+
 from __future__ import annotations
 
 from collections.abc import Callable
@@ -50,60 +51,49 @@ _T = TypeVar("_T")
 
 
 @overload
-def view(obj: int, ref: bool = REF_DEFAULT) -> IntView:
-    ...
+def view(obj: int, ref: bool = REF_DEFAULT) -> IntView: ...
 
 
 @overload
-def view(obj: bool, ref: bool = REF_DEFAULT) -> BoolView:
-    ...
+def view(obj: bool, ref: bool = REF_DEFAULT) -> BoolView: ...
 
 
 @overload
-def view(obj: list[_VT], ref: bool = REF_DEFAULT) -> ListView[_VT]:
-    ...
+def view(obj: list[_VT], ref: bool = REF_DEFAULT) -> ListView[_VT]: ...
 
 
 @overload
 def view(
     obj: MappingProxyType[_KT, _VT], ref: bool = REF_DEFAULT
-) -> MappingProxyView[_KT, _VT]:
-    ...
+) -> MappingProxyView[_KT, _VT]: ...
 
 
 @overload
-def view(obj: dict[_KT, _VT], ref: bool = REF_DEFAULT) -> DictView[_KT, _VT]:
-    ...
+def view(obj: dict[_KT, _VT], ref: bool = REF_DEFAULT) -> DictView[_KT, _VT]: ...
 
 
 @overload
-def view(obj: set[_VT], ref: bool = REF_DEFAULT) -> SetView[_VT]:
-    ...
+def view(obj: set[_VT], ref: bool = REF_DEFAULT) -> SetView[_VT]: ...
 
 
 @overload
-def view(obj: tuple[_VT, ...], ref: bool = REF_DEFAULT) -> TupleView[_VT]:
-    ...
+def view(obj: tuple[_VT, ...], ref: bool = REF_DEFAULT) -> TupleView[_VT]: ...
 
 
 @overload
-def view(obj: tuple, ref: bool = REF_DEFAULT) -> TupleView[Any]:
-    ...
+def view(obj: tuple, ref: bool = REF_DEFAULT) -> TupleView[Any]: ...
 
 
 @overload
-def view(obj: str, ref: bool = REF_DEFAULT) -> StrView:
-    ...
+def view(obj: str, ref: bool = REF_DEFAULT) -> StrView: ...
 
 
 @overload
-def view(obj: float, ref: bool = REF_DEFAULT) -> FloatView:
-    ...
+def view(obj: float, ref: bool = REF_DEFAULT) -> FloatView: ...
 
 
 @overload
-def view(obj: _Type, ref: bool = REF_DEFAULT) -> TypeView[_Type]:
-    ...
+def view(obj: _Type, ref: bool = REF_DEFAULT) -> TypeView[_Type]: ...
 
 
 # Ideally we'd have separate overloads for builtin vs user-defined functions,
@@ -111,8 +101,7 @@ def view(obj: _Type, ref: bool = REF_DEFAULT) -> TypeView[_Type]:
 @overload
 def view(
     obj: BuiltinFunctionType | FunctionType | Callable, ref: bool = REF_DEFAULT
-) -> FunctionView | CFunctionView:
-    ...
+) -> FunctionView | CFunctionView: ...
 
 
 def view(obj, ref: bool = REF_DEFAULT):
