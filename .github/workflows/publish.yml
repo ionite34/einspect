@@ -17,14 +17,6 @@ jobs:
       POETRY: '1.3.0'
 
     steps:
-    - name: Wait for tests to succeed
-      uses: lewagon/wait-on-check-action@v1.0.0
-      with:
-        ref: ${{ github.ref }}
-        running-workflow-name: publish
-        check-regexp: Tests.?
-        repo-token: ${{ secrets.GITHUB_TOKEN }}
-        wait-interval: 10
 
     - name: Checkout
       uses: actions/checkout@v3
