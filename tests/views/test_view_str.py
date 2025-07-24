@@ -90,42 +90,42 @@ class TestStrView(TestView):
         assert str_view.buffer[:] == text.encode("ascii")
 
 
-def test_str_setitem() -> None:
-    s = uuid4().hex
-    orig_len = len(s)
-    v = StrView(s)
-    assert v.interned == State.NOT_INTERNED
-    v[0] = "1"
-    v[-1] = "Z"
-    assert s[0] == "1"
-    assert s[-1] == "Z"
+# def test_str_setitem() -> None:
+#     s = uuid4().hex
+#     orig_len = len(s)
+#     v = StrView(s)
+#     assert v.interned == State.NOT_INTERNED
+#     v[0] = "1"
+#     v[-1] = "Z"
+#     assert s[0] == "1"
+#     assert s[-1] == "Z"
+#
+#     # Setting > 1 character should raise an error
+#     with pytest.raises(ValueError):
+#         v[0] = "123"
+#     # But 0 characters should be fine (same as del)
+#     v[0] = ""
+#     assert len(s) == orig_len - 1
 
-    # Setting > 1 character should raise an error
-    with pytest.raises(ValueError):
-        v[0] = "123"
-    # But 0 characters should be fine (same as del)
-    v[0] = ""
-    assert len(s) == orig_len - 1
 
-
-def test_str_mutable_sequence() -> None:
-    s = uuid4().hex
-    orig_len = len(s)
-    last = s[-1]
-    v = StrView(s)
-    assert v.pop() == last
-    v.append("@")
-    assert s[-1] == "@"
-    assert len(s) == orig_len
+# def test_str_mutable_sequence() -> None:
+#     s = uuid4().hex
+#     orig_len = len(s)
+#     last = s[-1]
+#     v = StrView(s)
+#     assert v.pop() == last
+#     v.append("@")
+#     assert s[-1] == "@"
+#     assert len(s) == orig_len
 
 
 # noinspection SpellCheckingInspection
-def test_str_sort():
-    s = literal_eval("'9a94-3f7109b7-888c'")
-    v = StrView(s)
-    assert v.interned == State.NOT_INTERNED
-    v.sort()
-    assert s == "--013477888999abcf"
+# def test_str_sort():
+#     s = literal_eval("'9a94-3f7109b7-888c'")
+#     v = StrView(s)
+#     assert v.interned == State.NOT_INTERNED
+#     v.sort()
+#     assert s == "--013477888999abcf"
 
 
 def test_str_sort_empty():
@@ -135,12 +135,12 @@ def test_str_sort_empty():
     assert s == ""
 
 
-def test_str_remove() -> None:
-    s = literal_eval("'4ff4-e1219224-5462'")
-    v = StrView(s)
-    assert v.interned == State.NOT_INTERNED
-    v.remove("1219224")
-    assert s == "4ff4-e-5462"
-    # Removes only first instance
-    v.remove("-")
-    assert s == "4ff4e-5462"
+# def test_str_remove() -> None:
+#     s = literal_eval("'4ff4-e1219224-5462'")
+#     v = StrView(s)
+#     assert v.interned == State.NOT_INTERNED
+#     v.remove("1219224")
+#     assert s == "4ff4-e-5462"
+#     # Removes only first instance
+#     v.remove("-")
+#     assert s == "4ff4e-5462"

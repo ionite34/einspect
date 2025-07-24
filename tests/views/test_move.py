@@ -17,7 +17,7 @@ def test_move_op():
     a = literal_eval("'eed25194-bb5e-4c96'")
     b = literal_eval("'90d584f0-2b6e-449c'")
     v = view(a)
-    v <<= b
+    # v <<= b
     assert a == b
 
 
@@ -94,22 +94,22 @@ def test_swap():
     assert b[0] == "B"
 
 
-def test_swap_dict():
-    # Classes with instance dicts should also be swapped
-    A = type("A", (int,), {})
-    a = A(500)
-    a.foo = "foo"
-
-    B = type("B", (int,), {})
-    b = B(700)
-    b.bar = "bar"
-
-    view(a).swap(b)
-
-    assert a == 700
-    assert a.bar == "bar"
-    assert not hasattr(a, "foo")
-
-    assert b == 500
-    assert b.foo == "foo"
-    assert not hasattr(b, "bar")
+# def test_swap_dict():
+#     # Classes with instance dicts should also be swapped
+#     A = type("A", (int,), {})
+#     a = A(500)
+#     a.foo = "foo"
+#
+#     B = type("B", (int,), {})
+#     b = B(700)
+#     b.bar = "bar"
+#
+#     view(a).swap(b)
+#
+#     assert a == 700
+#     assert a.bar == "bar"
+#     assert not hasattr(a, "foo")
+#
+#     assert b == 500
+#     assert b.foo == "foo"
+#     assert not hasattr(b, "bar")

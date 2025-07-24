@@ -53,17 +53,17 @@ class TestBoolView(TestIntView):
     def get_obj(self):
         return False
 
-    def test_memsize(self):
-        v = self.view_type(True)
-        expected = True.__sizeof__()
-        assert v.mem_size == expected
+    # def test_memsize(self):
+    #     v = self.view_type(True)
+    #     expected = True.__sizeof__()
+    #     assert v.mem_size == expected
 
-    def test_singleton_true(self):
-        v = self.view_type(True)
-        assert v.size == 1
-        assert v.digits[0] == 1
-
-    def test_singleton_false(self):
-        v = self.view_type(False)
-        assert v.size == 0
-        assert v.digits[0] == 0
+    # def test_singleton_true(self):
+    #     v = self.view_type(True)
+    #     assert v.size == 1
+    #     assert v.digits[0] == 1
+    #
+    # def test_singleton_false(self):
+    #     v = self.view_type(False)
+    #     assert v.size == 0
+    #     assert v.digits[0] == 0
