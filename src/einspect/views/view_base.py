@@ -288,12 +288,10 @@ class View(BaseView[_T, _KT, _VT]):
         move(src=self._pyobject, dst=dst._pyobject, offset=start)
 
     @overload
-    def move_from(self, other: _View) -> _View:
-        ...
+    def move_from(self, other: _View) -> _View: ...
 
     @overload
-    def move_from(self, other: _Obj) -> View[_Obj]:
-        ...
+    def move_from(self, other: _Obj) -> View[_Obj]: ...
 
     def move_from(self, other):
         """Moves data at other Viewable to this View."""
@@ -322,12 +320,10 @@ class View(BaseView[_T, _KT, _VT]):
         return v
 
     @overload
-    def swap(self, other: _View) -> _View:
-        ...
+    def swap(self, other: _View) -> _View: ...
 
     @overload
-    def swap(self, other: _Obj) -> View[_Obj]:
-        ...
+    def swap(self, other: _Obj) -> View[_Obj]: ...
 
     def swap(self, other):
         """Swaps data at other Viewable with this View."""
@@ -385,12 +381,10 @@ class View(BaseView[_T, _KT, _VT]):
         return new_view
 
     @overload
-    def __lshift__(self, other: _View) -> _View:
-        ...
+    def __lshift__(self, other: _View) -> _View: ...
 
     @overload
-    def __lshift__(self, other: _Obj) -> View[_Obj]:
-        ...
+    def __lshift__(self, other: _Obj) -> View[_Obj]: ...
 
     def __lshift__(self, other):
         """Moves data at other View to this View."""

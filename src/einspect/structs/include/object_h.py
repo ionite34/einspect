@@ -1,4 +1,5 @@
 """https://github.com/python/cpython/blob/3.11/Include/object.h"""
+
 from __future__ import annotations
 
 from ctypes import PYFUNCTYPE, c_char_p, c_int, c_void_p, py_object
