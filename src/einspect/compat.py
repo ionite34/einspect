@@ -1,4 +1,5 @@
 """Python version compatibility constructs."""
+
 from __future__ import annotations
 
 import sys

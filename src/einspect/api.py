@@ -1,12 +1,13 @@
 """CPython API Methods and intrinsic constants."""
+
 from __future__ import annotations
 
+import _ctypes
 import ctypes
 from collections.abc import Sequence
 from ctypes import Array, c_size_t, c_void_p, pythonapi, sizeof
 from typing import Any, Callable, TypeVar
 
-import _ctypes
 from typing_extensions import Annotated
 
 from einspect.compat import Version, python_req

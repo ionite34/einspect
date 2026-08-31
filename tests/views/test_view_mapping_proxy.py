@@ -64,11 +64,9 @@ class TestMappingProxyView(TestView):
         d = {"a": 1, "b": 2}
         obj = MappingProxyType(d)
         v = self.view_type(obj)
-        assert v.info() == dedent_text(
-            f"""
+        assert v.info() == dedent_text(f"""
             MappingProxyObject (at {hex(id(obj))}):
                ob_refcnt: Py_ssize_t = 2
                ob_type: *PyTypeObject = &[mappingproxy]
                mapping: *PyDictObject = &[{{'a': 1, 'b': 2}}]
-            """
-        )
+            """)
