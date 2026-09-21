@@ -72,23 +72,19 @@ class StrView(View[str, None, None], MutableSequence):
         return self._pyobject.GetLength()
 
     @overload
-    def __getitem__(self, index: int) -> str:
-        ...
+    def __getitem__(self, index: int) -> str: ...
 
     @overload
-    def __getitem__(self, index: slice) -> str:
-        ...
+    def __getitem__(self, index: slice) -> str: ...
 
     def __getitem__(self, index: int | slice) -> str:
         return str.__getitem__(self.base, index)
 
     @overload
-    def __setitem__(self, index: int, value: str) -> None:
-        ...
+    def __setitem__(self, index: int, value: str) -> None: ...
 
     @overload
-    def __setitem__(self, index: slice, value: Iterable[str]) -> None:
-        ...
+    def __setitem__(self, index: slice, value: Iterable[str]) -> None: ...
 
     def __setitem__(self, index: int | slice, value: str | Iterable[str]) -> None:
         if not isinstance(index, slice):
@@ -108,12 +104,10 @@ class StrView(View[str, None, None], MutableSequence):
         _str_move(self, target)
 
     @overload
-    def __delitem__(self, index: int) -> None:
-        ...
+    def __delitem__(self, index: int) -> None: ...
 
     @overload
-    def __delitem__(self, index: slice) -> None:
-        ...
+    def __delitem__(self, index: slice) -> None: ...
 
     def __delitem__(self, index: int) -> None:
         # Use a temp list for the slice calculation

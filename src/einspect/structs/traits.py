@@ -1,4 +1,5 @@
 """Traits and mixins for structs."""
+
 from ctypes import Structure, addressof, pointer
 
 from typing_extensions import Self
