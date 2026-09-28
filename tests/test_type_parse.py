@@ -36,7 +36,6 @@ def test_struct_union() -> None:
 def test_api_bind() -> None:
     class Foo(Structure):
         @bind_api(lambda: 0)
-        def func(self) -> Optional[int]:
-            ...
+        def func(self) -> Optional[int]: ...
 
     assert Foo.func() == 0

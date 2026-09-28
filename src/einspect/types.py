@@ -86,12 +86,10 @@ if Version.PY_3_9.above():  # pragma: no cover
         _type_ = ctypes.c_void_p
 
         @overload
-        def __getitem__(self, item: int) -> _T:
-            ...
+        def __getitem__(self, item: int) -> _T: ...
 
         @overload
-        def __getitem__(self, item: slice) -> List[_T]:
-            ...
+        def __getitem__(self, item: slice) -> List[_T]: ...
 
         def __getitem__(self, item):
             raise NotImplementedError
@@ -111,8 +109,7 @@ class char_p(ctypes.c_char_p):
 
 
 class SupportsLessThan(typing.Protocol):  # pragma: no cover
-    def __lt__(self, other: Self) -> bool:
-        ...
+    def __lt__(self, other: Self) -> bool: ...
 
 
 if not TYPE_CHECKING:
