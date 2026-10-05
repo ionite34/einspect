@@ -1,4 +1,5 @@
 """Decorator protocols for binding class properties."""
+
 from __future__ import annotations
 
 import ctypes
@@ -116,9 +117,11 @@ class delayed_bind(property):
                     ", ".join(
                         repr(x.__name__) if x is not None else "None" for x in argtypes
                     ),
-                    self.py_api.restype.__name__
-                    if self.py_api.restype is not None
-                    else "None",
+                    (
+                        self.py_api.restype.__name__
+                        if self.py_api.restype is not None
+                        else "None"
+                    ),
                 )
 
         # Called as class method, return directly without binding
