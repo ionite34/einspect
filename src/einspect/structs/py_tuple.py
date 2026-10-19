@@ -33,13 +33,11 @@ class PyTupleObject(PyVarObject[tuple, None, _VT], IsGC):
 
     @overload
     @classmethod
-    def from_object(cls, obj: tuple[_VT, ...]) -> PyTupleObject[_VT]:
-        ...
+    def from_object(cls, obj: tuple[_VT, ...]) -> PyTupleObject[_VT]: ...
 
     @overload
     @classmethod
-    def from_object(cls, obj: tuple[...]) -> PyTupleObject[Any]:
-        ...
+    def from_object(cls, obj: tuple[...]) -> PyTupleObject[Any]: ...
 
     @classmethod
     def from_object(cls, obj: tuple[_VT, ...]) -> PyTupleObject[_VT]:
