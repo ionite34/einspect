@@ -1,4 +1,5 @@
 """Methods for managing unsafe contexts for views."""
+
 from __future__ import annotations
 
 from collections.abc import Generator

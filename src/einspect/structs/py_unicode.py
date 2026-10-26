@@ -234,7 +234,9 @@ class PyCompactUnicodeObject(PyASCIIObject):
 
     utf8_length: int  # Number of bytes in utf8, excluding the \0
     utf8: char_p  # UTF-8 representation (null-terminated)
-    wstr_length: int  # Number of characters in wstr, surrogates count as two code points
+    wstr_length: (
+        int  # Number of characters in wstr, surrogates count as two code points
+    )
 
     def _format_fields_(self) -> Fields:
         return {
