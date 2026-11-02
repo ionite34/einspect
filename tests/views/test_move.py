@@ -1,4 +1,5 @@
 """Test moving of views."""
+
 from ast import literal_eval
 
 import pytest
