@@ -1,4 +1,5 @@
 """Parsing type hints."""
+
 from __future__ import annotations
 
 import ctypes
@@ -24,8 +25,7 @@ class FuncPtr(Protocol):
     restype: type | None
     argtypes: Sequence[type]
 
-    def __call__(self, *args: Any, **kwargs: Any) -> Any:
-        ...  # pragma: no cover
+    def __call__(self, *args: Any, **kwargs: Any) -> Any: ...  # pragma: no cover
 
 
 aliases = {
