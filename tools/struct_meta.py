@@ -1,4 +1,5 @@
 """Parsing struct metadata."""
+
 from __future__ import annotations
 
 import operator

@@ -1,4 +1,5 @@
 """Proxy for retrieving original methods and slot wrappers of types."""
+
 from __future__ import annotations
 
 from ctypes import cast
