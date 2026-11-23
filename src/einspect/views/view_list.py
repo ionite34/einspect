@@ -23,12 +23,10 @@ class ListView(VarView[list, None, _VT], abc.Sequence[_VT]):
         super().__init__(obj, ref)
 
     @overload
-    def __getitem__(self, index: int) -> _VT:
-        ...
+    def __getitem__(self, index: int) -> _VT: ...
 
     @overload
-    def __getitem__(self, index: slice) -> list[_VT]:
-        ...
+    def __getitem__(self, index: slice) -> list[_VT]: ...
 
     def __getitem__(self, index: int | slice) -> _VT | list[_VT]:
         if isinstance(index, int):
